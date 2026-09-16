@@ -84,6 +84,7 @@ let changed = 0;
     const before = fs.readFileSync(from, 'utf8');
     let after;
     if (entry.name === 'robots.txt') after = ROBOTS_TXT;
+    else if (entry.name === 'llms.txt') after = rewrite(before, entry.name).split('\n').filter((l) => !l.includes('sitemap.xml')).join('\n'); // sitemapy na hostingu testowym nie ma
     else {
       after = rewrite(before, entry.name);
       if (/\.html$/i.test(entry.name)) { after = robotsMeta(after); check(after, to); }

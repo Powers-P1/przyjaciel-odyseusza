@@ -14,6 +14,7 @@
     "test:staging": "playwright test --config playwright.staging.config.js",
     "lighthouse": "node tools/lighthouse.mjs",
     "lighthouse:staging": "node tools/lighthouse.mjs https://powers-p1.github.io/przyjaciel-odyseusza/ docs/lighthouse/staging",
+    "psi:staging": "node tools/psi.mjs https://powers-p1.github.io/przyjaciel-odyseusza/ docs/lighthouse/staging",
     "deploy": "npm run build && wrangler pages deploy"
   },
   "devDependencies": {

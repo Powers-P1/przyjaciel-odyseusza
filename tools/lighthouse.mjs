@@ -13,6 +13,9 @@ fs.mkdirSync(outDir, { recursive: true });
 
 const THRESHOLDS = { performance: 0.9, accessibility: 0.95, 'best-practices': 0.95, seo: 0.95 };
 const CWV = { lcp: 2500, cls: 0.1, tbt: 200 }; // lab: TBT jako proxy INP
+// Współdzielone runnery CI (2 vCPU) dają pojedyncze przebiegi z losowo długimi zadaniami głównego wątku (TBT),
+// dlatego w CI liczymy medianę z kilku przebiegów (LH_RUNS=3), jak zaleca zespół Lighthouse.
+const RUNS = Math.max(1, Number(process.env.LH_RUNS) || 1);
 
 const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless=new', '--no-sandbox'] });
 let failed = false;
@@ -22,7 +25,15 @@ try {
     const config = preset === 'desktop'
       ? { extends: 'lighthouse:default', settings: { formFactor: 'desktop', screenEmulation: { mobile: false, width: 1350, height: 940, deviceScaleFactor: 1, disabled: false }, throttling: { rttMs: 40, throughputKbps: 10240, cpuSlowdownMultiplier: 1 } } }
       : { extends: 'lighthouse:default' };
-    const result = await lighthouse(url, options, config);
+    const runs = [];
+    for (let i = 0; i < RUNS; i++) {
+      const r = await lighthouse(url, options, config);
+      runs.push(r);
+      if (RUNS > 1) console.log(`[${preset}] przebieg ${i + 1}/${RUNS}: performance ${Math.round(r.lhr.categories.performance.score * 100)}, TBT ${Math.round(r.lhr.audits['total-blocking-time'].numericValue)} ms, LCP ${Math.round(r.lhr.audits['largest-contentful-paint'].numericValue)} ms`);
+    }
+    // mediana po wyniku Performance (przy remisie: niższe TBT)
+    runs.sort((a, b) => (a.lhr.categories.performance.score - b.lhr.categories.performance.score) || (b.lhr.audits['total-blocking-time'].numericValue - a.lhr.audits['total-blocking-time'].numericValue));
+    const result = runs[Math.floor(runs.length / 2)];
     const lhr = result.lhr;
     fs.writeFileSync(path.join(outDir, `lighthouse-${preset}.html`), result.report[0]);
     fs.writeFileSync(path.join(outDir, `lighthouse-${preset}.json`), result.report[1]);

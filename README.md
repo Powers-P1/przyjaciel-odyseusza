@@ -149,6 +149,22 @@ Strona nie ustawia cookies i nie ładuje trackerów, dlatego nie potrzebuje bane
 zdarzeń: `docs/plan-pomiarowy.md` (Cloudflare Web Analytics, bez cookies). Skrypt strony emituje zdarzenia
 `po:event` i `dataLayer.push`, które dowolne narzędzie może podchwycić bez zmian w kodzie.
 
+## Wersja testowa na GitHub Pages
+
+Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Każdy push do `main` przechodzi przez QA
+(`.github/workflows/qa.yml`), a po zielonym QA workflow publikuje wersję testową pod adresem
+**<https://powers-p1.github.io/przyjaciel-odyseusza/>** i uruchamia na niej smoke testy.
+
+- `npm run build:staging` (`tools/staging.mjs`) przepisuje gotowe `public/` do `dist-gh/`: podścieżka `/przyjaciel-odyseusza/`
+  we wszystkich adresach, adres testowy zamiast produkcyjnego w canonical/OG/JSON-LD/`llms.txt`/`security.txt`,
+  `noindex, nofollow` na każdej stronie, `robots.txt` bez sitemapy (roboty mogą wejść i zobaczyć noindex), `.nojekyll`.
+- Ograniczenia GitHub Pages: brak `_headers` (nagłówki bezpieczeństwa i CSP działają tylko na Cloudflare), brak funkcji
+  `/api/contact` (formularz kończy się błędem HTTP, interfejs pokazuje kontakt awaryjny: e-mail i telefon), brak
+  autoryzacji dostępu (stąd noindex). Wszystko, co zależy od nagłówków i backendu, testujemy na emulacji Cloudflare (`npm test`).
+- `npm run test:staging` uruchamia te same testy na opublikowanym adresie (z podścieżką; testy nagłówków i backendu są
+  pomijane, dochodzą sprawdzenia z `tests/staging.spec.js`). `npm run lighthouse:staging` zapisuje raporty do `docs/lighthouse/staging/`.
+- Po uruchomieniu produkcji wersję testową wyłącz (Settings → Pages → Unpublish) albo zostaw jako podgląd; jest poza indeksem.
+
 ## Testy i QA
 
 - `npm test` uruchamia `wrangler pages dev` (prawdziwe nagłówki, przekierowania, funkcja, 404) i sprawdza:

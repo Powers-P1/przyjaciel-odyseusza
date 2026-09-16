@@ -24,8 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -41,12 +41,14 @@ jobs:
       - run: npx playwright install --with-deps chromium firefox webkit
       - name: Testy (Playwright + axe, emulacja Cloudflare Pages)
         run: npm test
-      - name: Lighthouse (progi wydania)
+      - name: Lighthouse (progi wydania, mediana z 3 przebiegów na współdzielonym runnerze)
+        env:
+          LH_RUNS: 3
         run: |
           npx wrangler pages dev --port 8788 --ip 127.0.0.1 --log-level warn &
           npx wait-on http://127.0.0.1:8788/ --timeout 120000
           npm run lighthouse
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: raporty-qa
@@ -70,31 +72,31 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Wariant testowy (podścieżka z ustawień Pages, noindex)
         run: npm run build:staging
         env:
           STAGING_URL: ${{ steps.pages.outputs.base_url }}/
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist-gh
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   staging-smoke:
     needs: staging
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -104,7 +106,7 @@ jobs:
         run: npm run test:staging -- --project=chromium --project=mobile-chrome
         env:
           STAGING_URL: ${{ needs.staging.outputs.url }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: raporty-staging

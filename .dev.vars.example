@@ -1,0 +1,5 @@
+# Skopiuj do .dev.vars (lokalnie, nie commitować) i uzupełnij:
+RESEND_API_KEY=re_xxxxxxxxx
+CONTACT_TO=bartek@przyjacielodyseusza.pl
+CONTACT_FROM=Formularz – Przyjaciel Odyseusza <formularz@przyjacielodyseusza.pl>
+# TURNSTILE_SECRET=0x4AAA...

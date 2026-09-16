@@ -1,0 +1,9 @@
+# Jednolite końce linii (LF) niezależnie od systemu – build w CI porównuje public/ bajt po bajcie.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff2 binary
+*.woff binary

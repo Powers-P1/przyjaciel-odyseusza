@@ -1,0 +1,119 @@
+import { test, expect, ORIGIN } from './_fixtures.js';
+
+test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
+  test('strona główna ładuje się bez błędów w konsoli', async ({ page }) => {
+    const errors = [];
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+    page.on('pageerror', (e) => errors.push(e.message));
+    page.on('requestfailed', (r) => errors.push(`requestfailed: ${r.url()}`));
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.waitForTimeout(500);
+    expect(errors, errors.join('\n')).toEqual([]);
+  });
+
+  test('każda kotwica w nawigacji i przyciskach prowadzi do istniejącej sekcji', async ({ page }) => {
+    await page.goto('/');
+    const hrefs = await page.locator('a[href^="#"]').evaluateAll((as) => [...new Set(as.map((a) => a.getAttribute('href')))]);
+    expect(hrefs.length).toBeGreaterThan(3);
+    for (const h of hrefs) {
+      await expect(page.locator(h), `brak celu dla ${h}`).toHaveCount(1);
+    }
+  });
+
+  test('główne CTA „Porozmawiajmy” prowadzi do formularza', async ({ page }) => {
+    await page.goto('/');
+    await page.locator('.hero .btn--primary').click();
+    await expect(page).toHaveURL(/#kontakt$/);
+    // na wąskich ekranach sekcja jest jednokolumnowa: w widoku ląduje nagłówek sekcji, formularz jest niżej
+    await expect(page.locator('#kontakt')).toBeInViewport({ ratio: 0.2 });
+  });
+
+  test('linki telefon i e-mail używają tel: i mailto:', async ({ page }) => {
+    await page.goto('/');
+    const tel = page.locator('a[href^="tel:"]');
+    const mail = page.locator('a[href^="mailto:"]');
+    expect(await tel.count()).toBeGreaterThanOrEqual(2);
+    expect(await mail.count()).toBeGreaterThanOrEqual(2);
+    for (const href of await tel.evaluateAll((as) => as.map((a) => a.href))) expect(href).toBe('tel:+48601145360');
+    for (const href of await mail.evaluateAll((as) => as.map((a) => a.href))) expect(href.startsWith('mailto:bartek@przyjacielodyseusza.pl')).toBeTruthy();
+  });
+
+  test('strona nie ustawia cookies ani localStorage (brak trackerów, brak potrzeby CMP)', async ({ page, context }) => {
+    await page.goto('/', { waitUntil: 'networkidle' });
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await page.locator('#formularz .form__submit').click();
+    await page.waitForTimeout(300);
+    expect(await context.cookies()).toEqual([]);
+    const storage = await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) }));
+    expect(storage.local).toEqual([]);
+    expect(storage.session).toEqual([]);
+    const thirdParty = [];
+    page.on('request', (r) => { if (!r.url().startsWith(ORIGIN)) thirdParty.push(r.url()); });
+    await page.reload({ waitUntil: 'networkidle' });
+    expect(thirdParty).toEqual([]);
+  });
+
+  test('stare kotwice z poprzedniej strony trafiają do właściwych sekcji', async ({ page }) => {
+    await page.goto('/#dla-biznesu');
+    await expect(page).toHaveURL(/#dla-kogo$/);
+    await page.goto('/#dla-ciebie');
+    await expect(page).toHaveURL(/#dla-kogo$/);
+  });
+
+  test('żaden link nie otwiera nowej karty bez powodu', async ({ page }) => {
+    await page.goto('/');
+    expect(await page.locator('a[target="_blank"]').count()).toBe(0);
+  });
+
+  test('menu mobilne: otwieranie, zamykanie linkiem i klawiszem Escape', async ({ page }, testInfo) => {
+    test.skip(!testInfo.project.name.startsWith('mobile'), 'tylko projekty mobilne');
+    await page.goto('/');
+    const toggle = page.locator('.nav-toggle');
+    const nav = page.locator('#nav-glowna');
+    await expect(toggle).toBeVisible();
+    await expect(nav).toBeHidden();
+    await toggle.tap();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(nav).toBeVisible();
+    await nav.getByRole('link', { name: 'Oferta' }).tap();
+    await expect(nav).toBeHidden();
+    await expect(page).toHaveURL(/#oferta$/);
+    await toggle.tap();
+    await expect(nav).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(nav).toBeHidden();
+    await expect(toggle).toBeFocused();
+  });
+
+  test('na desktopie menu jest widoczne bez przycisku', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name.startsWith('mobile'), 'tylko desktop');
+    await page.goto('/');
+    await expect(page.locator('.nav-toggle')).toBeHidden();
+    await expect(page.locator('#nav-glowna')).toBeVisible();
+  });
+
+  test('brak poziomego scrolla na wąskim ekranie (reflow 320 px)', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 700 });
+    await page.goto('/');
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test('strona pozostaje używalna przy zoomie 200% (viewport 640 px)', async ({ page }) => {
+    await page.setViewportSize({ width: 640, height: 800 });
+    await page.goto('/');
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('.hero .btn--primary')).toBeVisible();
+  });
+
+  test('bardzo szeroki ekran nie psuje układu', async ({ page }) => {
+    await page.setViewportSize({ width: 2560, height: 1200 });
+    await page.goto('/');
+    const box = await page.locator('.hero .container').first().boundingBox();
+    expect(box.width).toBeLessThanOrEqual(1200);
+    expect(box.x).toBeGreaterThan(500);
+  });
+});

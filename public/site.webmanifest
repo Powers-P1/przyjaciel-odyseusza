@@ -1,0 +1,15 @@
+{
+  "name": "Przyjaciel Odyseusza",
+  "short_name": "Przyjaciel Odyseusza",
+  "description": "Mentoring i coaching dla menedżerów i liderów. Bartłomiej Przytuła: mentor biznesowy, coach i psycholog.",
+  "lang": "pl",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#12343e",
+  "theme_color": "#12343e",
+  "icons": [
+    { "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/assets/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

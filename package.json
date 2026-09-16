@@ -1,0 +1,31 @@
+{
+  "name": "przyjaciel-odyseusza",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Strona przyjacielodyseusza.pl – statyczny landing page (Cloudflare Pages) z funkcją formularza",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev --port 8788 --ip 127.0.0.1",
+    "build": "node tools/build.mjs",
+    "build:staging": "node tools/staging.mjs",
+    "validate": "html-validate public/index.html public/polityka-prywatnosci.html public/404.html",
+    "test": "playwright test",
+    "test:quick": "playwright test --project=chromium --project=mobile-chrome",
+    "test:staging": "playwright test --config playwright.staging.config.js",
+    "lighthouse": "node tools/lighthouse.mjs",
+    "lighthouse:staging": "node tools/lighthouse.mjs https://powers-p1.github.io/przyjaciel-odyseusza/ docs/lighthouse/staging",
+    "deploy": "npm run build && wrangler pages deploy"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "esbuild": "^0.28.2",
+    "html-validate": "^11.16.0",
+    "lighthouse": "^13.4.1",
+    "wait-on": "^8.0.3",
+    "wrangler": "^4.132.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

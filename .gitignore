@@ -1,0 +1,9 @@
+node_modules/
+.wrangler/
+dist-gh/
+.dev.vars
+.DS_Store
+Thumbs.db
+test-results/
+playwright-report/
+tools/fonts-src/

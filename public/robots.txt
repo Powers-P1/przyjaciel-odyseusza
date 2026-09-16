@@ -1,0 +1,9 @@
+# Polityka crawlerów (decyzja z 16.09.2026): strona informacyjna, chcemy być widoczni
+# w wyszukiwarkach i w odpowiedziach modeli AI, dlatego nie blokujemy żadnych robotów
+# (w tym GPTBot, ClaudeBot, PerplexityBot, Google-Extended). Blokujemy tylko endpoint formularza.
+# Dodatkowy opis dla maszyn: /llms.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://przyjacielodyseusza.pl/sitemap.xml

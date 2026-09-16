@@ -1,0 +1,112 @@
+# QA przed wydaniem i publikacja wersji testowej (GitHub Pages).
+#  1) qa           – build, kontrola public/, walidacja HTML, testy Playwright (emulacja Cloudflare Pages: nagłówki,
+#                    funkcja /api/contact, 404), Lighthouse z progami wydania. Każdy błąd zatrzymuje pipeline.
+#  2) staging      – po zielonym QA na main: dist-gh/ (podścieżka /<repo>/, noindex, bez backendu formularza)
+#                    → GitHub Pages https://<konto>.github.io/<repo>/
+#  3) staging-smoke – smoke, SEO, dostępność, linki i sprawdzenia podkatalogu na opublikowanym adresie.
+# Produkcja (Cloudflare Pages) jest wdrażana osobno – patrz README.md.
+name: QA i publikacja testowa
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  WRANGLER_SEND_METRICS: "false"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build (minifikacja) i kontrola, czy public/ jest aktualne
+        run: |
+          npm run build
+          git diff --exit-code -- public || (echo "public/ nie jest zbudowane (npm run build: minifikacja, inline CSS, hash CSP, twarde spacje). Uruchom npm run build i zacommituj." && exit 1)
+      - name: Walidacja HTML
+        run: npm run validate
+      - name: Wariant testowy buduje się (podścieżka, noindex, bez adresów produkcyjnych)
+        run: npm run build:staging
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Testy (Playwright + axe, emulacja Cloudflare Pages)
+        run: npm test
+      - name: Lighthouse (progi wydania)
+        run: |
+          npx wrangler pages dev --port 8788 --ip 127.0.0.1 --log-level warn &
+          npx wait-on http://127.0.0.1:8788/ --timeout 120000
+          npm run lighthouse
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raporty-qa
+          path: |
+            playwright-report
+            docs/lighthouse
+          retention-days: 14
+
+  staging:
+    needs: qa
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    outputs:
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Wariant testowy (podścieżka z ustawień Pages, noindex)
+        run: npm run build:staging
+        env:
+          STAGING_URL: ${{ steps.pages.outputs.base_url }}/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-gh
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  staging-smoke:
+    needs: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Testy na opublikowanym adresie testowym
+        run: npm run test:staging -- --project=chromium --project=mobile-chrome
+        env:
+          STAGING_URL: ${{ needs.staging.outputs.url }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raporty-staging
+          path: playwright-report
+          retention-days: 14

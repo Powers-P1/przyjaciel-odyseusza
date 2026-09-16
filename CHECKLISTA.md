@@ -28,8 +28,8 @@ Stosuj następujące oznaczenia:
 
 - Nazwa projektu: przyjacielodyseusza.pl, landing page „Pełne morze” (wersja 05)
 - Domena produkcyjna: https://przyjacielodyseusza.pl (kanoniczna, bez `www`)
-- Domena staging: podglądy Cloudflare Pages `*.pages.dev` (do objęcia Access policy po utworzeniu projektu)
-- Repozytorium: do założenia przez agencję (zawartość folderu `przyjaciel-odyseusza/`; `.gitignore` gotowy)
+- Domena testowa: https://powers-p1.github.io/przyjaciel-odyseusza/ (GitHub Pages, podkatalog, `noindex`; publikowana automatycznie po zielonym QA na `main`); docelowo także podglądy Cloudflare Pages `*.pages.dev` (do objęcia Access policy po utworzeniu projektu)
+- Repozytorium: https://github.com/Powers-P1/przyjaciel-odyseusza (publiczne – plan GitHub Free nie udostępnia Pages dla repozytoriów prywatnych; lokalnie `C:\Projekty\przyjaciel-odyseusza`)
 - Hosting: Cloudflare Pages (plan Free) + Pages Functions (formularz)
 - Framework / SSG: brak; czysty HTML/CSS/JS, `esbuild` tylko do minifikacji (`npm run build`)
 - Główny język: polski (`<html lang="pl">`)

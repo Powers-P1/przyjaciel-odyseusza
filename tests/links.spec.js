@@ -36,7 +36,8 @@ test.describe('Linki i zasoby', () => {
       await page.evaluate(async () => {
         window.scrollTo(0, document.body.scrollHeight);
         await new Promise((r) => setTimeout(r, 400));
-        await Promise.all([...document.images].filter((i) => !i.complete).map((i) => new Promise((r) => { i.onload = i.onerror = r; })));
+        // obrazy lazy poza widokiem mogą nigdy nie wystrzelić load/error (WebKit na Linuksie) – czekamy najwyżej 5 s
+        await Promise.all([...document.images].filter((i) => !i.complete).map((i) => new Promise((r) => { i.onload = i.onerror = r; setTimeout(r, 5000); })));
       });
       const broken = await page.evaluate(() => [...document.images].filter((i) => i.complete && i.naturalWidth === 0).map((i) => i.currentSrc || i.src));
       expect(broken, `uszkodzone obrazy na ${path}`).toEqual([]);

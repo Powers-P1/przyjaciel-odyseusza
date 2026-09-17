@@ -1,15 +1,17 @@
-# QA przed wydaniem i publikacja wersji testowej (GitHub Pages).
-#  1) qa           – build, kontrola public/, walidacja HTML, testy Playwright (emulacja Cloudflare Pages: nagłówki,
-#                    funkcja /api/contact, 404), Lighthouse z progami wydania. Każdy błąd zatrzymuje pipeline.
-#  2) staging      – po zielonym QA na main: dist-gh/ (podścieżka /<repo>/, noindex, bez backendu formularza)
-#                    → GitHub Pages https://<konto>.github.io/<repo>/
-#  3) staging-smoke – smoke, SEO, dostępność, linki i sprawdzenia podkatalogu na opublikowanym adresie.
+# QA przed wydaniem i publikacja wersji testowych (GitHub Pages).
+#  1) qa            – build, kontrola public/, walidacja HTML, testy Playwright (emulacja Cloudflare Pages: nagłówki,
+#                     funkcja /api/contact, 404), Lighthouse z progami wydania. Każdy błąd zatrzymuje pipeline.
+#  2) staging       – po zielonym QA (push do main albo wersja-*): buduje trzy warianty strony z trzech gałęzi
+#                     (main → /, wersja-b → /wersja-b/, wersja-c → /wersja-c/, spis → /wersje/) i publikuje je
+#                     razem na GitHub Pages (podścieżka, noindex, bez backendu formularza).
+#  3) staging-smoke – smoke, SEO, dostępność, linki i sprawdzenia podkatalogu na każdym opublikowanym wariancie,
+#                     testami z jego gałęzi, po potwierdzeniu, że CDN podaje bieżący commit.
 # Produkcja (Cloudflare Pages) jest wdrażana osobno – patrz README.md.
 name: QA i publikacja testowa
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'wersja-*']
   pull_request:
 
 env:
@@ -59,9 +61,12 @@ jobs:
 
   staging:
     needs: qa
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
     permissions:
       contents: read
       pages: write
@@ -71,22 +76,49 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     outputs:
       url: ${{ steps.deploy.outputs.page_url }}
+      sha-a: ${{ steps.main.outputs.commit }}
+      sha-b: ${{ steps.b.outputs.commit }}
+      sha-c: ${{ steps.c.outputs.commit }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - id: main
+        uses: actions/checkout@v7
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
+          ref: main
+      - id: b
+        uses: actions/checkout@v7
+        with:
+          ref: wersja-b
+          path: wersja-b
+      - id: c
+        uses: actions/checkout@v7
+        with:
+          ref: wersja-c
+          path: wersja-c
       - id: pages
         uses: actions/configure-pages@v6
-      - name: Wariant testowy (podścieżka z ustawień Pages, noindex, stempel builda)
+      - name: Wersja A (main) → dist-gh/
         run: |
-          npm run build:staging
+          node tools/staging.mjs
           test -f dist-gh/.nojekyll && test -f dist-gh/.well-known/security.txt
         env:
           STAGING_URL: ${{ steps.pages.outputs.base_url }}/
-          BUILD_ID: ${{ github.sha }}
+          BUILD_ID: ${{ steps.main.outputs.commit }}
+      - name: Wersja B (wersja-b) → dist-gh/wersja-b/
+        working-directory: wersja-b
+        run: node tools/staging.mjs --out ../dist-gh/wersja-b
+        env:
+          STAGING_URL: ${{ steps.pages.outputs.base_url }}/wersja-b/
+          BUILD_ID: ${{ steps.b.outputs.commit }}
+      - name: Wersja C (wersja-c) → dist-gh/wersja-c/
+        working-directory: wersja-c
+        run: node tools/staging.mjs --out ../dist-gh/wersja-c
+        env:
+          STAGING_URL: ${{ steps.pages.outputs.base_url }}/wersja-c/
+          BUILD_ID: ${{ steps.c.outputs.commit }}
+      - name: Spis wersji → dist-gh/wersje/
+        run: |
+          mkdir -p dist-gh/wersje
+          cp tools/wersje.html dist-gh/wersje/index.html
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist-gh
@@ -97,9 +129,29 @@ jobs:
   staging-smoke:
     needs: staging
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - wersja: A
+            ref: main
+            path: ""
+            sha: ${{ needs.staging.outputs.sha-a }}
+          - wersja: B
+            ref: wersja-b
+            path: wersja-b/
+            sha: ${{ needs.staging.outputs.sha-b }}
+          - wersja: C
+            ref: wersja-c
+            path: wersja-c/
+            sha: ${{ needs.staging.outputs.sha-c }}
+    env:
+      STAGING_URL: ${{ needs.staging.outputs.url }}${{ matrix.path }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ matrix.ref }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -109,19 +161,15 @@ jobs:
       - name: Czekaj, aż CDN poda właśnie wdrożoną wersję (stempel builda w HTML, max 5 min)
         run: |
           for i in $(seq 1 60); do
-            if curl -fsS "$STAGING_URL" | grep -q "build $GITHUB_SHA"; then echo "Wersja $GITHUB_SHA jest na żywo."; exit 0; fi
+            if curl -fsS "$STAGING_URL" | grep -q "build ${{ matrix.sha }}"; then echo "Wersja ${{ matrix.wersja }} (${{ matrix.sha }}) jest na żywo."; exit 0; fi
             sleep 5
           done
-          echo "Adres testowy nie podaje wersji $GITHUB_SHA po 5 minutach."; exit 1
-        env:
-          STAGING_URL: ${{ needs.staging.outputs.url }}
-      - name: Testy na opublikowanym adresie testowym
+          echo "Adres $STAGING_URL nie podaje wersji ${{ matrix.sha }} po 5 minutach."; exit 1
+      - name: Testy na opublikowanym adresie testowym (wersja ${{ matrix.wersja }})
         run: npm run test:staging -- --project=chromium --project=mobile-chrome
-        env:
-          STAGING_URL: ${{ needs.staging.outputs.url }}
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: raporty-staging
+          name: raporty-staging-${{ matrix.wersja }}
           path: playwright-report
           retention-days: 14

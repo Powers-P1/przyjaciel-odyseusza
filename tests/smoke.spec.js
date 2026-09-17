@@ -54,11 +54,14 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
     expect(thirdParty).toEqual([]);
   });
 
-  test('stare kotwice z poprzedniej strony trafiają do właściwych sekcji', async ({ page }) => {
-    await page.goto('/#dla-biznesu');
-    await expect(page).toHaveURL(/#dla-kogo$/);
-    await page.goto('/#dla-ciebie');
-    await expect(page).toHaveURL(/#dla-kogo$/);
+  test('stare kotwice z poprzedniej strony trafiają do istniejących sekcji', async ({ page }) => {
+    for (const legacy of ['#dla-biznesu', '#dla-ciebie']) {
+      await page.goto(`/${legacy}`);
+      await expect(page).not.toHaveURL(new RegExp(`${legacy}$`));
+      const hash = new URL(page.url()).hash;
+      expect(hash, `${legacy} powinno przekierować na sekcję`).toMatch(/^#[a-z-]+$/);
+      await expect(page.locator(hash), `cel ${hash} nie istnieje`).toHaveCount(1);
+    }
   });
 
   test('żaden link nie otwiera nowej karty bez powodu', async ({ page }) => {

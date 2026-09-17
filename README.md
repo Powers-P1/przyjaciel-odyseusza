@@ -173,7 +173,7 @@ Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Każdy push d
 - `npm run test:staging` uruchamia te same testy na opublikowanym adresie (z podścieżką; testy nagłówków i backendu są
   pomijane, dochodzą sprawdzenia z `tests/staging.spec.js`). `npm run lighthouse:staging` zapisuje raporty do
   `docs/lighthouse/staging/`, a `npm run psi:staging` pobiera pomiar PageSpeed Insights (Lighthouse po stronie Google).
-  `node tools/screens-staging.mjs` zapisuje zrzuty żywej wersji testowej (desktop, cała strona, iPhone) do `docs/screens/staging-*.png`.
+  `node tools/screens.mjs [url] [prefiks]` zapisuje zrzuty (hero na 1440/1920/1366 px, cała strona, iPhone) do `docs/screens/`.
 - Każda strona wersji testowej ma w `<head>` komentarz `wersja testowa, build <SHA>`; job `staging-smoke` czeka, aż CDN
   poda właśnie wdrożony commit, i dopiero wtedy testuje. W artefakcie Pages muszą być pliki z kropką
   (`include-hidden-files: true`), inaczej `.well-known/security.txt` znika.

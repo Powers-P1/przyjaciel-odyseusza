@@ -178,6 +178,39 @@ o mentoringu („Dzielę się tym, czego nauczyła mnie praktyka zarządzania”
 przeanalizować”) – to zdania, które klient sam przepisał w uwagach jako docelowe, więc zostają w jego brzmieniu.
 Do rozważenia przez klienta przy wyborze wersji.
 
+## 4c. Trzy wersje do wyboru przez klienta (17.09.2026)
+
+Każda wersja ma osobny adres testowy (spis: <https://powers-p1.github.io/przyjaciel-odyseusza/wersje/>) i osobną
+gałąź w repozytorium. Wspólne dla wszystkich: hero wypełnia pierwszy ekran, typografia bez sierot, ta sama
+warstwa techniczna, testy i CI.
+
+**Wersja A – pełna** (`main`): copy z sekcji 4/4a/4b. Dla klienta, który chce, żeby strona odpowiadała na wszystkie
+pytania bez kontaktu: oferta, dla kogo, sytuacje, przebieg, zasady, cennik, pełne CV, historia nazwy.
+
+**Wersja B – lekka** (`wersja-b`): ten sam układ, tekst skrócony do ok. połowy na podstawie badań czytelnictwa
+(założenia i źródła: `docs/wersja-b-zalozenia.md`). Dla czytelnika, który skanuje: nagłówki niosą treść, listy zamiast
+akapitów, jedno CTA powtórzone w trzech miejscach.
+
+**Wersja C – według uwag** (`wersja-c`): układ i treść z pliku „pełne morze uwagi” (uwagi klienta do kierunku
+technicznego, przeniesione na styl „Pełne morze”). Decyzje, które wymagały interpretacji:
+
+- Struktura jak w recenzowanej makiecie: hero → mentoring i coaching → kiedy warto porozmawiać (3 sytuacje z ikonami)
+  → doświadczenie → opinie → kontakt. Sekcji „Dla kogo”, przebiegu współpracy, zasad, cennika i historii nazwy
+  w makiecie nie było, więc ich nie ma; jeśli klient chce cennik lub zasady, przenosimy je z wersji A.
+- Hero: nadtytuł „Mentoring dla menedżerów i liderów”, jeden akapit opisu w brzmieniu klienta, przyciski jak
+  w makiecie („Porozmawiajmy”, „Poznaj ofertę”), bez tekstu pod przyciskami. Portret sięga linii paska faktów
+  (uwaga „nogi ucina za wcześnie”). Pasek faktów jak w makiecie: doświadczenie i wykształcenie.
+- Wprowadzenie do oferty w wersji klienta było gramatycznie niedomknięte („…dobierając odpowiednią formę wsparcia
+  ustalamy na podstawie…”); poprawione na: „Nie podejmuję decyzji za Ciebie. Pomagam Ci je przemyśleć, dobierając
+  odpowiednią formę wsparcia. Ustalamy ją na podstawie Twojej sytuacji i potrzeb.” – do akceptacji.
+- „O mnie”: nagłówek, opis i lista stanowisk dokładnie z uwag (CEDC, Eurocash, Herbapol, magister psychologii SWPS),
+  bez zdania „W moim doświadczeniu zawodowym:”. Pozostałe fakty z CV (Premium Cigars, SGH, Kellogg) są w wersjach A i B.
+- Sekcja „Opinie” dodana między doświadczeniem a formularzem jako widoczne miejsce na dwie rekomendacje
+  (treść do uzupełnienia przez klienta).
+- Uwaga o „zgięciu” linii dotyczyła motywu graficznego kierunku technicznego; w „Pełnym morzu” takiej linii nie ma.
+- Uwaga o zdjęciu: portret w hero jest wycinkiem z makiety; przed publikacją do podmiany na oryginał z sesji
+  (dotyczy wszystkich wersji).
+
 ## 5. Do potwierdzenia z klientem (przed publikacją)
 
 Strona nie zawiera już twierdzeń bez pokrycia w źródle. Poniższe punkty to decyzje, a nie luki faktograficzne:

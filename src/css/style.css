@@ -355,7 +355,7 @@ button { font: inherit; color: inherit; }
 .testimonials { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
 .testimonial { margin: 0; padding: 2rem; background: var(--cream-2); border-left: 2px solid var(--gold); }
 .testimonial p { font: 400 1.15rem/1.5 var(--serif); color: var(--ink); }
-.testimonial footer { font-size: .9rem; color: var(--ink-mute); }
+.testimonial footer { font-size: .9rem; color: var(--ink-soft); }
 .testimonial cite { font-style: normal; font-weight: 600; color: var(--ink); }
 @media (max-width: 47.99em) { .testimonials { grid-template-columns: 1fr; } }
 

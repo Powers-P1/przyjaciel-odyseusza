@@ -181,6 +181,8 @@ z workflow oraz z `tools/wersje.html`.
 - Ograniczenia GitHub Pages: brak `_headers` (nagłówki bezpieczeństwa i CSP działają tylko na Cloudflare), brak funkcji
   `/api/contact` (formularz kończy się błędem HTTP, interfejs pokazuje kontakt awaryjny: e-mail i telefon), brak
   autoryzacji dostępu (stąd noindex). Wszystko, co zależy od nagłówków i backendu, testujemy na emulacji Cloudflare (`npm test`).
+  Witryna GitHub Pages ma jeden `404.html` (z wersji A), więc wersje w podkatalogach dzielą z nią stronę błędu;
+  testy tych wersji pomijają sprawdzanie treści 404 (`SHARED_404` w `tests/_fixtures.js`).
 - `npm run test:staging` uruchamia te same testy na opublikowanym adresie (z podścieżką; testy nagłówków i backendu są
   pomijane, dochodzą sprawdzenia z `tests/staging.spec.js`). `npm run lighthouse:staging` zapisuje raporty do
   `docs/lighthouse/staging/`, a `npm run psi:staging` pobiera pomiar PageSpeed Insights (Lighthouse po stronie Google).

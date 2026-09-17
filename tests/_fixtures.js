@@ -11,6 +11,10 @@ export const ORIGIN = parsed ? parsed.origin : 'http://127.0.0.1:8788';
 export const BASE_PATH = parsed ? parsed.pathname.replace(/\/+$/, '') : '';
 // adres, który ma stać w canonical/og:url/JSON-LD/llms.txt (bez końcowego ukośnika)
 export const SITE = parsed ? ORIGIN + BASE_PATH : 'https://przyjacielodyseusza.pl';
+// wariant w podkatalogu drugiego poziomu (np. /repo/wersja-b/) dzieli stronę 404 z wersją główną:
+// GitHub Pages serwuje jeden 404.html dla całej witryny, więc jej treści i linków nie testujemy per wariant
+export const SHARED_404 = BASE_PATH.split('/').length > 2;
+export const PAGES_404 = SHARED_404 ? [] : ['/nie-istnieje-404'];
 
 /** Dokleja podścieżkę bazową do adresu względem katalogu głównego; adresy już uzupełnione i absolutne zostawia. */
 export function p(url) {

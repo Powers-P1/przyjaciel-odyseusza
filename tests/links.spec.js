@@ -1,7 +1,7 @@
-import { test, expect, STAGING } from './_fixtures.js';
+import { test, expect, STAGING, PAGES_404 } from './_fixtures.js';
 
 // Cloudflare Pages normalizuje adresy: /strona.html → 308 → /strona, dlatego linki są bez rozszerzenia.
-const PAGES = ['/', '/polityka-prywatnosci', '/nie-istnieje-404'];
+const PAGES = ['/', '/polityka-prywatnosci', ...PAGES_404];
 
 test.describe('Linki i zasoby', () => {
   test('wszystkie linki wewnętrzne działają i nie przechodzą przez przekierowania', async ({ page, request }) => {

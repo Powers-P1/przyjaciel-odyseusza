@@ -8,7 +8,7 @@ import fs from 'node:fs';
 const RULES = [
   [/(?<![\p{L}\p{N}&;])([aiouwzAIOUWZ])\s+(?=\S)/gu, '$1&nbsp;'],
   [/(\d)\s+(lat|lata|PLN|zł|min|godz|proc|r\.)(?![\p{L}])/gu, '$1&nbsp;$2'],
-  [/(?<![\p{L}])(od|do|ok\.|ponad|około)\s+(?=\d)/gu, '$1&nbsp;'],
+  [/(?<![\p{L}])(od|do|ok\.|ponad|około)\s+(?=\d)/giu, '$1&nbsp;'],
   [/(?<![\p{L}])(prof|dr|mgr|inż|np|tj|m\.in)\.\s+(?=\S)/gu, '$1.&nbsp;'],
 ];
 

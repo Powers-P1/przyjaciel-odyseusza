@@ -160,9 +160,20 @@ zdarzeń: `docs/plan-pomiarowy.md` (Cloudflare Web Analytics, bez cookies). Skry
 
 ## Wersja testowa na GitHub Pages
 
-Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Każdy push do `main` przechodzi przez QA
-(`.github/workflows/qa.yml`), a po zielonym QA workflow publikuje wersję testową pod adresem
-**<https://powers-p1.github.io/przyjaciel-odyseusza/>** i uruchamia na niej smoke testy.
+Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Każdy push do `main` albo gałęzi `wersja-*`
+przechodzi przez QA (`.github/workflows/qa.yml`), a po zielonym QA workflow publikuje razem trzy warianty strony
+do porównania przez klienta i uruchamia na każdym smoke testy z jego gałęzi:
+
+| Wersja | Gałąź      | Adres testowy                                                | Zawartość |
+|--------|------------|--------------------------------------------------------------|-----------|
+| A      | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/>          | pełne copy zoptymalizowane pod SEO |
+| B      | `wersja-b` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-b/> | ten sam układ, tekst odchudzony na podstawie badań czytelnictwa (`docs/wersja-b-zalozenia.md`) |
+| C      | `wersja-c` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-c/> | układ i treść według uwag klienta z pliku „pełne morze uwagi” |
+| spis   | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/wersje/>   | strona z linkami do wszystkich wersji (`tools/wersje.html`) |
+
+Job `staging` buduje każdą wersję z jej gałęzi (`tools/staging.mjs --out …`) w jeden artefakt Pages, więc adresy są
+zawsze spójne; po wyborze wersji przez klienta wystarczy scalić wybraną gałąź do `main` i usunąć pozostałe wpisy
+z workflow oraz z `tools/wersje.html`.
 
 - `npm run build:staging` (`tools/staging.mjs`) przepisuje gotowe `public/` do `dist-gh/`: podścieżka `/przyjaciel-odyseusza/`
   we wszystkich adresach, adres testowy zamiast produkcyjnego w canonical/OG/JSON-LD/`llms.txt`/`security.txt`,

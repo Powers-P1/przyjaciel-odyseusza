@@ -145,6 +145,39 @@ Przeszły 42 zmiany, 35 odrzucono (głównie za długość lub brak pokrycia w �
   „coaching dla liderów”, „mentor biznesowy”, „mentoring biznesowy”, „psycholog” w title, H2, alt i JSON-LD;
   w JSON-LD `jobTitle`, `hasCredential`, `alumniOf`, `priceRange` zgodne z widoczną treścią.
 
+## 4b. Audyt copy wersji A pod SEO i czytelność (17.09.2026)
+
+Cztery niezależne przeglądy (frazy i intencje wyszukiwania z researchu rynku, struktura i semantyka strony,
+jakość polszczyzny, zgodność faktów ze źródłem), każda propozycja zweryfikowana przez dwóch recenzentów.
+Z 34 propozycji potwierdzono 25, wdrożono 22. Frazy główne (tak nazywają usługę strony konkurencji i tak
+szukają klienci): „mentoring dla menedżerów”, „coaching dla menedżerów”, „mentoring biznesowy”;
+uzupełniające: „coaching dla liderów”, „mentoring biznesowy online”.
+
+Wdrożone zmiany:
+
+- meta description: „Mentoring biznesowy i coaching dla menedżerów i liderów. Bartłomiej Przytuła: psycholog, ponad 20 lat
+  w zarządzaniu. Pierwsza rozmowa bezpłatna.” (144 znaki, fraza kategorii i „liderów” jak w H1);
+- nagłówek karty „Dla firm”: „Mentoring dla menedżerów w Twojej organizacji” (fraza o intencji zakupowej, wcześniej nieobecna);
+- krok 03: „Indywidualne spotkania online lub stacjonarne” (forma spotkań widoczna wcześniej niż w zasadach; „w ustalonej
+  formie i rytmie” powtarzało krok 02); to samo w opisie JSON-LD;
+- H2 sekcji współpracy: „Jak wygląda praca ze mną: kroki, zasady i cennik” (bez wiszącego „to”);
+- link po cenniku: „Umów rozmowę wstępną” zamiast „Przejdź do kontaktu”;
+- fakty: „Zapraszam do współpracy firmy…” zamiast „Pracuję z firmami…” (źródło nie potwierdza bieżących klientów B2B),
+  „w firmach, w których pracowałem” bez „FMCG” (źródło nie precyzuje branży programów mentoringowych),
+  „nie ma głębszego sensu” (zastrzeżenie klienta z jego strony);
+- polszczyzna: karta „Indywidualnie” zaczyna się od pytania („Zarządzasz ludźmi i chcesz mieć kogoś…?”), zdanie o łączeniu
+  myślenia lidera z wrażliwością psychologa podzielone na dwa, „zastanawiasz się, jakim liderem chcesz być” (bez podwójnego
+  „chcesz”), wstęp do współpracy bez trzeciego „zasady”, „szyta na miarę potrzeb osoby lub firmy oraz etapu życia i kariery”,
+  „Od 300 PLN.” jak sąsiednie pola cennika, „przyjacielowi Mentorowi” bez przecinka, formy neutralne płciowo w 404
+  („Ten adres nie istnieje”) i w polityce („gdy mi je przekażesz”);
+- spójność: „Mentor biznesowy | Coach | Psycholog” także w stopce, nagłówek „Zacznijmy od rozmowy” bez kropki,
+  alt portretów bez opisu ubrania (zdjęcia do podmiany) i z „coach” w obu.
+
+Odrzucone świadomie (3): przeredagowanie leadu hero („uporządkować priorytety i zaplanować kolejne kroki”), zdania
+o mentoringu („Dzielę się tym, czego nauczyła mnie praktyka zarządzania”) i sytuacji 02 („Chcesz je spokojnie
+przeanalizować”) – to zdania, które klient sam przepisał w uwagach jako docelowe, więc zostają w jego brzmieniu.
+Do rozważenia przez klienta przy wyborze wersji.
+
 ## 5. Do potwierdzenia z klientem (przed publikacją)
 
 Strona nie zawiera już twierdzeń bez pokrycia w źródle. Poniższe punkty to decyzje, a nie luki faktograficzne:

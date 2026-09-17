@@ -7,3 +7,6 @@ Thumbs.db
 test-results/
 playwright-report/
 tools/fonts-src/
+
+# zrzuty robocze z lokalnego serwera (tools/screens.mjs bez prefiksu); w repo zostają tylko zrzuty z opublikowanych wersji
+docs/screens/local-*

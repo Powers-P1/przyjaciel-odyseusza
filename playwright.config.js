@@ -12,7 +12,7 @@ const PERSIST = process.env.WRANGLER_PERSIST_TO ? ` --persist-to "${process.env.
 export default defineConfig({
   testDir: './tests',
   // sprawdzenia hostingu testowego w podkatalogu biegną tylko z playwright.staging.config.js
-  testIgnore: process.env.STAGING_URL ? [] : ['**/staging.spec.js'],
+  testIgnore: ['**/staging.spec.js'],
   timeout: 60_000,
   expect: { timeout: 10_000 },
   fullyParallel: true,

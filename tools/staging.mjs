@@ -49,8 +49,10 @@ function rewrite(text, name) {
 }
 
 function robotsMeta(html) {
-  if (/<meta name="robots"/.test(html)) return html.replace(/<meta name="robots" content="[^"]*">/, ROBOTS_META);
-  return html.replace(/(<meta name="viewport"[^>]*>)/, `$1\n  ${ROBOTS_META}`);
+  if (/<meta name="robots"/.test(html)) html = html.replace(/<meta name="robots" content="[^"]*">/, ROBOTS_META);
+  else html = html.replace(/(<meta name="viewport"[^>]*>)/, `$1\n  ${ROBOTS_META}`);
+  // stempel wersji (BUILD_ID = SHA commitu w CI): pozwala sprawdzić, czy CDN podaje już właśnie wdrożoną wersję
+  return html.replace('</head>', `  <!-- wersja testowa, build ${process.env.BUILD_ID || 'lokalny'} -->\n</head>`);
 }
 
 function check(html, file) {
@@ -84,7 +86,7 @@ let changed = 0;
     const before = fs.readFileSync(from, 'utf8');
     let after;
     if (entry.name === 'robots.txt') after = ROBOTS_TXT;
-    else if (entry.name === 'llms.txt') after = rewrite(before, entry.name).split('\n').filter((l) => !l.includes('sitemap.xml')).join('\n'); // sitemapy na hostingu testowym nie ma
+    else if (entry.name === 'llms.txt') after = rewrite(before, entry.name).replace(/\n## Opcjonalnie\n[\s\S]*?(?=\n## |\s*$)/, '').trimEnd() + '\n'; // sekcja z sitemapą, której na hostingu testowym nie ma
     else {
       after = rewrite(before, entry.name);
       if (/\.html$/i.test(entry.name)) { after = robotsMeta(after); check(after, to); }

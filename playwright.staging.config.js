@@ -6,7 +6,8 @@ import { defineConfig } from '@playwright/test';
 import base from './playwright.config.js';
 
 const url = process.env.STAGING_URL || 'https://powers-p1.github.io/przyjaciel-odyseusza/';
-process.env.STAGING_URL = url; // widoczne w testach (tests/_fixtures.js)
+// osobna zmienna tylko dla tej konfiguracji: samo STAGING_URL w środowisku nie zmienia zachowania `npm test`
+process.env.PW_STAGING_URL = url; // widoczne w testach (tests/_fixtures.js)
 
 export default defineConfig({
   ...base,

@@ -34,9 +34,10 @@ test.describe('Linki i zasoby', () => {
     for (const path of PAGES) {
       await page.goto(path, { waitUntil: 'networkidle' });
       await page.evaluate(async () => {
+        // obrazy lazy poza widokiem WebKit potrafi nigdy nie pobrać (brak load/error): wymuszamy pobranie i ograniczamy czekanie
+        for (const i of document.images) i.loading = 'eager';
         window.scrollTo(0, document.body.scrollHeight);
         await new Promise((r) => setTimeout(r, 400));
-        // obrazy lazy poza widokiem mogą nigdy nie wystrzelić load/error (WebKit na Linuksie) – czekamy najwyżej 5 s
         await Promise.all([...document.images].filter((i) => !i.complete).map((i) => new Promise((r) => { i.onload = i.onerror = r; setTimeout(r, 5000); })));
       });
       const broken = await page.evaluate(() => [...document.images].filter((i) => i.complete && i.naturalWidth === 0).map((i) => i.currentSrc || i.src));

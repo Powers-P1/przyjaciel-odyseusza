@@ -1,10 +1,10 @@
 // Wspólne ustawienia testów. Domyślnie testy biegną na lokalnej emulacji Cloudflare Pages (wrangler, katalog główny).
-// Z ustawionym STAGING_URL (np. GitHub Pages: https://powers-p1.github.io/przyjaciel-odyseusza/) strona leży
-// w podkatalogu, więc `page.goto('/')` i `request.get('/robots.txt')` są automatycznie uzupełniane o podścieżkę,
-// a adresy kanoniczne (canonical, OG, JSON-LD) mają wskazywać adres testowy zamiast produkcyjnego.
+// Z playwright.staging.config.js (PW_STAGING_URL, np. GitHub Pages: https://powers-p1.github.io/przyjaciel-odyseusza/)
+// strona leży w podkatalogu, więc `page.goto('/')` i `request.get('/robots.txt')` są automatycznie uzupełniane
+// o podścieżkę, a adresy kanoniczne (canonical, OG, JSON-LD) mają wskazywać adres testowy zamiast produkcyjnego.
 import { test as base, expect } from '@playwright/test';
 
-export const STAGING_URL = process.env.STAGING_URL || '';
+export const STAGING_URL = process.env.PW_STAGING_URL || '';
 export const STAGING = Boolean(STAGING_URL);
 const parsed = STAGING ? new URL(STAGING_URL) : null;
 export const ORIGIN = parsed ? parsed.origin : 'http://127.0.0.1:8788';

@@ -21,13 +21,14 @@ test.describe('Hosting testowy (podkatalog, noindex)', () => {
     const inner = BASE_PATH.slice(1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     for (const path of ['/', '/polityka-prywatnosci', '/nie-ma-takiej-strony-staging']) {
       const html = await (await request.get(path)).text();
+      expect(html, `${path}: adres produkcyjny`).not.toContain('https://przyjacielodyseusza.pl');
+      expect(html, `${path}: adres produkcyjny www`).not.toContain('https://www.przyjacielodyseusza.pl');
+      if (!BASE_PATH) continue; // hosting w katalogu głównym: adresy względem katalogu głównego są poprawne
       const leaks = [
         ...html.matchAll(new RegExp(`\\b(href|src|action)="/(?!${inner}/)[^"]*"`, 'g')),
         ...html.matchAll(new RegExp(`url\\(['"]?/(?!${inner}/)[^)]*\\)`, 'g')),
       ].map((m) => m[0]);
       expect(leaks, `${path}: adresy bez podścieżki`).toEqual([]);
-      expect(html, `${path}: adres produkcyjny`).not.toContain('https://przyjacielodyseusza.pl');
-      expect(html, `${path}: adres produkcyjny www`).not.toContain('https://www.przyjacielodyseusza.pl');
       for (const src of html.matchAll(/\bsrcset="([^"]*)"/g)) {
         for (const item of src[1].split(',')) expect(item.trim().startsWith(`${BASE_PATH}/`), `${path}: srcset ${item.trim()}`).toBeTruthy();
       }
@@ -52,7 +53,8 @@ test.describe('Hosting testowy (podkatalog, noindex)', () => {
     expect((await request.get('/polityka-prywatnosci.html', { maxRedirects: 0 })).status()).toBe(200);
   });
 
-  test('.well-known/security.txt jest serwowany (katalog z kropką, .nojekyll)', async ({ request }) => {
+  test('.well-known/security.txt jest serwowany (katalog z kropką trafił do artefaktu Pages)', async ({ request }) => {
+    // upload-pages-artifact od v4 pomija pliki z kropką bez `include-hidden-files: true` – ten test to wykrywa
     const r = await request.get('/.well-known/security.txt');
     expect(r.status()).toBe(200);
     expect(r.headers()['content-type']).toMatch(/text\/plain/);

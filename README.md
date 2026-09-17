@@ -10,7 +10,7 @@ Dokumenty towarzyszące:
 - `REVIEW.md` – review UI/UX i copy, user story, lista pytań do klienta.
 - `docs/plan-pomiarowy.md` – decyzje dotyczące analityki (privacy-first) i zdarzeń.
 - `docs/zrodla/` – tekst obecnej strony klienta (źródło faktów do copy).
-- `docs/screens/` – zrzuty ekranu; `docs/lighthouse/` – raporty Lighthouse po uruchomieniu `npm run lighthouse`.
+- `docs/screens/` – zrzuty ekranu (lokalne i `staging-*` z żywej wersji testowej); `docs/lighthouse/` – raporty Lighthouse (`staging/` z adresu testowego).
 
 ## Struktura
 
@@ -35,10 +35,16 @@ Dokumenty towarzyszące:
 ├── functions/api/contact.js        # Cloudflare Pages Function: POST /api/contact
 ├── tools/build.mjs                 # minifikacja src/ → public/assets/ + twarde spacje w HTML
 ├── tools/nbsp.mjs                  # polska typografia (&nbsp; po jednoliterowych spójnikach)
-├── tools/lighthouse.mjs            # Lighthouse mobile + desktop z progami wydania
-├── tests/                          # Playwright: smoke, SEO, a11y (axe), nagłówki, formularz, linki
-├── playwright.config.js            # 5 projektów: Chromium, Firefox, WebKit, Pixel 7, iPhone 14
-├── .github/workflows/qa.yml        # CI: build, testy, Lighthouse; blokuje release przy błędzie
+├── tools/lighthouse.mjs            # Lighthouse mobile + desktop z progami wydania (w CI mediana z 3 przebiegów)
+├── tools/staging.mjs               # wariant testowy: public/ → dist-gh/ (podścieżka, noindex, adres testowy)
+├── tools/psi.mjs                   # PageSpeed Insights dla adresu testowego (wymaga PSI_API_KEY przy limicie)
+├── tools/screens-staging.mjs       # zrzuty żywej wersji testowej do docs/screens/
+├── tests/                          # Playwright: smoke, SEO, a11y (axe), nagłówki, formularz, linki, hosting testowy
+├── tests/_fixtures.js              # wspólne fixtures (podścieżka bazowa na hostingu testowym)
+├── playwright.config.js            # 5 projektów: Chromium, Firefox, WebKit, Pixel 7, iPhone 14 (emulacja Cloudflare)
+├── playwright.staging.config.js    # te same testy na opublikowanym adresie testowym (GitHub Pages)
+├── .github/workflows/qa.yml        # CI: build, testy, Lighthouse → publikacja testowa na GitHub Pages → smoke na żywo
+├── .gitattributes                  # LF wszędzie (build w CI porównuje public/ bajt po bajcie)
 ├── wrangler.toml                   # konfiguracja Pages (output dir = public)
 └── .dev.vars.example               # wzór zmiennych do lokalnego testu funkcji
 ```
@@ -55,7 +61,10 @@ npm run build               # minifikacja src/ → public/assets/ + &nbsp; w HTM
 npm test                    # wszystkie testy we wszystkich przeglądarkach
 npm run test:quick          # tylko Chromium + mobile Chrome
 npm run lighthouse          # Lighthouse (wymaga działającego `npm run dev`)
-npm run deploy              # build + wrangler pages deploy
+npm run build:staging       # wariant testowy do dist-gh/ (GitHub Pages; robi to CI)
+npm run test:staging        # testy na https://powers-p1.github.io/przyjaciel-odyseusza/
+npm run lighthouse:staging  # Lighthouse na adresie testowym (raporty w docs/lighthouse/staging/)
+npm run deploy              # build + wrangler pages deploy (produkcja, Cloudflare)
 ```
 
 Windows z długą ścieżką projektu: jeśli `wrangler pages dev` kończy się błędem `SQLITE_CANTOPEN`, ustaw

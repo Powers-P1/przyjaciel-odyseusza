@@ -1,11 +1,11 @@
-import { test, expect, STAGING, ORIGIN, BASE_PATH, SITE } from './_fixtures.js';
+import { test, expect, STAGING, ORIGIN, BASE_PATH, SITE, SHARED_404 } from './_fixtures.js';
 
 // Sprawdzenia specyficzne dla hostingu testowego w podkatalogu (GitHub Pages). Na emulacji Cloudflare są pomijane.
 test.describe('Hosting testowy (podkatalog, noindex)', () => {
   test.skip(!STAGING, 'tylko z STAGING_URL');
 
   test('każda strona ma noindex, a robots.txt nie blokuje robotów (żeby noindex był widoczny)', async ({ request }) => {
-    for (const path of ['/', '/polityka-prywatnosci', '/nie-ma-takiej-strony-staging']) {
+    for (const path of ['/', '/polityka-prywatnosci', ...(SHARED_404 ? [] : ['/nie-ma-takiej-strony-staging'])]) {
       const html = await (await request.get(path)).text();
       expect(html, path).toMatch(/<meta name="robots" content="noindex, nofollow">/);
     }
@@ -19,7 +19,7 @@ test.describe('Hosting testowy (podkatalog, noindex)', () => {
   test('w HTML nie ma adresów bez podścieżki ani adresów produkcyjnych', async ({ request }) => {
     // po `="/` zostaje podścieżka bez wiodącego ukośnika, np. `przyjaciel-odyseusza/`
     const inner = BASE_PATH.slice(1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    for (const path of ['/', '/polityka-prywatnosci', '/nie-ma-takiej-strony-staging']) {
+    for (const path of ['/', '/polityka-prywatnosci', ...(SHARED_404 ? [] : ['/nie-ma-takiej-strony-staging'])]) {
       const html = await (await request.get(path)).text();
       expect(html, `${path}: adres produkcyjny`).not.toContain('https://przyjacielodyseusza.pl');
       expect(html, `${path}: adres produkcyjny www`).not.toContain('https://www.przyjacielodyseusza.pl');

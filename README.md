@@ -162,7 +162,11 @@ Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Każdy push d
   `/api/contact` (formularz kończy się błędem HTTP, interfejs pokazuje kontakt awaryjny: e-mail i telefon), brak
   autoryzacji dostępu (stąd noindex). Wszystko, co zależy od nagłówków i backendu, testujemy na emulacji Cloudflare (`npm test`).
 - `npm run test:staging` uruchamia te same testy na opublikowanym adresie (z podścieżką; testy nagłówków i backendu są
-  pomijane, dochodzą sprawdzenia z `tests/staging.spec.js`). `npm run lighthouse:staging` zapisuje raporty do `docs/lighthouse/staging/`.
+  pomijane, dochodzą sprawdzenia z `tests/staging.spec.js`). `npm run lighthouse:staging` zapisuje raporty do
+  `docs/lighthouse/staging/`, a `npm run psi:staging` pobiera pomiar PageSpeed Insights (Lighthouse po stronie Google).
+- Każda strona wersji testowej ma w `<head>` komentarz `wersja testowa, build <SHA>`; job `staging-smoke` czeka, aż CDN
+  poda właśnie wdrożony commit, i dopiero wtedy testuje. W artefakcie Pages muszą być pliki z kropką
+  (`include-hidden-files: true`), inaczej `.well-known/security.txt` znika.
 - Po uruchomieniu produkcji wersję testową wyłącz (Settings → Pages → Unpublish) albo zostaw jako podgląd; jest poza indeksem.
 
 ## Testy i QA

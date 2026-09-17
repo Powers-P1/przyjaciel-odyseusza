@@ -7,8 +7,11 @@ import path from 'node:path';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
 
-const url = process.argv[2] || process.env.LH_URL || 'http://127.0.0.1:8788/';
-const outDir = path.resolve(process.argv[3] || process.env.LH_OUT || 'docs/lighthouse');
+const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const url = args[0] || process.env.LH_URL || 'http://127.0.0.1:8788/';
+const outDir = path.resolve(args[1] || process.env.LH_OUT || 'docs/lighthouse');
+// hosting testowy ma celowo noindex: audyt SEO „is-crawlable” obniża wynik kategorii, choć strona jest poprawna
+const ALLOW_NOINDEX = process.argv.includes('--allow-noindex');
 fs.mkdirSync(outDir, { recursive: true });
 
 const THRESHOLDS = { performance: 0.9, accessibility: 0.95, 'best-practices': 0.95, seo: 0.95 };
@@ -44,9 +47,14 @@ try {
     const tbt = lhr.audits['total-blocking-time'].numericValue;
     console.log(`\n[${preset}] ${url}`);
     for (const [k, min] of Object.entries(THRESHOLDS)) {
-      const ok = scores[k] >= min;
+      let ok = scores[k] >= min;
+      let note = '';
+      if (!ok && k === 'seo' && ALLOW_NOINDEX) {
+        const failing = lhr.categories.seo.auditRefs.filter((r) => lhr.audits[r.id].score !== null && lhr.audits[r.id].score < 1).map((r) => r.id);
+        if (failing.length === 1 && failing[0] === 'is-crawlable') { ok = true; note = ' – jedyny nieudany audyt to noindex (celowy na hostingu testowym)'; }
+      }
       if (!ok) failed = true;
-      console.log(`  ${ok ? 'OK ' : 'FAIL'} ${k}: ${Math.round(scores[k] * 100)} (próg ${min * 100})`);
+      console.log(`  ${ok ? 'OK ' : 'FAIL'} ${k}: ${Math.round(scores[k] * 100)} (próg ${min * 100})${note}`);
     }
     const cwv = [[`LCP ${Math.round(lcp)} ms`, lcp <= CWV.lcp], [`CLS ${cls.toFixed(3)}`, cls <= CWV.cls], [`TBT ${Math.round(tbt)} ms`, tbt <= CWV.tbt]];
     for (const [label, ok] of cwv) { if (!ok) failed = true; console.log(`  ${ok ? 'OK ' : 'FAIL'} ${label}`); }

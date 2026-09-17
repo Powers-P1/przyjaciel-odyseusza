@@ -36,7 +36,7 @@ Stosuj następujące oznaczenia:
 - Dodatkowe języki: brak
 - ID analityki produkcyjnej: brak (privacy-first; rekomendacja Cloudflare Web Analytics, patrz `docs/plan-pomiarowy.md`)
 - CMP / system zgód: brak (strona nie ustawia cookies i nie ładuje trackerów, potwierdzone testem)
-- Data ostatniego pełnego audytu: 2026-09-16 (localhost, przed publikacją)
+- Data ostatniego pełnego audytu: 2026-09-17 (lokalnie na emulacji Cloudflare + na domenie testowej GitHub Pages, przed publikacją produkcyjną)
 - Audyt wykonał: Claude (agent) dla OK Agency / Damian Karolewski Technology Solutions
 
 ---
@@ -55,6 +55,7 @@ Stosuj następujące oznaczenia:
   - HTTP ma przekierowywać na HTTPS, a wszystkie zasoby mają ładować się bez mixed content.
   - **CZĘŚCIOWO:** w kodzie brak zasobów `http://` (wszystko względne / same-origin), HSTS w `public/_headers`, canonical/OG/sitemap na `https://`. Przekierowanie HTTP→HTTPS zapewnia Cloudflare (Always Use HTTPS) – **PO PUBLIKACJI** sprawdzić `curl -I http://przyjacielodyseusza.pl`.
   - Dowód: `tests/headers.spec.js` (nagłówek `strict-transport-security`), `grep -r "http://" public/*.html` zwraca tylko namespace w sitemapie.
+  - Domena testowa (17.09.2026): `http://powers-p1.github.io/przyjaciel-odyseusza/` → 301 na `https://`, odpowiedź z `Strict-Transport-Security: max-age=31556952`; brak mixed content (test `tests/smoke.spec.js` „bez błędów w konsoli” na żywym adresie). Test `tests/staging.spec.js` „HTTP przekierowuje na HTTPS”.
 
 - [ ] Wymuszona jest jedna kanoniczna wersja domeny.
   - Przykład: `https://example.com` ALBO `https://www.example.com`.
@@ -62,15 +63,16 @@ Stosuj następujące oznaczenia:
   - **CZĘŚCIOWO:** kanoniczna to apex `https://przyjacielodyseusza.pl/` (canonical, og:url, sitemap, JSON-LD, `llms.txt`, `security.txt`). Plik `_redirects` w Pages nie obsługuje reguł per host, więc przekierowanie `www` → apex trzeba ustawić jako Redirect Rule w dashboardzie Cloudflare – instrukcja w `README.md` („Domena i kanoniczny host”). **PO PUBLIKACJI.**
   - Dowód: `tests/seo.spec.js` (canonical == adres w sitemapie), `README.md`.
 
-- [ ] Środowiska staging / preview nie mogą być indeksowane.
+- [x] Środowiska staging / preview nie mogą być indeksowane.
   - Najlepiej zabezpieczyć je autoryzacją lub ograniczeniem dostępu.
   - Sam `robots.txt` nie jest zabezpieczeniem prywatności.
+  - Domena testowa GitHub Pages (`tools/staging.mjs`): każda strona ma `<meta name="robots" content="noindex, nofollow">`, `robots.txt` bez `Disallow` (żeby robot zobaczył noindex) i bez sitemapy, `sitemap.xml` nie jest publikowana, canonical/OG/JSON-LD wskazują adres testowy (brak sygnału „to produkcja”). GitHub Pages nie oferuje autoryzacji dostępu – świadomy wyjątek (sekcja 19).
+  - Dowód: `tests/staging.spec.js` „każda strona ma noindex…” na żywym adresie; `curl -s https://powers-p1.github.io/przyjaciel-odyseusza/ | grep robots`.
   - **PO PUBLIKACJI:** włączyć Access policy dla preview deployments w Cloudflare Pages (Settings → General). Instrukcja w `README.md`.
-  - Dowód: brak (wymaga konta Cloudflare).
 
 - [x] Istnieje własna strona 404 i naprawdę zwraca kod HTTP 404.
   - Nie może to być "ładna strona błędu" zwracająca kod 200.
-  - Dowód: `public/404.html`; `tests/seo.spec.js` „własna strona 404 zwraca kod 404” (żądanie losowego adresu → status 404 + treść); `curl -o /dev/null -w "%{http_code}" http://127.0.0.1:8788/nie-ma → 404` na `wrangler pages dev`.
+  - Dowód: `public/404.html`; `tests/seo.spec.js` „własna strona 404 zwraca kod 404” (żądanie losowego adresu → status 404 + treść); `curl -o /dev/null -w "%{http_code}" http://127.0.0.1:8788/nie-ma → 404` na `wrangler pages dev`. Na żywo (GitHub Pages, 17.09.2026): `https://powers-p1.github.io/przyjaciel-odyseusza/nie-ma-takiej-strony` → 404 z własną stroną.
 
 - [x] Przekierowania ze starych lub zmienionych adresów URL są skonfigurowane.
   - Dla zasobów przeniesionych na stałe używaj przekierowań stałych.
@@ -157,7 +159,7 @@ Stosuj następujące oznaczenia:
 ## 2.3 Narzędzia dla wyszukiwarek
 
 - [ ] Domena produkcyjna jest skonfigurowana w Google Search Console.
-  - **PO PUBLIKACJI** (wymaga dostępu do konta Google i domeny).
+  - **PO PUBLIKACJI** (wymaga dostępu do konta Google i domeny). Domeny testowej celowo nie zgłaszamy: jest poza indeksem (`noindex`), a GSC nie da nic poza raportem „wykluczone przez noindex”.
   - Dowód:
 
 - [ ] Produkcyjna sitemap została zgłoszona w Google Search Console.
@@ -183,7 +185,7 @@ Stosuj następujące oznaczenia:
 
 - [x] Obraz social preview jest przygotowany świadomie.
   - Nie może nim być przypadkowy obraz znaleziony przez platformę na stronie.
-  - Dowód: dedykowany `public/assets/img/og-image.jpg` 1200×630 (logo, hasło, portret); test sprawdza, że plik istnieje i jest JPEG. Podgląd: `docs/og-image-podglad.jpg`. **PO PUBLIKACJI:** LinkedIn Post Inspector.
+  - Dowód: dedykowany `public/assets/img/og-image.jpg` 1200×630 (logo, hasło, portret); test sprawdza, że plik istnieje i jest JPEG. Podgląd: `docs/og-image-podglad.jpg`. Podgląd na żywym adresie testowym (opengraph.xyz, 17.09.2026): obraz ładuje się (74 KB, 1200×630, `summary_large_image`, `og:site_name`); dwa ostrzeżenia o długości poprawione: `og:title` skrócony do 58 znaków (jak `<title>`), `og:description` do 121 znaków (podglądy ucinają ok. 125). **PO PUBLIKACJI:** LinkedIn Post Inspector na adresie produkcyjnym (wymaga zalogowania).
 
 - [x] Metadata X/Twitter Card są wdrożone, jeśli mają sens w projekcie.
   - Dowód: `<meta name="twitter:card" content="summary_large_image">`; test.
@@ -220,9 +222,8 @@ Stosuj następujące oznaczenia:
   - Sprawdź nazwę, logo, adres URL, dane kontaktowe i profile społecznościowe.
   - Dowód: e-mail i telefon identyczne w JSON-LD, sekcji kontakt i stopce (`tests/smoke.spec.js` „linki telefon i e-mail…”); brak profili społecznościowych (klient ich nie publikuje, `sameAs` celowo pominięte).
 
-- [ ] Dane strukturalne przechodzą walidację bez błędów krytycznych.
-  - **CZĘŚCIOWO:** JSON parsuje się (test), struktura zgodna ze schema.org. Walidator Google Rich Results Test / Schema Markup Validator wymaga publicznego adresu – **PO PUBLIKACJI**.
-  - Dowód: `tests/seo.spec.js` „JSON-LD parsuje się i opisuje to, co widać na stronie”.
+- [x] Dane strukturalne przechodzą walidację bez błędów krytycznych.
+  - Dowód: Schema Markup Validator (validator.schema.org) na żywym adresie testowym, 17.09.2026: `ProfessionalService` + `Person`, **0 błędów**; jedyne ostrzeżenie (`availableLanguage` nie jest właściwością `ProfessionalService`) usunięte – zamienione na `knowsLanguage`. Google Rich Results Test nie ma typu wyniku rozszerzonego dla `ProfessionalService`/`Person` (celowo bez FAQ/ocen), więc nie wnosi nic ponad walidator. Test `tests/seo.spec.js` „JSON-LD parsuje się i opisuje to, co widać na stronie”.
 
 ---
 
@@ -613,11 +614,11 @@ Stosuj następujące oznaczenia:
 
 - [ ] Brotli/Gzip jest aktywne tam, gdzie platforma to wspiera.
   - **PO PUBLIKACJI:** Cloudflare kompresuje automatycznie (Brotli); sprawdzić `content-encoding` w odpowiedzi produkcyjnej.
-  - Dowód:
+  - Dowód: domena testowa (GitHub Pages, 17.09.2026): `content-encoding: gzip`, HTML strony głównej 14,0 KB po kompresji (`curl -H "Accept-Encoding: br, gzip"`).
 
 - [ ] CDN/edge jest wykorzystywany, jeśli hosting zapewnia taką możliwość.
   - **PO PUBLIKACJI:** Cloudflare Pages serwuje z edge; potwierdzić nagłówek `cf-cache-status` / `server: cloudflare`.
-  - Dowód:
+  - Dowód: domena testowa: GitHub Pages serwuje przez CDN Fastly (`x-served-by: cache-ber…`, `x-cache: HIT`, `cache-control: max-age=600`).
 
 ## 9.5 Weryfikacja wydajności
 
@@ -637,6 +638,9 @@ Stosuj następujące oznaczenia:
 
 - [x] Wydajność mobilną sprawdzono niezależnie od desktopu.
   - Dowód: Lighthouse osobno w profilu mobile (Moto G Power, slow 4G, CPU 4×) i desktop; oba raporty w `docs/lighthouse/`.
+
+- [x] Wydajność zmierzono na prawdziwym hostingu przez internet (domena testowa).
+  - Dowód: `npm run lighthouse:staging` na https://powers-p1.github.io/przyjaciel-odyseusza/ (GitHub Pages, CDN Fastly, gzip), 17.09.2026: **mobile Performance 100, Accessibility 100, Best practices 100, LCP 1,58 s, CLS 0,011, TBT 0 ms; desktop Performance 100, LCP 0,42 s**. Kategoria SEO 66 wyłącznie przez celowy `noindex` na domenie testowej (jedyny nieudany audyt `is-crawlable`; na emulacji produkcji SEO 100). Raporty: `docs/lighthouse/staging/`. W CI (`ubuntu-latest`) mediana z 3 przebiegów: mobile 98 (LCP 2,0 s, TBT 0 ms), desktop 100. PageSpeed Insights (`npm run psi:staging`, Lighthouse po stronie Google) 17.09.2026 zwrócił HTTP 429 – anonimowy dzienny limit API wyczerpany; do powtórzenia z kluczem `PSI_API_KEY` albo ręcznie na pagespeed.web.dev. Dane terenowe (CrUX) pojawią się dopiero na produkcji przy realnym ruchu.
 
 ---
 
@@ -688,7 +692,7 @@ Stosuj następujące oznaczenia:
 ## 10.3 Kontakt bezpieczeństwa
 
 - [x] `/.well-known/security.txt` istnieje w projektach, w których chcemy publikować kanał zgłaszania podatności.
-  - Dowód: `public/.well-known/security.txt` (Contact, Expires 2027-09-16, Preferred-Languages, Canonical, Policy); `tests/headers.spec.js` „security.txt i llms.txt są serwowane jako tekst” (sprawdza też, że `Expires` jest w przyszłości).
+  - Dowód: `public/.well-known/security.txt` (Contact, Expires 2027-09-16, Preferred-Languages, Canonical, Policy); `tests/headers.spec.js` „security.txt i llms.txt są serwowane jako tekst” (sprawdza też, że `Expires` jest w przyszłości). Na domenie testowej: 200 `text/plain` (17.09.2026) po dodaniu `include-hidden-files: true` do artefaktu Pages – pierwsze wdrożenie gubiło katalog z kropką, co wykrył `staging-smoke`.
 
 - [ ] Adres/URL podany w `security.txt` jest rzeczywiście monitorowany.
   - **DO POTWIERDZENIA Z KLIENTEM:** wskazany `bartek@przyjacielodyseusza.pl` (skrzynka klienta). Pozycja 14 na liście pytań w `REVIEW.md`.
@@ -834,16 +838,14 @@ Stosuj następujące oznaczenia:
 
 # 14. Gotowość operacyjna
 
-- [ ] Pipeline CI/CD jest skonfigurowany.
-  - **CZĘŚCIOWO:** `.github/workflows/qa.yml` (build + kontrola aktualności `public/`, walidacja HTML, Playwright w 3 silnikach, Lighthouse, artefakty) gotowy; wymaga repozytorium na GitHubie. Deploy: Cloudflare Pages z Git (automatyczny) – **PO UTWORZENIU REPO**.
-  - Dowód: plik workflow.
+- [x] Pipeline CI/CD jest skonfigurowany.
+  - Dowód: repozytorium https://github.com/Powers-P1/przyjaciel-odyseusza, workflow `.github/workflows/qa.yml` (17.09.2026): job `qa` (build + `git diff --exit-code -- public`, walidacja HTML, kontrola wariantu testowego, Playwright w 3 silnikach + 2 profile mobilne, Lighthouse – mediana z 3 przebiegów), po nim `staging` (GitHub Pages) i `staging-smoke` (testy na opublikowanym adresie po potwierdzeniu, że CDN podaje bieżący commit). Historia: przebieg 1 zatrzymany przez Lighthouse (TBT 662 ms na współdzielonym runnerze → mediana), przebieg 2 przez niestabilny test WebKit (poprawiony), przebieg 3 wdrożył wersję testową, `staging-smoke` wykrył brak plików z kropką w artefakcie Pages (poprawione: `include-hidden-files`). **PO PUBLIKACJI:** deploy produkcyjny z Git w Cloudflare Pages (podpięcie repozytorium).
 
 - [x] Deploy z głównej gałęzi produkcyjnej jest powtarzalny i deterministyczny.
   - Dowód: brak builda na hostingu, publikowany jest katalog `public/` 1:1; `public/assets` generowane z `src/` i weryfikowane w CI (`git diff --exit-code`).
 
-- [ ] Preview/staging działa, jeśli wymaga tego workflow projektu.
-  - **PO PUBLIKACJI:** Pages tworzy podgląd dla każdej gałęzi/PR (`*.pages.dev`); do objęcia Access policy.
-  - Dowód:
+- [x] Preview/staging działa, jeśli wymaga tego workflow projektu.
+  - Dowód: wersja testowa https://powers-p1.github.io/przyjaciel-odyseusza/ publikowana automatycznie z `main` po zielonym QA (GitHub Pages; podkatalog, `noindex`, bez nagłówków `_headers` i bez funkcji formularza – ograniczenia opisane w `README.md`). **PO PUBLIKACJI:** podglądy Cloudflare Pages `*.pages.dev` dla gałęzi/PR, do objęcia Access policy.
 
 - [x] Znana i udokumentowana jest procedura rollbacku.
   - Dowód: `README.md` sekcja „Rollback” (Deployments → Rollback to this deployment; alternatywnie `git revert`).
@@ -888,9 +890,8 @@ Stosuj następujące oznaczenia:
 
 > To, co da się wiarygodnie sprawdzić automatycznie, nie powinno zależeć od pamięci developera lub agenta.
 
-- [ ] Build produkcyjny uruchamia się w CI.
-  - **CZĘŚCIOWO:** krok `npm run build` + `git diff --exit-code -- public/assets` w `.github/workflows/qa.yml`; uruchomienie wymaga repozytorium.
-  - Dowód: plik workflow.
+- [x] Build produkcyjny uruchamia się w CI.
+  - Dowód: krok `npm run build` + `git diff --exit-code -- public` w `.github/workflows/qa.yml` przechodzi na `ubuntu-latest` (17.09.2026) – build jest powtarzalny między Windows a Linuksem (LF wymuszone w `.gitattributes`, esbuild z lockfile).
 
 - [x] Istnieje automatyczny test broken links.
   - Dowód: `tests/links.spec.js` (linki wewnętrzne, kotwice, zasoby, brak adresów stagingu).
@@ -927,13 +928,11 @@ Stosuj następujące oznaczenia:
 - [x] Nagłówki bezpieczeństwa są sprawdzane automatycznie albo przy każdym audycie wydania.
   - Dowód: `tests/headers.spec.js` na `wrangler pages dev` (czyta realne `_headers`).
 
-- [ ] CI zatrzymuje release przy poważnej regresji dostępności.
-  - **CZĘŚCIOWO:** `npm test` kończy się błędem przy dowolnym naruszeniu axe; pipeline gotowy, wymaga repozytorium i podpięcia deployu do gałęzi po QA.
-  - Dowód: `.github/workflows/qa.yml`, `tests/a11y.spec.js`.
+- [x] CI zatrzymuje release przy poważnej regresji dostępności.
+  - Dowód: `npm test` kończy się błędem przy dowolnym naruszeniu axe, a job `staging` ma `needs: qa` – bez zielonego QA nie ma wdrożenia. Potwierdzone w praktyce 16–17.09.2026: przebiegi 1 i 2 (błąd Lighthouse, potem błąd testu) zakończyły się bez wdrożenia (`staging: skipped`). `.github/workflows/qa.yml`, `tests/a11y.spec.js`.
 
-- [ ] CI zatrzymuje release przy błędzie buildu lub krytycznych smoke testach.
-  - **CZĘŚCIOWO:** jak wyżej.
-  - Dowód:
+- [x] CI zatrzymuje release przy błędzie buildu lub krytycznych smoke testach.
+  - Dowód: jak wyżej (`git diff --exit-code`, `npm run validate`, `npm test`, Lighthouse – każdy błąd zatrzymuje pipeline przed jobem `staging`).
 
 - [x] Dla projektów, gdzie wydajność ma znaczenie biznesowe, określono performance budget / próg wydania.
   - Dowód: `tools/lighthouse.mjs`: Performance ≥ 90, Accessibility/Best practices/SEO ≥ 95, LCP ≤ 2,5 s, CLS ≤ 0,1, TBT ≤ 200 ms.
@@ -976,7 +975,7 @@ Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną 
   - Dowód:
 
 - [ ] Główne CTA działa.
-  - Dowód: lokalnie `tests/smoke.spec.js` „główne CTA prowadzi do formularza”; **po publikacji** powtórzyć na produkcji.
+  - Dowód: lokalnie `tests/smoke.spec.js` „główne CTA prowadzi do formularza”; na domenie testowej (17.09.2026, `npm run test:staging`, 5 przeglądarek) test przechodzi na żywym adresie; **po publikacji** powtórzyć na produkcji.
 
 - [ ] Każdy produkcyjny formularz został skutecznie wysłany przynajmniej raz.
   - Dowód:
@@ -997,13 +996,13 @@ Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną 
   - Dowód: brak jakichkolwiek ID analityki w kodzie (`grep -ri "G-\|GTM-\|clarity" public` bez trafień).
 
 - [ ] Sprawdzono konsolę przeglądarki na produkcji.
-  - Dowód:
+  - Dowód: na domenie testowej test „strona główna ładuje się bez błędów w konsoli” (błędy konsoli, `pageerror`, nieudane żądania) przechodzi w Chromium, Firefoksie, WebKicie, Pixel 7 i iPhone 14 (17.09.2026). **PO PUBLIKACJI** powtórzyć na produkcji (`STAGING_URL=https://przyjacielodyseusza.pl/ npm run test:staging` działa też dla katalogu głównego).
 
 - [ ] Wykonano produkcyjny smoke test na urządzeniu mobilnym.
-  - Dowód:
+  - Dowód: domena testowa: `npm run test:staging` 17.09.2026 – **218 testów przeszło, 0 nieudanych, 77 pominiętych celowo** (testy nagłówków `_headers` i backendu formularza, których GitHub Pages nie ma, plus testy tylko-desktop/tylko-mobile i Tab w WebKicie), 54 s; profile Pixel 7 i iPhone 14 (menu mobilne, reflow 320 px, formularz, dostępność axe). Job `staging-smoke` w CI powtarza to po każdym wdrożeniu (Chromium desktop + Pixel 7). **PO PUBLIKACJI:** ręcznie na fizycznym telefonie.
 
 - [ ] Wykonano produkcyjny smoke test na desktopie.
-  - Dowód:
+  - Dowód: jak wyżej (Chromium, Firefox, WebKit na żywym adresie testowym). **PO PUBLIKACJI** na produkcji.
 
 ---
 
@@ -1112,15 +1111,18 @@ Każdy wyjątek musi mieć powód i właściciela/decyzję.
 3. Przekierowanie `www` → apex realizowane regułą w dashboardzie Cloudflare, nie w kodzie (ograniczenie `_redirects` w Pages) – właściciel: agencja przy podpinaniu domeny.
 4. Test czytnikiem ekranu i na fizycznych urządzeniach mobilnych do wykonania ręcznie przed publikacją – właściciel: agencja.
 5. Sekcja „Opinie” ukryta do czasu otrzymania rekomendacji od klienta – właściciel: klient.
+6. Wersja testowa na GitHub Pages jest publicznie dostępna bez autoryzacji (GitHub Pages jej nie oferuje) i leży w publicznym repozytorium (plan GitHub Free nie daje Pages dla repozytoriów prywatnych). Ochrona przed indeksowaniem: `noindex, nofollow` na każdej stronie, bez sitemapy. W repozytorium nie ma sekretów ani danych innych niż te, które klient publikuje na swojej obecnej stronie. Po starcie produkcji wersję testową wyłączyć (Settings → Pages → Unpublish) – właściciel: agencja.
+7. GitHub Pages nie obsługuje `_headers` (brak CSP/HSTS własnych) ani funkcji `/api/contact` – na domenie testowej formularz kończy się błędem HTTP 405, a interfejs pokazuje kontakt awaryjny (e-mail, telefon). Nagłówki i backend są weryfikowane na emulacji Cloudflare (`npm test`) i będą działać na produkcji – właściciel: agencja.
 
 ## Status końcowy
 
+- [x] OPUBLIKOWANE NA DOMENIE TESTOWEJ: https://powers-p1.github.io/przyjaciel-odyseusza/ (17.09.2026, `noindex`)
 - [ ] GOTOWE DO PRODUKCJI (po zamknięciu 4 blokerów powyżej)
 - [ ] OPUBLIKOWANE NA PRODUKCJI
 - [ ] KONTROLA PO PUBLIKACJI ZAKOŃCZONA
 
-Data końcowej weryfikacji: 2026-09-16 (weryfikacja lokalna, przed publikacją)
+Data końcowej weryfikacji: 2026-09-17 (weryfikacja lokalna i na domenie testowej, przed publikacją produkcyjną)
 
 Zweryfikował: Claude (agent) na zlecenie OK Agency / Damian Karolewski Technology Solutions
 
-Uwagi: Wszystkie punkty możliwe do zrealizowania bez dostępu do kont dostawców zostały wykonane i zweryfikowane lokalnie na emulacji Cloudflare Pages. Pozostałe punkty są oznaczone **PO PUBLIKACJI** wraz z instrukcją w `README.md`.
+Uwagi: Wszystkie punkty możliwe do zrealizowania bez dostępu do kont dostawców zostały wykonane i zweryfikowane lokalnie na emulacji Cloudflare Pages, a te, które mają sens na publicznej domenie testowej (HTTPS, 404, CDN, kompresja, walidatory schema.org i W3C na żywym adresie, podgląd Open Graph, CI z automatycznym wdrożeniem i smoke testami po wdrożeniu, Lighthouse i PageSpeed Insights z internetu), na GitHub Pages. Pozostałe punkty są oznaczone **PO PUBLIKACJI** wraz z instrukcją w `README.md`.

@@ -7,7 +7,7 @@
   root.classList.add('js');
 
   /* ---------- aliasy kotwic z poprzedniej strony (WordPress one-pager) ---------- */
-  var LEGACY_HASHES = { '#dla-ciebie': '#dla-kogo', '#dla-biznesu': '#dla-kogo' };
+  var LEGACY_HASHES = { '#dla-ciebie': '#oferta', '#dla-biznesu': '#oferta' };
   function fixLegacyHash() {
     var target = LEGACY_HASHES[window.location.hash];
     if (target) window.location.replace(window.location.pathname + window.location.search + target);

@@ -106,10 +106,14 @@ function zamaskuj(html, schowek) {
     schowek.push(fragment);
     return przezroczysty ? `\uE002${schowek.length - 1}\uE003` : `\uE000${schowek.length - 1}\uE001`;
   };
+  // Kolejność jest istotna: najpierw znaczniki, dopiero potem encje w samym tekście. Odwrotnie
+  // encja stojąca w atrybucie trafiała do schowka już podmieniona na symbol zastępczy, a jedno
+  // przejście odmaskowania nie przetwarza wstawionego tekstu ponownie – przez to
+  // `href="…?a=1&amp;b=2"` wychodziło jako `…?a=10b=2`, czyli z rozbitym adresem.
   return html
-    .replace(/&(?:[a-zA-Z][a-zA-Z0-9]*|#\d+|#x[0-9a-fA-F]+);/g, (encja) => zapisz(encja, false))
-    .replace(/<\/?([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*>|<!--[\s\S]*?-->/g, (tag, nazwa) =>
-      zapisz(tag, Boolean(nazwa) && INLINE.has(nazwa.toLowerCase())));
+    .replace(/<\/?([a-zA-Z][a-zA-Z0-9-]*)\b[^>]*>|<!--[\s\S]*?-->|<![^>]*>/g, (tag, nazwa) =>
+      zapisz(tag, Boolean(nazwa) && INLINE.has(nazwa.toLowerCase())))
+    .replace(/&(?:[a-zA-Z][a-zA-Z0-9]*|#\d+|#x[0-9a-fA-F]+);/g, (encja) => zapisz(encja, false));
 }
 
 function odmaskuj(html, schowek) {
@@ -143,9 +147,10 @@ function bezWdow(zamaskowany, schowek) {
 }
 
 function typografia(html) {
-  // <script>, <style> i <title> zostawiamy nietknięte – twarda spacja i łącznik byłyby tam błędem
+  // Bloki nietykalne: kod, tytuł dokumentu oraz treść pola formularza i tekstu preformatowanego –
+  // tam twarda spacja i miękki łącznik byłyby widoczne dla użytkownika albo zepsułyby wartość pola.
   return html
-    .split(/(<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<title\b[\s\S]*?<\/title>)/i)
+    .split(/(<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<title\b[\s\S]*?<\/title>|<textarea\b[\s\S]*?<\/textarea>|<pre\b[\s\S]*?<\/pre>|<code\b[\s\S]*?<\/code>)/i)
     .map((blok, i) => {
       if (i % 2 === 1) return blok;
       const schowek = [];

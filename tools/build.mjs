@@ -5,7 +5,8 @@ import path from 'node:path';
 import esbuild from 'esbuild';
 
 const jobs = [
-  { from: 'src/css/style.css', to: 'public/assets/css/style.css', loader: 'css' },
+  // Arkusz trafia wyłącznie do <style> w HTML, więc plik pośredni nie ma czego szukać w public/.
+  { from: 'src/css/style.css', to: '.build/style.css', loader: 'css' },
   { from: 'src/js/main.js', to: 'public/assets/js/main.js', loader: 'js' },
 ];
 
@@ -27,7 +28,7 @@ for (const job of jobs) {
 // Usuwa blokujące renderowanie żądanie CSS (na wolnym 4G to ok. 1 RTT + transfer przed pierwszym malowaniem).
 // CSP pozostaje ścisłe: do style-src dopisujemy hash SHA-256 wstawionego bloku (bez 'unsafe-inline').
 const { createHash } = await import('node:crypto');
-const css = fs.readFileSync('public/assets/css/style.css', 'utf8');
+const css = fs.readFileSync('.build/style.css', 'utf8');
 const cspHash = `'sha256-${createHash('sha256').update(css, 'utf8').digest('base64')}'`;
 const styleTag = `<style data-inline="style.css">${css}</style>`;
 const PAGES = ['public/index.html', 'public/polityka-prywatnosci.html', 'public/404.html'];

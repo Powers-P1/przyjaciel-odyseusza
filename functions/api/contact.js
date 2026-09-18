@@ -19,16 +19,20 @@ function clean(value, max) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
+// Nagłówki ustawiamy w samej funkcji: Cloudflare nie stosuje reguł z pliku _headers do odpowiedzi
+// generowanych przez Pages Functions, więc wpis /api/* nigdy by tu nie dotarł.
+const NAGLOWKI = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
+
 function respond(status, body, wantsJson) {
   if (wantsJson) {
     return new Response(JSON.stringify(body), {
       status,
-      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+      headers: { ...NAGLOWKI, 'Content-Type': 'application/json; charset=utf-8' },
     });
   }
   // wariant bez JavaScriptu: przekierowanie z powrotem do sekcji kontakt
   const target = body.ok ? '/?wyslano=1#kontakt' : '/?blad=1#kontakt';
-  return new Response(null, { status: 303, headers: { Location: target, 'Cache-Control': 'no-store' } });
+  return new Response(null, { status: 303, headers: { ...NAGLOWKI, Location: target } });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -141,5 +145,5 @@ export async function onRequestPost({ request, env }) {
 
 export function onRequest({ request }) {
   if (request.method === 'POST') return undefined;
-  return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST' } });
+  return new Response('Method Not Allowed', { status: 405, headers: { ...NAGLOWKI, Allow: 'POST' } });
 }

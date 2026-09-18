@@ -83,7 +83,7 @@ p, li, dd { text-wrap: pretty; }
 /* Mikrotypografia. Luz wiersza chowamy najpierw w świetle między literami, zamiast oddawać go
    w całości odstępom; w drugą stronę wolno wiersz ścisnąć, żeby ściągnąć wyraz, któremu zabrakło
    kilku pikseli – taki wiersz ma odstępy naturalne, więc wychodzi najrówniejszy. Budżet to
-   +/-2,5% stopnia pisma w krokach po 0,0025 em: niewidoczne, podczas gdy odstęp rozciągnięty
+   +2,5% w górę i -3% w dół, w krokach po 0,0025 em: niewidoczne, podczas gdy odstęp rozciągnięty
    o 200% widać z drugiego końca pokoju. Stopień wybiera src/js/justowanie.js osobno dla każdego
    wiersza (klasy muszą być wypisane wprost, bo arkusz i skrypt trzyma w zgodzie
    tools/css-unused.mjs). Pomiary i uzasadnienie progu: REVIEW.md, sekcja 4e. */
@@ -107,6 +107,8 @@ p, li, dd { text-wrap: pretty; }
 .wiersz.zwez-8 { letter-spacing: -.02em; }
 .wiersz.zwez-9 { letter-spacing: -.0225em; }
 .wiersz.zwez-10 { letter-spacing: -.025em; }
+.wiersz.zwez-11 { letter-spacing: -.0275em; }
+.wiersz.zwez-12 { letter-spacing: -.03em; }
 ul, ol { margin: 0; padding: 0; }
 h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; line-height: 1.15; letter-spacing: -.008em; }
 button { font: inherit; color: inherit; }
@@ -273,8 +275,7 @@ button { font: inherit; color: inherit; }
 }
 .hero__name { font: 400 1.35rem/1.2 var(--serif); color: var(--gold); }
 .hero__role { font-size: .9rem; color: var(--mist-soft); letter-spacing: .01em; }
-.hero__lead { font-size: 1.0625rem; max-width: 36rem; margin-bottom: var(--hero-rytm); }
-.hero__lead--secondary { color: var(--mist-soft); margin-bottom: calc(2 * var(--hero-rytm)); }
+.hero__lead { font-size: 1.0625rem; max-width: 36rem; margin-bottom: calc(2 * var(--hero-rytm)); }
 .hero__actions { display: flex; flex-wrap: wrap; gap: .85rem; }
 .hero__note { margin: var(--hero-rytm) 0 0; font-size: .85rem; color: var(--mist-soft); }
 

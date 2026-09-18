@@ -15,10 +15,10 @@
  *   2. Kolejne przebiegi z coraz luźniejszym progiem. Bierzemy pierwszy, który się uda – to daje
  *      podział o najmniejszym możliwym NAJGORSZYM wierszu, a nie tylko dobrą sumę.
  *   3. Mikrotypografia: resztkę luzu chowamy w świetle między literami, a wiersz, któremu do
- *      następnego wyrazu zabrakło kilku pikseli, wolno odrobinę ścisnąć (+/-2,5% stopnia pisma,
- *      dziesięciostopniowo, klasami `trak-*` i `zwez-*`). Tyle trackingu jest dla oka niewidoczne,
- *      odstęp rozciągnięty o 200% – aż nadto. Tak robi się w składzie od czasów programu `hz`
- *      Hermanna Zapfa; InDesign nazywa to skalowaniem odstępów międzyliterowych.
+ *      następnego wyrazu zabrakło kilku pikseli, wolno odrobinę ścisnąć (do +2,5% i do -3% stopnia
+ *      pisma, w krokach po 0,0025 em, klasami `trak-*` i `zwez-*`). Tyle trackingu jest dla oka
+ *      niewidoczne, odstęp rozciągnięty o 200% – aż nadto. Tak robi się w składzie od czasów
+ *      programu `hz` Hermanna Zapfa; InDesign nazywa to skalowaniem odstępów międzyliterowych.
  *
  * Twarde spacje z tools/typografia.mjs są dla tego kroku materiałem, nie wyrokiem. Wyrazu
  * jednoliterowego, skrótu, liczby z jednostką i kreski rozdzielającej nie oderwie od sąsiada nigdy.
@@ -69,18 +69,21 @@
   // odstępów to ułamek piksela na odstęp.
   var ZAPASY = [2, 6, 12];
 
-  // Tracking: dziesięć stopni po 0,0025 em w każdą stronę, czyli budżet +/-2,5% stopnia pisma.
+  // Tracking w krokach po 0,0025 em: do +2,5% w górę (10 stopni) i do -3% w dół (12 stopni).
   // W górę chowamy luz, którego inaczej musiałyby wziąć odstępy. W dół ściskamy wiersz, żeby
   // ściągnąć wyraz, któremu zabrakło kilku pikseli – taki wiersz ma odstępy naturalne, więc jest
   // najrówniejszy ze wszystkich. Na tym samym stoi program hz Hermanna Zapfa i skalowanie glifów
-  // w InDesignie. Skąd 2,5%: przy 2% jeden akapit na telefonie rozbijał się o 3 px i najgorszy
-  // wiersz miał 5,5 zwykłej spacji; przy 2,5% schodzi do 3,0, a dalsze poszerzanie budżetu
-  // niczego już nie zmienia (sprawdzone do 4%).
+  // w InDesignie.
+  // Skąd te liczby: każdy stopień w dół dokładany po kolei zbijał najgorszy wiersz na telefonie
+  // (2% → 5,5 zwykłej spacji, 2,5% → 5,4, 3% → 4,4), bo akapity rozbijały się kolejno o 3 i o pół
+  // piksela; powyżej 3% nic już się nie zmienia. W górę zatrzymujemy się na 2,5%, bo rozstrzelone
+  // światło między literami widać wcześniej niż ściśnięte – i tak jest to ostatnia deska ratunku,
+  // a nie sposób na wypełnienie wiersza.
   // Klasy wypisane wprost, bo arkusz i skrypt muszą trzymać te same nazwy (tools/css-unused.mjs).
   var TRAKI = ['trak-1', 'trak-2', 'trak-3', 'trak-4', 'trak-5',
     'trak-6', 'trak-7', 'trak-8', 'trak-9', 'trak-10'];
-  var ZWEZENIA = ['zwez-1', 'zwez-2', 'zwez-3', 'zwez-4', 'zwez-5',
-    'zwez-6', 'zwez-7', 'zwez-8', 'zwez-9', 'zwez-10'];
+  var ZWEZENIA = ['zwez-1', 'zwez-2', 'zwez-3', 'zwez-4', 'zwez-5', 'zwez-6',
+    'zwez-7', 'zwez-8', 'zwez-9', 'zwez-10', 'zwez-11', 'zwez-12'];
   var TRAK_KROK = 0.0025; // em na stopień
 
   // Kary w skali kar za wiersz, czyli (10 + 100·rozciągnięcie³)². Każda z nich jest kursem wymiany:
@@ -363,7 +366,15 @@
       var zeSwoboda = podzielNaWiersze(akapit, PROG_SWOBODY);
       if (zeSwoboda) wiersze = zeSwoboda;
     }
-    if (!wiersze || wiersze.length < 2) return;
+    if (!wiersze) return;
+    if (wiersze.length < 2) {
+      // Cały akapit w jednym wierszu składamy tylko wtedy, gdy mieści się dopiero po ściśnięciu –
+      // wtedy jedna linijka z naturalnymi odstępami wygrywa z dwiema, z których pierwsza byłaby
+      // rozstrzelona (zmierzone na telefonie: 7,3 zwykłej spacji wobec ściśnięcia o 0,75%).
+      // Akapit, który mieści się sam z siebie, zostawiamy przeglądarce – nie ma czego justować.
+      var pojedynczy = ocenWiersz(akapit, wiersze[0][0], wiersze[0][1], true);
+      if (!pojedynczy || !pojedynczy.klasa) return;
+    }
 
     var fragment = document.createDocumentFragment();
     for (var i = 0; i < wiersze.length; i++) {

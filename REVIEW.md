@@ -286,11 +286,12 @@ mediany 2,8 i 4,4 wobec 2,4 dla zwykłego justowania).
    na końcu wiersza) miały czym zapłacić.
 3. **Mikrotypografia** – resztkę luzu chowamy w świetle między literami zamiast oddawać ją odstępom,
    a wiersz, któremu do następnego wyrazu zabrakło kilku pikseli, wolno odrobinę ścisnąć. Budżet to
-   ±2,5% stopnia pisma w krokach po 0,0025 em (klasy `trak-*` i `zwez-*`). 2,5% trackingu jest dla
-   oka niewidoczne, odstęp rozciągnięty o 200% – aż nadto. Na tym samym stoi program `hz` Hermanna
-   Zapfa i skalowanie glifów w InDesignie. Skąd akurat 2,5%: przy 2% jeden akapit na telefonie
-   rozbijał się o 3 px i wychodził z wierszem 5,5 zwykłej spacji; przy 2,5% schodzi do 3,0,
-   a dalsze poszerzanie budżetu niczego już nie zmienia (sprawdzone do 4%).
+   +2,5% w górę i -3% w dół, w krokach po 0,0025 em (klasy `trak-*` i `zwez-*`). Tyle trackingu jest
+   dla oka niewidoczne, odstęp rozciągnięty o 200% – aż nadto. Na tym samym stoi program `hz`
+   Hermanna Zapfa i skalowanie glifów w InDesignie. Skąd te liczby: każdy stopień w dół zbijał
+   najgorszy wiersz na telefonie (2% → 5,5 zwykłej spacji, 2,5% → 5,4, 3% → 4,4), bo akapity
+   rozbijały się kolejno o 3 i o pół piksela; powyżej 3% nic już się nie zmienia. W górę mniej,
+   bo rozstrzelone światło między literami widać wcześniej niż ściśnięte.
 4. **Szerokość kolumn** – justowanie potrzebuje miary. Kolumna poniżej ok. 52 znaków nie ma w wierszu
    dość odstępów, żeby rozłożyć luz. Siatki (oferta, dla kogo, współpraca, zasady) schodzą więc do
    jednej kolumny poniżej `--min-kolumna` (26 rem) zamiast na sztywnych progach okna, a na telefonie
@@ -320,10 +321,10 @@ stronie (`npm run pomiar:sklad`, Chromium):
 | --- | --- | --- | --- | --- | --- |
 | chorągiewka (bez JavaScriptu) | 1,00 | 1,00 | 1,00 | 1,00 | 86–90% |
 | zachłanne justowanie przeglądarki | 2,95 | 2,02 | 2,56 | 2,27 | 100% |
-| **wdrożone** | **1,25** | **1,17** | **1,14** | **1,13** | **100%** |
+| **wdrożone** | **1,23** | **1,16** | **1,13** | **1,13** | **100%** |
 
 Wiersze skrajne (maksimum na całej stronie): zachłanne justowanie 9,8–14,5 zwykłej spacji,
-wdrożone 3,5–5,4. Norma składu (InDesign, ustawienia domyślne) dopuszcza 1,33 – wdrożona mediana
+wdrożone 3,5–5,3. Norma składu (InDesign, ustawienia domyślne) dopuszcza 1,33 – wdrożona mediana
 mieści się w niej na każdej szerokości, czego zachłanne justowanie nie osiąga nigdzie.
 
 **Czego nie da się osiągnąć i dlaczego.** Luzu w akapicie nie da się zmniejszyć łamaniem: to różnica
@@ -343,6 +344,10 @@ schować (warstwa 3) – i tyle. Bez dzielenia wyrazów zostają trzy ustępstwa
 
 **Błędy złapane po drodze.** Każdy z nich dawał efekt odwrotny do zamierzonego, a widać je było
 dopiero z pomiaru:
+
+Jeden akapit („Łączę praktykę biznesową z wiedzą psychologa.” w wersji B) mieści się w jednym
+wierszu dopiero po ściśnięciu o 0,5% – i tak jest składany, bo jedna linijka z naturalnymi odstępami
+bije dwie, z których pierwsza byłaby rozstrzelona 7,3 raza.
 
 | Problem | Skutek | Test, który go dziś nie przepuści |
 | --- | --- | --- |

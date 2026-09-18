@@ -34,11 +34,11 @@ Dokumenty towarzyszące:
 │   └── js/main.js                  # źródło skryptu (menu, reveal, formularz, zdarzenia analityczne)
 ├── functions/api/contact.js        # Cloudflare Pages Function: POST /api/contact
 ├── tools/build.mjs                 # minifikacja src/ → public/assets/ + twarde spacje w HTML
-├── tools/nbsp.mjs                  # polska typografia (&nbsp; po jednoliterowych spójnikach)
+├── tools/typografia.mjs            # polski skład: twarde spacje, dzielenie wyrazów, wdowy
 ├── tools/lighthouse.mjs            # Lighthouse mobile + desktop z progami wydania (w CI mediana z 3 przebiegów)
 ├── tools/staging.mjs               # wariant testowy: public/ → dist-gh/ (podścieżka, noindex, adres testowy)
 ├── tools/psi.mjs                   # PageSpeed Insights dla adresu testowego (wymaga PSI_API_KEY przy limicie)
-├── tools/screens-staging.mjs       # zrzuty żywej wersji testowej do docs/screens/
+├── tools/screens.mjs               # zrzuty ekranu (lokalnie albo z opublikowanego adresu)
 ├── tests/                          # Playwright: smoke, SEO, a11y (axe), nagłówki, formularz, linki, hosting testowy
 ├── tests/_fixtures.js              # wspólne fixtures (podścieżka bazowa na hostingu testowym)
 ├── playwright.config.js            # 5 projektów: Chromium, Firefox, WebKit, Pixel 7, iPhone 14 (emulacja Cloudflare)

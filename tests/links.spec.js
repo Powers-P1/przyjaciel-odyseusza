@@ -1,4 +1,4 @@
-import { test, expect, STAGING, PAGES_404 } from './_fixtures.js';
+import { test, expect, STAGING, PAGES_404, tekstWidoczny } from './_fixtures.js';
 
 // Cloudflare Pages normalizuje adresy: /strona.html → 308 → /strona, dlatego linki są bez rozszerzenia.
 const PAGES = ['/', '/polityka-prywatnosci', ...PAGES_404];
@@ -48,11 +48,26 @@ test.describe('Linki i zasoby', () => {
 
   test('w kodzie nie ma adresów stagingu, localhost ani placeholderów', async ({ request }) => {
     for (const path of PAGES) {
-      const html = await (await request.get(path)).text();
-      expect(html).not.toMatch(/localhost|127\.0\.0\.1|pages\.dev|lorem ipsum|TODO|\{\{/i);
+      // porównujemy tekst bez twardych spacji i miękkich łączników – inaczej „do uzu&shy;peł&shy;nie&shy;nia”
+      // nie pasuje do żadnego wzorca i atrapa przechodzi kontrolę
+      const html = tekstWidoczny(await (await request.get(path)).text());
+      expect(html, `${path}: adres roboczy`).not.toMatch(/localhost|127\.0\.0\.1|pages\.dev|lorem ipsum|TODO|\{\{/i);
+      // github.io to faktycznie używany host testowy; w kodzie stron nie ma prawa się pojawić
+      // (na hostingu testowym adresy podmienia tools/staging.mjs, więc tam pomijamy)
+      if (!STAGING) expect(html, `${path}: adres hostingu testowego`).not.toMatch(/github\.io/i);
     }
     if (STAGING) return; // hosting testowy nie ma sitemapy
     const sitemap = await (await request.get('/sitemap.xml')).text();
     expect(sitemap).not.toMatch(/localhost|pages\.dev/);
+  });
+
+  test('widoczna treść strony głównej nie zawiera atrap', async ({ page }) => {
+    // Sekcja „Opinie” jest w wersjach A i B ukryta atrybutem hidden do czasu otrzymania rekomendacji
+    // – to świadomy, opisany stan. Błędem jest dopiero atrapa, którą widzi odwiedzający, dlatego
+    // sprawdzamy tekst wyrenderowany (innerText pomija elementy ukryte), a nie źródło HTML.
+    await page.goto('/');
+    const widoczny = tekstWidoczny(await page.locator('body').innerText());
+    expect(widoczny, 'atrapa w widocznej treści')
+      .not.toMatch(/miejsce na opinię|do uzupełnienia|imię i nazwisko,\s*stanowisko|lorem ipsum/i);
   });
 });

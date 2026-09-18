@@ -112,6 +112,21 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
     await expect(page.locator('.hero .btn--primary')).toBeVisible();
   });
 
+  // Hero jest sceną na jeden ekran: razem z paskiem faktów ma się mieścić nad krawędzią okna,
+  // od niskich laptopów po duże monitory. Pion skaluje się wysokością okna (--hero-rytm w CSS).
+  for (const [width, height] of [[1366, 768], [1440, 900], [1536, 864], [1920, 1080], [2560, 1440]]) {
+    test(`hero mieści się w pierwszym ekranie (${width}×${height})`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+      await page.goto('/');
+      const { dol, okno } = await page.evaluate(() => ({
+        dol: document.querySelector('.hero').getBoundingClientRect().bottom,
+        okno: window.innerHeight,
+      }));
+      expect(dol, 'dolna krawędź hero względem dołu okna').toBeLessThanOrEqual(okno);
+      await expect(page.locator('.proof__item').first()).toBeInViewport();
+    });
+  }
+
   test('bardzo szeroki ekran nie psuje układu', async ({ page }) => {
     await page.setViewportSize({ width: 2560, height: 1200 });
     await page.goto('/');

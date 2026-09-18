@@ -16,6 +16,11 @@ export const SITE = parsed ? ORIGIN + BASE_PATH : 'https://przyjacielodyseusza.p
 export const SHARED_404 = BASE_PATH.split('/').length > 2;
 export const PAGES_404 = SHARED_404 ? [] : ['/nie-istnieje-404'];
 
+/** Zamienia twarde spacje (wstawione przez tools/nbsp.mjs) na zwykłe – do porównań tekstu w testach. */
+export function bezTwardychSpacji(text) {
+  return text.replace(/&nbsp;| /g, ' ');
+}
+
 /** Dokleja podścieżkę bazową do adresu względem katalogu głównego; adresy już uzupełnione i absolutne zostawia. */
 export function p(url) {
   if (typeof url !== 'string' || !BASE_PATH || !url.startsWith('/') || url.startsWith('//')) return url;

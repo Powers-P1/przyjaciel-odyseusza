@@ -89,6 +89,20 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
     await expect(toggle).toBeFocused();
   });
 
+  test('menu mobilne zamyka się, gdy fokus wychodzi poza nagłówek', async ({ page }) => {
+    // Otwarty panel jest przyklejony do góry widoku, więc kolejny element w kolejności Tab
+    // lądował pod nim – przy powiększeniu 200% zakrywał go w całości (WCAG 2.4.11).
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await page.locator('.nav-toggle').click();
+    await expect(page.locator('#nav-glowna')).toBeVisible();
+    const ostatni = page.locator('#nav-glowna a').last();
+    await ostatni.focus();
+    await page.keyboard.press('Tab');
+    await expect(page.locator('.nav-toggle')).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#nav-glowna')).toBeHidden();
+  });
+
   test('na desktopie menu jest widoczne bez przycisku', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name.startsWith('mobile'), 'tylko desktop');
     await page.goto('/');

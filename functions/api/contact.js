@@ -54,11 +54,19 @@ export async function onRequestPost({ request, env }) {
   const message = String(data.message == null ? '' : data.message).trim().slice(0, 4000);
   const subjectFor = clean(data.subject_for, 10);
   const honeypot = clean(data.website, 200);
-  const ts = Number(data.ts) || 0;
+  // czas wypełniania mierzony przez przeglądarkę (performance.now od wczytania strony).
+  // Nie wolno tu porównywać zegara serwera ze znacznikiem czasu z urządzenia: zegar telefonu
+  // potrafi spieszyć się o minuty, a wtedy różnica wychodzi ujemna i prawdziwe zgłoszenie
+  // ląduje w pułapce na boty – użytkownik widzi potwierdzenie, a wiadomość przepada.
+  // Puste pole znaczy „brak pomiaru” (formularz wysłany bez JavaScriptu), a nie „zero milisekund”.
+  const surowyCzas = data.elapsed_ms == null ? '' : String(data.elapsed_ms).trim();
+  const elapsed = surowyCzas === '' ? null : Number(surowyCzas);
 
   // pułapki na boty: udajemy sukces, żeby nie zdradzać mechanizmu
   if (honeypot) return respond(200, { ok: true }, wantsJson);
-  if (ts && Date.now() - ts < 2500) return respond(200, { ok: true }, wantsJson);
+  if (elapsed !== null && Number.isFinite(elapsed) && elapsed >= 0 && elapsed < 2500) {
+    return respond(200, { ok: true }, wantsJson);
+  }
 
   const invalid = [];
   if (name.length < 2) invalid.push('name');

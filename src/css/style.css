@@ -228,8 +228,7 @@ button { font: inherit; color: inherit; }
 }
 .hero__name { font: 400 1.35rem/1.2 var(--serif); color: var(--gold); }
 .hero__role { font-size: .9rem; color: var(--mist-soft); letter-spacing: .01em; }
-.hero__lead { font-size: 1.0625rem; max-width: 36rem; margin-bottom: var(--hero-rytm); }
-.hero__lead--secondary { color: var(--mist-soft); margin-bottom: calc(2 * var(--hero-rytm)); }
+.hero__lead { font-size: 1.0625rem; max-width: 36rem; margin-bottom: calc(2 * var(--hero-rytm)); }
 .hero__actions { display: flex; flex-wrap: wrap; gap: .85rem; }
 .hero__note { margin: var(--hero-rytm) 0 0; font-size: .85rem; color: var(--mist-soft); }
 

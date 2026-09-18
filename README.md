@@ -34,7 +34,8 @@ Dokumenty towarzyszące:
 │   └── js/main.js                  # źródło skryptu (menu, reveal, formularz, zdarzenia analityczne)
 ├── functions/api/contact.js        # Cloudflare Pages Function: POST /api/contact
 ├── tools/build.mjs                 # minifikacja src/ → public/assets/ + twarde spacje w HTML
-├── tools/typografia.mjs            # polski skład: twarde spacje, dzielenie wyrazów, wdowy
+├── tools/typografia.mjs            # polski skład: twarde spacje i wiązanie wdów (bez dzielenia wyrazów)
+├── tools/pomiar-skladu.mjs         # pomiar odstępów i wypełnienia wierszy (liczby do REVIEW.md 4e)
 ├── tools/lighthouse.mjs            # Lighthouse mobile + desktop z progami wydania (w CI mediana z 3 przebiegów)
 ├── tools/staging.mjs               # wariant testowy: public/ → dist-gh/ (podścieżka, noindex, adres testowy)
 ├── tools/psi.mjs                   # PageSpeed Insights dla adresu testowego (wymaga PSI_API_KEY przy limicie)

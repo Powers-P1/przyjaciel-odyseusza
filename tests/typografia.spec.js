@@ -139,13 +139,15 @@ test.describe('Polski skład tekstu', () => {
   });
 
   // Granice odstępu zależą od miary kolumny, bo od niej zależy, ile luzu w ogóle da się rozłożyć.
-  // Zmierzone na trzech wersjach strony: mediana 1,13–1,42, wiersz skrajny 4,4–6,7 na telefonie
-  // i 1,6–3,5 na laptopie. Na telefonie kolumna ma ok. 44 znaki i jeden długi wyraz
-  // („odpowiedzialność”) potrafi zostawić w wierszu 120 px luzu – bez dzielenia wyrazów nic lepszego
-  // tam nie istnieje. Progi są barierą przed regresją, nie celem.
+  // Zmierzone na trzech wersjach strony i w trzech silnikach: mediana 1,13–1,42, wiersz skrajny
+  // 4,4–6,7 na telefonie i 1,6–3,5 na laptopie (krótsza treść wersji B i C ma wyższą medianę, bo
+  // ma mniej długich akapitów, w których łamanie ma co optymalizować). Na telefonie kolumna liczy
+  // ok. 44 znaki i jeden długi wyraz („odpowiedzialność”) zostawia w wierszu 120 px luzu – bez
+  // dzielenia wyrazów nic lepszego tam nie istnieje. Progi są barierą przed regresją, nie celem;
+  // zachłanne justowanie przeglądarki daje w tych samych miejscach 2,0–3,0 i 9,8–14,5.
   const JUSTOWANIE = [
-    { okno: SZEROKOSCI[0], mediana: 1.7, max: 7.5 },
-    { okno: SZEROKOSCI[2], mediana: 1.4, max: 4.5 },
+    { okno: SZEROKOSCI[0], mediana: 1.9, max: 7.5 },
+    { okno: SZEROKOSCI[2], mediana: 1.7, max: 4.5 },
   ];
   for (const { okno, mediana: granicaMediany, max: granicaMaksimum } of JUSTOWANIE) {
     test(`tekst ciągły jest justowany, a odstępy pozostają równe (${okno.name})`, async ({ page }) => {

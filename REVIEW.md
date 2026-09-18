@@ -187,9 +187,28 @@ warstwa techniczna, testy i CI.
 **Wersja A – pełna** (`main`): copy z sekcji 4/4a/4b. Dla klienta, który chce, żeby strona odpowiadała na wszystkie
 pytania bez kontaktu: oferta, dla kogo, sytuacje, przebieg, zasady, cennik, pełne CV, historia nazwy.
 
-**Wersja B – lekka** (`wersja-b`): ten sam układ, tekst skrócony do ok. połowy na podstawie badań czytelnictwa
-(założenia i źródła: `docs/wersja-b-zalozenia.md`). Dla czytelnika, który skanuje: nagłówki niosą treść, listy zamiast
-akapitów, jedno CTA powtórzone w trzech miejscach.
+**Wersja B – lekka** (`wersja-b`): ten sam układ, tekst skrócony na podstawie badań czytelnictwa
+(założenia i źródła: `docs/wersja-b-zalozenia.md`). Dla czytelnika, który skanuje: nagłówki niosą ofertę same,
+akapit najwyżej trzy zdania, jedno wezwanie do działania w jednym brzmieniu („Umów bezpłatną rozmowę”).
+Hero ma jeden akapit opisu zamiast dwóch. Zachowane wbrew skrótowi: podpis w hero, tytuły kart w „Dla kogo”
+i tabele CV – to najbardziej skanowalne elementy i dowody kompetencji, a ich wycięcie osłabiłoby wiarygodność
+(wariant bez nich to wersja C).
+
+Objętość tekstu w sekcji `main`, bez nawigacji, stopki, formularza i ukrytych opinii:
+
+| Wersja | Słowa | Udział wobec A |
+| --- | --- | --- |
+| A – pełna | 917 | 100% |
+| B – lekka | 630 | 69% |
+| C – według uwag | 313 | 34% |
+
+Sama proza wersji B (bez tabel CV, które są danymi do skanowania, nie do czytania) to ok. 555 słów, czyli
+w budżecie 450–550 z założeń. Treść powstała z trzech niezależnych szkiców ocenionych przez panel
+(skanowalność, SEO, polszczyzna) i przeszła korektę faktograficzną: usunięto cztery sformułowania bez pokrycia
+w wersji A („nawyki” zamiast „sposoby działania”, „budujesz zespół” zamiast „budujesz strukturę i procesy”,
+„talenty przed awansem” zamiast „talenty wskazane do awansu”, skrócone nazwy grup kapitałowych) oraz rodzajową
+formę „Zgłoś się sam”. Listy zostawiono w konwencji wersji A (małą literą, z przecinkami), żeby porównanie
+dotyczyło treści, a nie interpunkcji.
 
 **Wersja C – według uwag** (`wersja-c`): układ i treść z pliku „pełne morze uwagi” (uwagi klienta do kierunku
 technicznego, przeniesione na styl „Pełne morze”). Decyzje, które wymagały interpretacji:

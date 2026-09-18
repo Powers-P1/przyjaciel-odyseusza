@@ -307,6 +307,79 @@ Zmierzone po zmianie: najdłuższy wiersz na stronie 79 znaków, typowy 62–75.
 
 ---
 
+## 4f. Audyt końcowy i rekomendacja wersji (18.09.2026)
+
+Przegląd siedmiu obszarów (checklista w dwóch ujęciach, kod, dostępność, SEO, bezpieczeństwo,
+treść) z adversarialną weryfikacją każdego ustalenia. Poniżej to, co przetrwało próbę obalenia.
+
+### Naprawione w trakcie audytu
+
+| Waga | Problem | Skutek |
+| --- | --- | --- |
+| blokująca | Pułapka antybotowa porównywała zegar serwera ze znacznikiem czasu z przeglądarki | Telefon ze spieszącym się zegarem dostawał „Dziękuję za wiadomość”, a zgłoszenie przepadało. Jedyna ścieżka konwersji strony. |
+| istotna | Menu mobilne nie zamykało się przy wyjściu fokusem | Przy powiększeniu 200% otwarty panel zakrywał sfokusowany przycisk w całości (WCAG 2.4.11) |
+| istotna | Wersja C publikowała widoczne atrapy opinii z pozycją w menu | Pusta sekcja opinii na stronie usług czyta się jako brak klientów |
+| istotna | Narzędzie typograficzne psuło encje w atrybutach | `href="…?a=1&amp;b=2"` wychodziło jako `…?a=10b=2`. Dziś bez skutku, ale pierwszy link z UTM rozbiłby adres po cichu |
+| drobna | Adres e-mail wychodził poza ekran przy powiększeniu samego tekstu do 200% | WCAG 1.4.4 |
+| drobna | Miękkie łączniki trafiały do nagłówków, przycisków i etykiet | 341 z 809 łączników w miejscach, gdzie CSS i tak zabrania dzielenia; 34 nazwy dostępne z łącznikiem |
+| drobna | Martwy kod: klasa `.no-js`, zmienne `--teal-soft` i `--ink-mute`, powtórzona reguła `.about__figure` | – |
+| drobna | Martwe pliki w katalogu publikowanym (121 kB) i martwa reguła `/api/*` w `_headers` | Cloudflare nie stosuje `_headers` do Pages Functions – nagłówki ustawia teraz sama funkcja |
+| drobna | `security.txt` wskazywał politykę prywatności w polu `Policy` | RFC 9116 przewiduje tam zasady zgłaszania podatności |
+| drobna | Polityka prywatności nie wymieniała kraju z adresu IP dokładanego do treści maila | – |
+
+Każda poprawka ma test, który nie przepuści jej z powrotem: regresja rozjechanego zegara,
+zamykanie menu fokusem, atrapy w widocznej treści, zgodność hasha CSP, zgodność list dzielenia
+wyrazów, osiem przypadków jednostkowych narzędzia typograficznego, martwe zmienne CSS.
+
+### Nowy bloker publikacji: migracja DNS
+
+Odczyt strefy 18.09.2026: NS `dns*.home.pl`, apex `46.242.239.156`, **MX wskazuje na sam apex**.
+Przepięcie apeksu na Cloudflare Pages zabiera klientowi pocztę przychodzącą. Kolejność migracji
+zapisana w `CHECKLISTA.md` (bloker nr 5).
+
+### Rekomendacja: wersja B
+
+Trzy niezależne rekomendacje – przez konwersję, przez wiarygodność marki i z perspektywy uwag
+klienta – wskazały wersję B.
+
+**Dlaczego nie A.** A nie zawiera niczego, czego nie ma B, poza doprecyzowaniami w CV i historią
+nazwy. Nadwyżka 287 słów to proza perswazyjna, nie dowody („Benefit rozwojowy, nie jednorazowa
+interwencja”, „Nie kolejne szkolenie ani gotowy schemat”). Menedżer, który sam zarządza ludźmi,
+nie potrzebuje zapewnień, że to nie szkolenie. A rozmywa też wezwanie do działania trzema różnymi
+etykietami przycisków; B ma jedno brzmienie w czterech miejscach, z ceną wejścia w etykiecie.
+
+**Dlaczego nie C, mimo że najwierniej oddaje uwagi klienta.** C usuwa dokładnie te informacje,
+na których zapada decyzja o kontakcie: cennik, przebieg współpracy, zasady z poufnością i podział
+„dla firm / dla Ciebie”. Formularz nadal pyta „Dla menedżera w mojej firmie”, a `llms.txt`
+deklaruje współpracę z firmami – strona obiecuje ścieżkę B2B, której nie obsługuje. Skrót nie
+przełożył się przy tym na łatwość czytania: udział wyrazów czterosylabowych i dłuższych to w C
+22,2% wobec 15,7% w B, bo to zdania z wersji A, tylko w mniejszej liczbie.
+
+**Kluczowe rozróżnienie.** Uwagi klienta dotyczyły układu i kadru: hero na jeden ekran, portret
+ucinany za wysoko, jeden akapit zamiast dwóch, własne brzmienie zdań. Nie dotyczyły usunięcia
+cennika, zasad i przebiegu – tych sekcji po prostu nie było w recenzowanej makiecie (sekcja 4c
+odnotowuje to wprost). Właściwy ruch to wzięcie z C układu, a nie cięć.
+
+**Co dołożyć do B przed wysłaniem klientowi:**
+
+1. Zdanie w drugiej osobie z wersji A jako pierwsze zdanie leadu: „Zarządzasz ludźmi i wynikami.
+   Zadbaj też o wsparcie dla siebie.” H1 zostaje z B – to jedyna wersja, w której fraza kategorii
+   stoi w nagłówku, a nie w nadtytule bez wagi semantycznej.
+2. Rozbicie łańcucha „dla menedżerów –” w H1: przy 320 px jest szerszy od kolumny (298 px / 288 px).
+3. Doprecyzowania z CV, które są realnym dowodem skali: „Premium Cigars (Vistula Retail Group)”,
+   „Herbapol Lublin S.A. (Grupa Polpharma)”, „promotor prof. Jerzy Bralczyk”.
+4. Sprostowanie zapisu o wykształceniu: B ma „absolwent coachingu na Uniwersytecie SWPS”, a źródłem
+   jest program „Psychologia i Coaching od podstaw” (tak jak w A i w JSON-LD `hasCredential`).
+5. Opis meta wersji B zgubił nazwisko z kwalifikacjami i frazę „mentoring biznesowy”.
+6. Z wersji C: kadr portretu sięgający linii paska faktów oraz brzmienie wstępu do oferty
+   i sekcji „O mnie” w wersji klienta.
+
+**Czego nie zamknie ani kod, ani redakcja:** dwie prawdziwe rekomendacje od klienta. Sekcja
+„Opinie” jest ukryta we wszystkich trzech wersjach – słusznie, bo atrapa szkodzi – ale zostawia
+stronę usług profesjonalnych bez dowodu społecznego. To największa pojedyncza luka konwersyjna.
+
+---
+
 ## 5. Do potwierdzenia z klientem (przed publikacją)
 
 Strona nie zawiera już twierdzeń bez pokrycia w źródle. Poniższe punkty to decyzje, a nie luki faktograficzne:

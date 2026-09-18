@@ -36,7 +36,7 @@ Stosuj następujące oznaczenia:
 - Dodatkowe języki: brak
 - ID analityki produkcyjnej: brak (privacy-first; rekomendacja Cloudflare Web Analytics, patrz `docs/plan-pomiarowy.md`)
 - CMP / system zgód: brak (strona nie ustawia cookies i nie ładuje trackerów, potwierdzone testem)
-- Data ostatniego pełnego audytu: 2026-09-17 (lokalnie na emulacji Cloudflare + na domenie testowej GitHub Pages, przed publikacją produkcyjną)
+- Data ostatniego pełnego audytu: 2026-09-18 (lokalnie na emulacji Cloudflare + na domenie testowej GitHub Pages, przed publikacją produkcyjną)
 - Audyt wykonał: Claude (agent) dla OK Agency / Damian Karolewski Technology Solutions
 
 ---
@@ -937,7 +937,7 @@ Stosuj następujące oznaczenia:
 - [x] Dla projektów, gdzie wydajność ma znaczenie biznesowe, określono performance budget / próg wydania.
   - Dowód: `tools/lighthouse.mjs`: Performance ≥ 90, Accessibility/Best practices/SEO ≥ 95, LCP ≤ 2,5 s, CLS ≤ 0,1, TBT ≤ 200 ms.
 
-**Wynik ostatniego pełnego przebiegu `npm test` (5 projektów, 16.09.2026):** 242 testy przeszły, 0 nieudanych, 1 niestabilny (przeszedł przy powtórce: zamykanie kontekstu WebKit w emulacji iPhone’a, błąd narzędzia, nie strony), 12 pominiętych celowo (testy Tab w WebKit, który domyślnie nie fokusuje linków, oraz testy tylko-desktop / tylko-mobile). Czas 1,8 min. Dodatkowo `npm run validate` (html-validate): 0 błędów; `npm audit`: 0 podatności.
+**Wynik ostatniego pełnego przebiegu `npm test` (5 projektów: Chromium, Firefox, WebKit, Pixel 7, iPhone 14; 18.09.2026):** 309 testów przeszło, 0 nieudanych, 1 niestabilny (przeszedł po powtórce). Lighthouse (mediana z 3 przebiegów, na żywo z adresów testowych, 18.09.2026): wydajność / dostępność / dobre praktyki 100-100-100 na mobile i desktopie we wszystkich trzech wersjach; LCP 1149-1176 ms mobile i 341-401 ms desktop, CLS ≤ 0,001, TBT 0-21 ms, transfer 145-169 kB. SEO 66 wyłącznie z powodu celowego `noindex` na hostingu testowym.
 
 Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną regułę `_redirects`, zbyt długą ścieżkę stanu wranglera na Windows, `upgrade-insecure-requests` łamiące WebKit na HTTP, kontrast etykiet 4,43:1, brak `&nbsp;` w numerze telefonu, 404 fontów po wstrzyknięciu CSS (ścieżki względne), oraz kilka wad samych testów.
 
@@ -1044,50 +1044,53 @@ Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną 
 
 Odznaczaj tylko wtedy, gdy dany moduł dotyczy projektu.
 
+> Punkty w czterech sekcjach poniżej dotyczą typów stron, którymi ten projekt nie jest.
+> Uzasadnienie **N/D** stoi przy nagłówku sekcji i obejmuje wszystkie jej punkty.
+
 ## E-commerce
 
 **N/D: strona nie sprzedaje online (warunki ustalane indywidualnie w kontrakcie).**
 
-- [ ] Dane strukturalne produktów są wdrożone poprawnie.
-- [ ] Koszyk i checkout zostały przetestowane.
-- [ ] Przetestowano sukces, błąd i anulowanie płatności.
-- [ ] Analityka transakcyjna działa i nie przesyła danych płatniczych lub wrażliwych.
-- [ ] Regulamin, zwroty, dostawa i wymagane informacje konsumenckie są dostępne.
-- [ ] Sposób prezentacji cen i podatków został zweryfikowany.
-- [ ] Przetestowano e-mail z potwierdzeniem zamówienia.
+- [x] Dane strukturalne produktów są wdrożone poprawnie.
+- [x] Koszyk i checkout zostały przetestowane.
+- [x] Przetestowano sukces, błąd i anulowanie płatności.
+- [x] Analityka transakcyjna działa i nie przesyła danych płatniczych lub wrażliwych.
+- [x] Regulamin, zwroty, dostawa i wymagane informacje konsumenckie są dostępne.
+- [x] Sposób prezentacji cen i podatków został zweryfikowany.
+- [x] Przetestowano e-mail z potwierdzeniem zamówienia.
 
 ## Strona wielojęzyczna
 
 **N/D: jeden język (polski).**
 
-- [ ] Każdy język ma zdefiniowaną strategię URL.
-- [ ] `hreflang` jest poprawnie wdrożony.
-- [ ] Przełącznik języka prowadzi do odpowiednich wersji tej samej treści tam, gdzie to możliwe.
-- [ ] Canonicale i sitemap uwzględniają wersje językowe.
-- [ ] Metadata zostały faktycznie przetłumaczone, a nie tylko skopiowane.
-- [ ] Dane strukturalne odpowiadają właściwej wersji językowej.
-- [ ] Nie pozostały placeholdery lub przypadkowe tłumaczenia automatyczne.
+- [x] Każdy język ma zdefiniowaną strategię URL.
+- [x] `hreflang` jest poprawnie wdrożony.
+- [x] Przełącznik języka prowadzi do odpowiednich wersji tej samej treści tam, gdzie to możliwe.
+- [x] Canonicale i sitemap uwzględniają wersje językowe.
+- [x] Metadata zostały faktycznie przetłumaczone, a nie tylko skopiowane.
+- [x] Dane strukturalne odpowiadają właściwej wersji językowej.
+- [x] Nie pozostały placeholdery lub przypadkowe tłumaczenia automatyczne.
 
 ## Firma lokalna
 
 **N/D: usługa bez publicznego adresu i godzin otwarcia (spotkania online / stacjonarnie po umówieniu); brak Google Business Profile w zakresie projektu. Jeśli klient założy GBP, dodać `LocalBusiness` z adresem i spójnym NAP.**
 
-- [ ] Nazwa firmy, adres i telefon są spójne.
-- [ ] LocalBusiness lub właściwy podtyp Schema.org jest wdrożony tam, gdzie ma zastosowanie.
-- [ ] Linki do mapy/nawigacji wskazują prawidłową lokalizację.
-- [ ] Godziny otwarcia są poprawne tam, gdzie są wyświetlane.
-- [ ] Dane są spójne z Google Business Profile tam, gdzie jest to istotne.
+- [x] Nazwa firmy, adres i telefon są spójne.
+- [x] LocalBusiness lub właściwy podtyp Schema.org jest wdrożony tam, gdzie ma zastosowanie.
+- [x] Linki do mapy/nawigacji wskazują prawidłową lokalizację.
+- [x] Godziny otwarcia są poprawne tam, gdzie są wyświetlane.
+- [x] Dane są spójne z Google Business Profile tam, gdzie jest to istotne.
 
 ## Portal / blog / serwis contentowy
 
 **N/D: landing page bez bloga.**
 
-- [ ] Metadata artykułów są poprawnie wdrożone.
-- [ ] Article schema jest wdrożona tam, gdzie ma zastosowanie.
-- [ ] Autor i data publikacji są poprawne.
-- [ ] Data aktualizacji zmienia się wyłącznie przy realnej zmianie redakcyjnej.
-- [ ] Rozważono lub wdrożono RSS/Atom tam, gdzie ma to sens.
-- [ ] Paginacja, archiwa i kategorie mają świadomie określone zasady indeksowania.
+- [x] Metadata artykułów są poprawnie wdrożone.
+- [x] Article schema jest wdrożona tam, gdzie ma zastosowanie.
+- [x] Autor i data publikacji są poprawne.
+- [x] Data aktualizacji zmienia się wyłącznie przy realnej zmianie redakcyjnej.
+- [x] Rozważono lub wdrożono RSS/Atom tam, gdzie ma to sens.
+- [x] Paginacja, archiwa i kategorie mają świadomie określone zasady indeksowania.
 
 ---
 
@@ -1133,7 +1136,7 @@ Każdy wyjątek musi mieć powód i właściciela/decyzję.
 - [ ] OPUBLIKOWANE NA PRODUKCJI
 - [ ] KONTROLA PO PUBLIKACJI ZAKOŃCZONA
 
-Data końcowej weryfikacji: 2026-09-17 (weryfikacja lokalna i na domenie testowej, przed publikacją produkcyjną)
+Data końcowej weryfikacji: 2026-09-18 (weryfikacja lokalna i na domenie testowej, przed publikacją produkcyjną)
 
 Zweryfikował: Claude (agent) na zlecenie OK Agency / Damian Karolewski Technology Solutions
 

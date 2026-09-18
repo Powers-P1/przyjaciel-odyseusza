@@ -187,9 +187,28 @@ warstwa techniczna, testy i CI.
 **Wersja A – pełna** (`main`): copy z sekcji 4/4a/4b. Dla klienta, który chce, żeby strona odpowiadała na wszystkie
 pytania bez kontaktu: oferta, dla kogo, sytuacje, przebieg, zasady, cennik, pełne CV, historia nazwy.
 
-**Wersja B – lekka** (`wersja-b`): ten sam układ, tekst skrócony do ok. połowy na podstawie badań czytelnictwa
-(założenia i źródła: `docs/wersja-b-zalozenia.md`). Dla czytelnika, który skanuje: nagłówki niosą treść, listy zamiast
-akapitów, jedno CTA powtórzone w trzech miejscach.
+**Wersja B – lekka** (`wersja-b`): ten sam układ, tekst skrócony na podstawie badań czytelnictwa
+(założenia i źródła: `docs/wersja-b-zalozenia.md`). Dla czytelnika, który skanuje: nagłówki niosą ofertę same,
+akapit najwyżej trzy zdania, jedno wezwanie do działania w jednym brzmieniu („Umów bezpłatną rozmowę”).
+Hero ma jeden akapit opisu zamiast dwóch. Zachowane wbrew skrótowi: podpis w hero, tytuły kart w „Dla kogo”
+i tabele CV – to najbardziej skanowalne elementy i dowody kompetencji, a ich wycięcie osłabiłoby wiarygodność
+(wariant bez nich to wersja C).
+
+Objętość tekstu w sekcji `main`, bez nawigacji, stopki, formularza i ukrytych opinii:
+
+| Wersja | Słowa | Udział wobec A |
+| --- | --- | --- |
+| A – pełna | 917 | 100% |
+| B – lekka | 630 | 69% |
+| C – według uwag | 313 | 34% |
+
+Sama proza wersji B (bez tabel CV, które są danymi do skanowania, nie do czytania) to ok. 555 słów, czyli
+w budżecie 450–550 z założeń. Treść powstała z trzech niezależnych szkiców ocenionych przez panel
+(skanowalność, SEO, polszczyzna) i przeszła korektę faktograficzną: usunięto cztery sformułowania bez pokrycia
+w wersji A („nawyki” zamiast „sposoby działania”, „budujesz zespół” zamiast „budujesz strukturę i procesy”,
+„talenty przed awansem” zamiast „talenty wskazane do awansu”, skrócone nazwy grup kapitałowych) oraz rodzajową
+formę „Zgłoś się sam”. Listy zostawiono w konwencji wersji A (małą literą, z przecinkami), żeby porównanie
+dotyczyło treści, a nie interpunkcji.
 
 **Wersja C – według uwag** (`wersja-c`): układ i treść z pliku „pełne morze uwagi” (uwagi klienta do kierunku
 technicznego, przeniesione na styl „Pełne morze”). Decyzje, które wymagały interpretacji:
@@ -210,6 +229,36 @@ technicznego, przeniesione na styl „Pełne morze”). Decyzje, które wymagał
 - Uwaga o „zgięciu” linii dotyczyła motywu graficznego kierunku technicznego; w „Pełnym morzu” takiej linii nie ma.
 - Uwaga o zdjęciu: portret w hero jest wycinkiem z makiety; przed publikacją do podmiany na oryginał z sesji
   (dotyczy wszystkich wersji).
+
+## 4d. Hero na jeden ekran i polski skład tekstu (18.09.2026)
+
+Dwie uwagi z przeglądu strony testowej: hero nie wypełniało całego widoku i w tekście zostawały
+„sieroty”. Obie dotyczyły wszystkich trzech wersji, więc naprawa siedzi we wspólnej warstwie.
+
+**Hero jako scena.** Sekcja miała `min-height: 100svh`, ale jej treść była wyższa od okna: przy
+1440×900 hero mierzyło 1115 px przy 815 px dostępnych, czyli pasek faktów wypadał poniżej krawędzi.
+Wariant kompaktowy włączał się dopiero poniżej 896 px wysokości okna, więc typowe laptopy trafiały
+w lukę. Zamiast kolejnego progu wysokość okna weszła na stałe do skali pionu: `--hero-rytm`,
+`--hero-pad` i `--hero-title` liczone są przez `min()` z miary szerokości i wysokości, a wszystkie
+odstępy hero i paska faktów są ich wielokrotnościami. Przy okazji `--header-h` oznacza teraz pełną
+wysokość przyklejonego nagłówka razem z kreską pod nim – bez tego hero wystawało o 1 px.
+Pilnuje tego test smoke na pięciu rozdzielczościach (1366×768 … 2560×1440).
+
+**Sieroty.** Narzędzie `tools/nbsp.mjs` wiązało tylko wyrazy jednoliterowe, więc „Na”, „do”, „za”
+nadal kończyły wiersze. Teraz wiąże wszystkie wyrazy jedno- i dwuliterowe oraz przyimki i spójniki
+z listy (bez, dla, nad, pod, oraz, przy, przed, według…), liczby z jednostkami, skróty, inicjały,
+numer telefonu i półpauzę. Encje i znaczniki są maskowane, dzięki czemu wiązanie przechodzi przez
+elementy inline („napisz na&nbsp;<a>adres</a>”), ale nigdy przez granicę akapitu ani `<br>`.
+Na stronie głównej dało to 247 twardych spacji zamiast 138.
+
+**Kontrola zamiast deklaracji.** `tests/typografia.spec.js` nie sprawdza źródła HTML, tylko mierzy
+w przeglądarce, gdzie faktycznie kończy się każdy wiersz, przy czterech szerokościach okna
+(390, 834, 1280, 1600 px) i na obu podstronach. Test nie przepuszcza ani sierot, ani wdów (akapitów
+z jednym wyrazem w ostatnim wierszu). Średni rozrzut długości wierszy wynosi po zmianach 8,6%,
+czyli mieści się w normie dla składu chorągiewkowego. Tekstu nie justujemy – WCAG 2.2 (1.4.8)
+odradza wyrównanie obustronne, a przy polskich długich wyrazach powstawałyby „rzeki”.
+
+---
 
 ## 5. Do potwierdzenia z klientem (przed publikacją)
 

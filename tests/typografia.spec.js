@@ -84,6 +84,29 @@ test.describe('Polski skład tekstu', () => {
     });
   }
 
+  test('miękkie łączniki są tylko tam, gdzie CSS pozwala dzielić wyrazy', async ({ page }) => {
+    // tools/typografia.mjs wstawia &shy; według własnej listy, CSS zezwala na dzielenie według swojej.
+    // Ten test pilnuje, żeby obie się nie rozjechały: łącznik w elemencie z `hyphens: none` nigdy
+    // nie złamie wiersza, a zostaje w drzewie dostępności, w schowku i w wyszukiwaniu na stronie.
+    for (const sciezka of STRONY) {
+      await page.goto(sciezka);
+      const martwe = await page.evaluate(() => {
+        const wynik = [];
+        for (const el of document.querySelectorAll('body *')) {
+          if (getComputedStyle(el).hyphens !== 'none') continue;
+          for (const node of el.childNodes) {
+            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('­')) {
+              wynik.push(`${el.tagName.toLowerCase()}.${el.className || '–'}: ${node.nodeValue.trim().slice(0, 50)}`);
+              break;
+            }
+          }
+        }
+        return wynik;
+      });
+      expect(martwe, `${sciezka}: miękkie łączniki w elementach bez dzielenia wyrazów`).toEqual([]);
+    }
+  });
+
   test('akapity nie kończą się wdową (jeden wyraz w ostatnim wierszu)', async ({ page, browserName }) => {
     // `text-wrap: pretty` działa dziś w silnikach Chromium; w pozostałych to kwestia długości tekstu,
     // więc twardo egzekwujemy tam, gdzie przeglądarka daje narzędzie.

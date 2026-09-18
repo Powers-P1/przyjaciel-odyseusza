@@ -90,6 +90,23 @@ function podzielToken(token) {
     (wyraz.length >= MIN_DLUGOSC && /^\p{Ll}/u.test(wyraz) ? podzielWyraz(wyraz) : wyraz));
 }
 
+// Gdzie wolno wstawiać miękkie łączniki. Lustro reguły `hyphens: manual` z src/css/style.css:
+// tylko akapity i pozycje list w tekście ciągłym. Poza nią łącznik i tak nigdy nie złamie wiersza,
+// a zostaje w drzewie dostępności, w schowku i w wyszukiwaniu na stronie – czyli szkodzi za darmo.
+// Spójność obu list pilnuje tests/typografia.spec.js (żaden element z `hyphens: none` nie ma U+00AD).
+const AKAPITY = new Set(['p', 'li']);
+const KLASY_TEKSTU = [
+  'hero__lead', 'section-intro', 'situation__desc', 'about__private', // akapity z własną klasą
+  'mode', 'card', 'step', 'principle', 'origin', 'contact__copy', 'about__copy', 'prose', // pojemniki
+];
+
+/** Czy w tym miejscu drzewa CSS pozwala dzielić wyrazy (stos otwartych elementów, od korzenia). */
+function wolnoDzielic(stos) {
+  const element = stos[stos.length - 1];
+  if (!element || !AKAPITY.has(element.nazwa)) return false;
+  return stos.some((e) => e.klasy.some((k) => KLASY_TEKSTU.includes(k)));
+}
+
 // ---------- wspólna obsługa HTML ----------
 
 // Elementy, które nie przerywają wiersza. Reszta (akapity, listy, <br>, obrazy) jest granicą wiązania.
@@ -146,6 +163,40 @@ function bezWdow(zamaskowany, schowek) {
   });
 }
 
+/**
+ * Przechodzi po zamaskowanym dokumencie, pilnując stosu otwartych elementów, i dzieli wyrazy
+ * tylko tam, gdzie CSS na to pozwala. Symbole zastępcze niosą oryginalne znaczniki, więc stos
+ * odtwarzamy z nich, a nie z tekstu – dzięki temu reguła nie może dotknąć atrybutów.
+ */
+function podzielWTekscieCiaglym(zamaskowany, schowek) {
+  const SAMOZAMYKAJACE = new Set(['br', 'img', 'input', 'hr', 'meta', 'link', 'source', 'path', 'use']);
+  const stos = [];
+  return zamaskowany.replace(/\uE000(\d+)\uE001|\uE002(\d+)\uE003|[^\uE000-\uE003]+/g, (fragment, a, b) => {
+    const indeks = a ?? b;
+    if (indeks === undefined) {
+      // fragment tekstu: dzielimy, jeśli jesteśmy w akapicie tekstu ciągłego
+      if (!wolnoDzielic(stos)) return fragment;
+      return fragment.replace(/[^\s\u00A0]+/g, podzielToken);
+    }
+    const znacznik = schowek[Number(indeks)];
+    const otwierajacy = znacznik.match(/^<([a-zA-Z][a-zA-Z0-9-]*)/);
+    const zamykajacy = znacznik.match(/^<\/([a-zA-Z][a-zA-Z0-9-]*)/);
+    if (otwierajacy) {
+      const nazwa = otwierajacy[1].toLowerCase();
+      if (!SAMOZAMYKAJACE.has(nazwa) && !znacznik.endsWith('/>')) {
+        const klasy = (znacznik.match(/\bclass="([^"]*)"/) || [, ''])[1].split(/\s+/).filter(Boolean);
+        stos.push({ nazwa, klasy });
+      }
+    } else if (zamykajacy) {
+      const nazwa = zamykajacy[1].toLowerCase();
+      for (let i = stos.length - 1; i >= 0; i -= 1) {
+        if (stos[i].nazwa === nazwa) { stos.length = i; break; }
+      }
+    }
+    return fragment;
+  });
+}
+
 function typografia(html) {
   // Bloki nietykalne: kod, tytuł dokumentu oraz treść pola formularza i tekstu preformatowanego –
   // tam twarda spacja i miękki łącznik byłyby widoczne dla użytkownika albo zepsułyby wartość pola.
@@ -162,7 +213,7 @@ function typografia(html) {
       // 3. miękkie łączniki
       // token = ciąg bez odstępów; twarda spacja i symbole zastępcze dzielą tokeny, więc wyrazy
       // związane twardą spacją dzielimy osobno, a symboli zastępczych nie tykamy
-      const podzielony = zeSpacjami.replace(/[^\s\u00A0\uE000-\uE003]+/g, podzielToken);
+      const podzielony = podzielWTekscieCiaglym(zeSpacjami, schowek);
       // 4. wdowy – jeszcze w tekście zamaskowanym, żeby reguła nie mogła dotknąć znaczników
       const bezWdowy = bezWdow(podzielony, schowek);
       return odmaskuj(bezWdowy, schowek)

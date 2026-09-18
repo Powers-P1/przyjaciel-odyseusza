@@ -43,18 +43,18 @@ const PRZEZROCZYSTE = '(?:\\uE002\\d+\\uE003)*';
 
 const REGULY_NBSP = [
   // wyraz krótki (1–2 litery) albo przyimek/spójnik z listy + następny wyraz
-  [new RegExp(`(?<!${LITERA})((?:${SPOJNIKI.join('|')})|\\p{L}\\p{L}?)\\s+(?=${PRZEZROCZYSTE}(?:${LITERA}|${OTWARCIE}))`, 'giu'), '$1 '],
+  [new RegExp(`(?<!${LITERA})((?:${SPOJNIKI.join('|')})|\\p{L}\\p{L}?)\\s+(?=${PRZEZROCZYSTE}(?:${LITERA}|${OTWARCIE}))`, 'giu'), '$1\u00A0'],
   // liczba + jednostka lub waluta
-  [/(\d)\s+(lat|lata|roku|PLN|zł|min|godz|proc|r\.|s\.|tys|mln)(?![\p{L}])/gu, '$1 $2'],
+  [/(\d)\s+(lat|lata|roku|PLN|zł|min|godz|proc|r\.|s\.|tys|mln)(?![\p{L}])/gu, '$1\u00A0$2'],
   // skrót nie zostaje sam na końcu wiersza
-  [/(?<![\p{L}])(prof|dr|mgr|inż|np|tj|tzw|m\.in|ul|al|nr|tel|pt)\.\s+(?=\S)/gu, '$1. '],
+  [/(?<![\p{L}])(prof|dr|mgr|inż|np|tj|tzw|m\.in|ul|al|nr|tel|pt)\.\s+(?=\S)/gu, '$1.\u00A0'],
   // inicjał przy nazwisku
-  [/(?<!\p{L})(\p{Lu})\.\s+(?=\p{Lu})/gu, '$1. '],
+  [/(?<!\p{L})(\p{Lu})\.\s+(?=\p{Lu})/gu, '$1.\u00A0'],
   // numer telefonu w całości w jednym wierszu
-  [/(\+\d{2})\s(\d{3})\s(\d{3})\s(\d{3})/g, '$1 $2 $3 $4'],
+  [/(\+\d{2})\s(\d{3})\s(\d{3})\s(\d{3})/g, '$1\u00A0$2\u00A0$3\u00A0$4'],
   // kreska rozdzielająca i półpauza nie zaczynają wiersza (Mentor biznesowy | Coach | Psycholog)
-  [/\s+(?=[|–—]\s)/g, ' '],
-  [/(?<=[|–—])\s+(?=\S)/g, ' '],
+  [/\s+(?=[|–—]\s)/g, '\u00A0'],
+  [/(?<=[|–—])\s+(?=\S)/g, '\u00A0'],
 ];
 
 // ---------- miękkie łączniki ----------
@@ -63,8 +63,8 @@ const REGULY_NBSP = [
 const MIN_PRZED = 2;
 const MIN_PO = 3;
 const MIN_DLUGOSC = 6; // krótszych wyrazów dzielić nie ma po co
-const ZNACZNIK = ''; // tymczasowy separator podziałów, nie występuje w treści
-const SHY = '­';
+const ZNACZNIK = '\u0001'; // tymczasowy separator podziałów, nie występuje w treści
+const SHY = '\u00AD';
 // Token, w którym nie ruszamy nic: adres, e-mail, nazwa pliku, cokolwiek z cyfrą.
 const TECHNICZNY = /[@/\\\d]|\.\p{L}/u;
 
@@ -98,13 +98,13 @@ const INLINE = new Set(['a', 'abbr', 'b', 'bdi', 'bdo', 'cite', 'code', 'data', 
 
 /**
  * Chowa encje i znaczniki pod symbole zastępcze, żeby reguły widziały sam tekst.
- * Znaczniki inline dostają symbol przezroczysty (…), pozostałe – nieprzezroczysty,
+ * Znaczniki inline dostają symbol przezroczysty (\uE002…\uE003), pozostałe – nieprzezroczysty,
  * dzięki czemu twarda spacja nigdy nie powstaje w poprzek akapitu ani <br>.
  */
 function zamaskuj(html, schowek) {
   const zapisz = (fragment, przezroczysty) => {
     schowek.push(fragment);
-    return przezroczysty ? `${schowek.length - 1}` : `${schowek.length - 1}`;
+    return przezroczysty ? `\uE002${schowek.length - 1}\uE003` : `\uE000${schowek.length - 1}\uE001`;
   };
   return html
     .replace(/&(?:[a-zA-Z][a-zA-Z0-9]*|#\d+|#x[0-9a-fA-F]+);/g, (encja) => zapisz(encja, false))
@@ -113,7 +113,7 @@ function zamaskuj(html, schowek) {
 }
 
 function odmaskuj(html, schowek) {
-  return html.replace(/(\d+)|(\d+)/g, (_, a, b) => schowek[Number(a ?? b)]);
+  return html.replace(/\uE000(\d+)\uE001|\uE002(\d+)\uE003/g, (_, a, b) => schowek[Number(a ?? b)]);
 }
 
 // ---------- wdowy ----------
@@ -121,22 +121,24 @@ function odmaskuj(html, schowek) {
 // Ostatni wiersz akapitu nie może być pojedynczym wyrazem. Wiążemy dwa ostatnie wyrazy twardą spacją,
 // ale tylko gdy razem są krótkie – dłuższa para rozpychałaby wąskie kolumny na telefonie.
 const WDOWA_MAKS = 22;
-const ZAMYKA_AKAPIT = /^<\/(?:p|li|dd|dt|figcaption|blockquote|h[1-6])>$/i;
+// nagłówków nie ruszamy: mają `text-wrap: balance`, a wiązanie groziłoby ciągiem szerszym niż kolumna
+const ZAMYKA_AKAPIT = /^<\/(?:p|li|dd|figcaption)>$/i;
 // Szukamy w tekście zamaskowanym: odstęp + ostatni wyraz + ewentualne znaczniki inline + koniec akapitu.
 // Dzięki maskowaniu reguła nie widzi znaczników jako tekstu, więc nie może wstawić twardej spacji
 // w środek atrybutu – wcześniejsza wersja działała na surowym HTML i psuła `<a href=…>`.
-const KONIEC_AKAPITU = /[ \t\n\r]+([^\s-]+)((?:\d+)*)[ \t\n\r]*(?=(\d+))/g;
+const KONIEC_AKAPITU = /[ \t\n\r]+([^\s\uE000-\uE003]+)((?:\uE002\d+\uE003)*)[ \t\n\r]*(?=\uE000(\d+)\uE001)/g;
 
 /** Wiąże dwa ostatnie wyrazy akapitu, żeby w ostatnim wierszu nie został jeden wyraz. */
 function bezWdow(zamaskowany, schowek) {
   return zamaskowany.replace(KONIEC_AKAPITU, (calosc, ostatni, inline, indeks, offset) => {
     if (!ZAMYKA_AKAPIT.test(schowek[Number(indeks)])) return calosc;
-    const czysty = (t) => t.replace(/ /g, ' ').replace(/­/g, '');
-    const poprzedni = czysty(zamaskowany.slice(0, offset))
-      .split(/[ \t\n\r]+/).filter(Boolean).pop() || '';
+    const czysty = (t) => t.replace(/\u00A0/g, ' ').replace(/\u00AD/g, '');
+    // liczymy cały nierozrywalny ciąg, a nie sam wyraz: poprzedni wyraz bywa już związany
+    // twardą spacją z kolejnym („z którymi”), a wtedy wiązanie robi z nich trójkę szerszą niż kolumna
+    const poprzedni = zamaskowany.slice(0, offset).split(/[ \t\n\r]+/).filter(Boolean).pop() || '';
     if (!poprzedni || !/\p{L}/u.test(czysty(ostatni))) return calosc; // pusty akapit albo liczba/adres
-    if (`${poprzedni} ${czysty(ostatni)}`.length > WDOWA_MAKS) return calosc;
-    return ` ${ostatni}${inline}`;
+    if (`${czysty(poprzedni)} ${czysty(ostatni)}`.length > WDOWA_MAKS) return calosc;
+    return `\u00A0${ostatni}${inline}`;
   });
 }
 
@@ -148,19 +150,19 @@ function typografia(html) {
       if (i % 2 === 1) return blok;
       const schowek = [];
       // 1. czysty tekst: zdejmujemy wszystko, co narzędzie wstawiło wcześniej
-      const czysty = blok.replace(/&nbsp;| /g, ' ').replace(/&shy;|­/g, '');
+      const czysty = blok.replace(/&nbsp;|\u00A0/g, ' ').replace(/&shy;|\u00AD/g, '');
       const zamaskowany = zamaskuj(czysty, schowek);
       // 2. twarde spacje
       const zeSpacjami = REGULY_NBSP.reduce((tekst, [re, na]) => tekst.replace(re, na), zamaskowany);
       // 3. miękkie łączniki
       // token = ciąg bez odstępów; twarda spacja i symbole zastępcze dzielą tokeny, więc wyrazy
       // związane twardą spacją dzielimy osobno, a symboli zastępczych nie tykamy
-      const podzielony = zeSpacjami.replace(/[^\s -]+/g, podzielToken);
+      const podzielony = zeSpacjami.replace(/[^\s\u00A0\uE000-\uE003]+/g, podzielToken);
       // 4. wdowy – jeszcze w tekście zamaskowanym, żeby reguła nie mogła dotknąć znaczników
       const bezWdowy = bezWdow(podzielony, schowek);
       return odmaskuj(bezWdowy, schowek)
-        .replace(/ /g, '&nbsp;')
-        .replace(/­/g, '&shy;');
+        .replace(/\u00A0/g, '&nbsp;')
+        .replace(/\u00AD/g, '&shy;');
     })
     .join('');
 }

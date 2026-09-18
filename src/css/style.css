@@ -67,7 +67,7 @@ p { margin: 0 0 1em; }
 /* bez pojedynczych słów w ostatniej linii akapitu (przeglądarki bez text-wrap: pretty ignorują regułę) */
 p, li, dd { text-wrap: pretty; }
 
-/* Dzielenie wyrazów. tools/dziel.mjs zaznacza w kroku budowania KAŻDE miejsce, w którym polski wyraz
+/* Dzielenie wyrazów. tools/typografia.mjs zaznacza w kroku budowania KAŻDE miejsce, w którym polski wyraz
    wolno przenieść (miękki łącznik &shy;, wzorce hyph-pl, minima 2 znaki zostają / 3 przechodzą).
    Tutaj decydujemy, GDZIE z tych miejsc korzystać: tylko w tekście ciągłym. Nagłówki, nadtytuły,
    etykiety, przyciski i podpisy łamiemy bez łączników – przy dużym stopniu pisma łącznik rzuca się

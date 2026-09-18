@@ -65,26 +65,17 @@ p { margin: 0 0 1em; }
 /* bez pojedynczych słów w ostatniej linii akapitu (przeglądarki bez text-wrap: pretty ignorują regułę) */
 p, li, dd { text-wrap: pretty; }
 
-/* Dzielenie wyrazów. tools/typografia.mjs zaznacza w kroku budowania KAŻDE miejsce, w którym polski wyraz
-   wolno przenieść (miękki łącznik &shy;, wzorce hyph-pl, minima 2 znaki zostają / 3 przechodzą).
-   Tutaj decydujemy, GDZIE z tych miejsc korzystać: tylko w tekście ciągłym. Nagłówki, nadtytuły,
-   etykiety, przyciski i podpisy łamiemy bez łączników – przy dużym stopniu pisma łącznik rzuca się
-   w oczy, a wiersze są tam i tak krótkie. `manual` zamiast `auto`: dzielimy wyłącznie tam, gdzie
-   zaznaczyło narzędzie, więc wynik jest ten sam w każdej przeglądarce i nie rozcina nazw własnych.
-   Efekt w tekście ciągłym: średnie wypełnienie wiersza 83,9% → 92,5%, najkrótszy wiersz 44% → 70%,
-   wierszy krótszych niż 80% szerokości 17 → 4, odstępy między wyrazami bez zmian.
-   Tekstu nie justujemy: przeglądarka łamie wiersze zachłannie, więc justowanie rozstrzeliwuje odstępy
-   do 1,57 zwykłej spacji w medianie i 6,6 w skrajnym wierszu przy normie DTP 1,33; do tego WCAG 2.2
-   (1.4.8) odradza wyrównanie obustronne. Pomiary: REVIEW.md, sekcja 4e. */
-body { hyphens: none; }
-.hero__lead,
-.section-intro,
-.mode p,
-.situation__desc,
-.about__copy > p,
-.contact__copy p,
-.prose p,
-.prose li { hyphens: manual; -webkit-hyphens: manual; }
+/* Justowanie tekstu ciągłego. Bez JavaScriptu zostaje chorągiewka: zachłanne justowanie
+   przeglądarki wygląda gorzej niż wyrównanie do lewej – zmierzone na tej stronie odstępy między
+   wyrazami sięgały mediany 2,4 zwykłej spacji i 9,0 w skrajnym wierszu, co daje widoczne „rzeki”.
+   `text-wrap: pretty` i `balance` tego nie naprawiają (2,8 i 4,4 mediany) – optymalizują
+   chorągiewkę, nie wypełnienie wiersza.
+   src/js/justowanie.js liczy podział na wiersze dla całego akapitu naraz (algorytm Knutha–Plassa,
+   ten sam co w TeX-u) i opakowuje każdy wiersz w blok; ostateczne rozciągnięcie odstępów robi
+   przeglądarka, co do piksela. Wyrazów nie dzielimy. Pomiary: REVIEW.md, sekcja 4e. */
+.jest-justowany { word-spacing: -.06em; }
+.jest-justowany .wiersz { display: block; text-align: justify; text-align-last: justify; }
+.jest-justowany .wiersz--ostatni { text-align: left; text-align-last: left; }
 ul, ol { margin: 0; padding: 0; }
 h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; line-height: 1.15; letter-spacing: -.008em; }
 button { font: inherit; color: inherit; }
@@ -317,6 +308,7 @@ button { font: inherit; color: inherit; }
 }
 .section-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-top: 2.5rem; }
 
+/* ---------- współpraca ---------- */
 /* ---------- o mnie ---------- */
 .about { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 3rem 4.5rem; align-items: start; }
 .about__copy .section-title { margin-bottom: 1.25rem; }

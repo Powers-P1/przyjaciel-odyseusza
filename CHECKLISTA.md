@@ -209,7 +209,7 @@ Stosuj następujące oznaczenia:
 - [x] Wybrano typy Schema.org faktycznie pasujące do strony.
   - Przykłady: `Organization`, `LocalBusiness`, `ProfessionalService`, `WebSite`, `BreadcrumbList`, `Article`, `Product`.
   - Nie dodawaj typów tylko po to, aby "coś było".
-  - Dowód: `ProfessionalService` (usługa mentoringu) + `Person` (Bartłomiej Przytuła) w `@graph`; bez `LocalBusiness` (brak publicznego adresu), bez `FAQ`/ocen.
+  - Dowód: `Organization` (firma) + `Service` (usługa mentoringu, z ceną w wersjach z cennikiem) + `Person` (Bartłomiej Przytuła) w `@graph`; bez `LocalBusiness` (brak publicznego adresu), bez `FAQ`/ocen.
 
 - [x] Dane strukturalne odpowiadają treści faktycznie widocznej na stronie.
   - Nie publikuj fałszywych ocen, cen, adresów, FAQ ani innych danych tylko dla wyszukiwarki.
@@ -223,7 +223,7 @@ Stosuj następujące oznaczenia:
   - Dowód: e-mail i telefon identyczne w JSON-LD, sekcji kontakt i stopce (`tests/smoke.spec.js` „linki telefon i e-mail…”); brak profili społecznościowych (klient ich nie publikuje, `sameAs` celowo pominięte).
 
 - [x] Dane strukturalne przechodzą walidację bez błędów krytycznych.
-  - Dowód: Schema Markup Validator (validator.schema.org) na żywym adresie testowym, 17.09.2026: `ProfessionalService` + `Person`, **0 błędów**; jedyne ostrzeżenie (`availableLanguage` nie jest właściwością `ProfessionalService`) usunięte – zamienione na `knowsLanguage`. Google Rich Results Test nie ma typu wyniku rozszerzonego dla `ProfessionalService`/`Person` (celowo bez FAQ/ocen), więc nie wnosi nic ponad walidator. Test `tests/seo.spec.js` „JSON-LD parsuje się i opisuje to, co widać na stronie”.
+  - Dowód: Schema Markup Validator (validator.schema.org) na żywym adresie testowym, 17.09.2026: `Organization` + `Service` + `Person`, **0 błędów**; jedyne ostrzeżenie (`availableLanguage` nie jest właściwością `ProfessionalService`) usunięte – zamienione na `knowsLanguage`. Google Rich Results Test nie ma typu wyniku rozszerzonego dla `ProfessionalService`/`Person` (celowo bez FAQ/ocen), więc nie wnosi nic ponad walidator. Test `tests/seo.spec.js` „JSON-LD parsuje się i opisuje to, co widać na stronie”.
 
 ---
 
@@ -1116,6 +1116,11 @@ Wpisz wszystko, co uniemożliwia release:
    i `<selektor>._domainkey` zamiast polegać na wildcardzie, (3) dopiero wtedy zmienić NS,
    (4) po podpięciu Resend rozszerzyć SPF o `include:_spf.resend.com`.
    Właściciel: agencja; do wykonania razem z klientem, przed podpięciem domeny.
+6. **Sekcja „Opinie” zawiera przykładowe wypowiedzi, nie prawdziwe rekomendacje.** Cytaty pokazują
+   docelowy układ i długość; podpisy celowo nie zawierają nazwiska ani nazwy firmy. Sekcja niesie
+   atrybut `data-przyklad="tak"`, a `tests/links.spec.js` pilnuje, żeby przykładowa treść nie została
+   bez tego znacznika. Przed publikacją: wstawić rekomendacje od klienta i usunąć atrybut, albo ukryć
+   sekcję atrybutem `hidden`. Właściciel: klient (treść), agencja (wdrożenie).
 
 ## Świadomie zaakceptowane wyjątki
 
@@ -1125,14 +1130,14 @@ Każdy wyjątek musi mieć powód i właściciela/decyzję.
 2. Brak hashy w nazwach plików CSS/JS (krótszy cache 1 dzień zamiast immutable) – uproszczenie wdrożenia bez builda na hostingu; właściciel: agencja.
 3. Przekierowanie `www` → apex realizowane regułą w dashboardzie Cloudflare, nie w kodzie (ograniczenie `_redirects` w Pages) – właściciel: agencja przy podpinaniu domeny.
 4. Test czytnikiem ekranu i na fizycznych urządzeniach mobilnych do wykonania ręcznie przed publikacją – właściciel: agencja.
-5. Sekcja „Opinie” ukryta do czasu otrzymania rekomendacji od klienta – właściciel: klient.
+5. Sekcja „Opinie” pokazuje przykładowe wypowiedzi do czasu otrzymania rekomendacji od klienta; oznaczona `data-przyklad`, wymieniona wśród blokerów – właściciel: klient.
 6. Wersja testowa na GitHub Pages jest publicznie dostępna bez autoryzacji (GitHub Pages jej nie oferuje) i leży w publicznym repozytorium (plan GitHub Free nie daje Pages dla repozytoriów prywatnych). Ochrona przed indeksowaniem: `noindex, nofollow` na każdej stronie, bez sitemapy. W repozytorium nie ma sekretów ani danych innych niż te, które klient publikuje na swojej obecnej stronie. Po starcie produkcji wersję testową wyłączyć (Settings → Pages → Unpublish) – właściciel: agencja.
 7. GitHub Pages nie obsługuje `_headers` (brak CSP/HSTS własnych) ani funkcji `/api/contact` – na domenie testowej formularz kończy się błędem HTTP 405, a interfejs pokazuje kontakt awaryjny (e-mail, telefon). Nagłówki i backend są weryfikowane na emulacji Cloudflare (`npm test`) i będą działać na produkcji – właściciel: agencja.
 
 ## Status końcowy
 
 - [x] OPUBLIKOWANE NA DOMENIE TESTOWEJ: https://powers-p1.github.io/przyjaciel-odyseusza/ (17.09.2026, `noindex`)
-- [ ] GOTOWE DO PRODUKCJI (po zamknięciu 5 blokerów powyżej)
+- [ ] GOTOWE DO PRODUKCJI (po zamknięciu 6 blokerów powyżej)
 - [ ] OPUBLIKOWANE NA PRODUKCJI
 - [ ] KONTROLA PO PUBLIKACJI ZAKOŃCZONA
 

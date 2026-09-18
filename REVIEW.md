@@ -428,7 +428,7 @@ Strona nie zawiera już twierdzeń bez pokrycia w źródle. Poniższe punkty to 
 - **Dostępność**: landmarki, skip link, kontrasty AA, widoczny focus, etykiety pól, `aria-live` dla statusu
   formularza, `prefers-reduced-motion`, semantyczne listy i nagłówki, tekst alternatywny zdjęć.
 - **SEO**: title/description, canonical, OG + Twitter card z dedykowanym obrazem 1200×630, JSON-LD
-  (`ProfessionalService` + `Person`), `sitemap.xml`, `robots.txt`, `lang="pl"`.
+  (`Organization` + `Service` + `Person`), `sitemap.xml`, `robots.txt`, `lang="pl"`.
 - **RODO**: brak cookies i trackerów, fonty lokalnie, informacja przy formularzu + pełna polityka,
   wysyłka przez funkcję (dane nie przechodzą przez zewnętrzny formularz SaaS).
 - **Formularz**: walidacja po stronie klienta i serwera, honeypot, minimalny czas wypełnienia,

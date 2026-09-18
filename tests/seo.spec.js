@@ -1,4 +1,4 @@
-import { test, expect, STAGING, SITE, bezTwardychSpacji } from './_fixtures.js';
+import { test, expect, STAGING, SITE, tekstWidoczny } from './_fixtures.js';
 
 // adres kanoniczny: produkcja albo (z STAGING_URL) adres hostingu testowego
 const PROD = SITE;
@@ -145,7 +145,7 @@ test.describe('SEO techniczne', () => {
     expect(r.status()).toBe(404);
     const html = await r.text();
     expect(html).toContain('404');
-    expect(bezTwardychSpacji(html)).toContain('Wróć na stronę główną');
+    expect(tekstWidoczny(html)).toContain('Wróć na stronę główną');
   });
 
   test('llms.txt istnieje i opisuje stronę', async ({ request }) => {

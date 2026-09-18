@@ -16,9 +16,13 @@ export const SITE = parsed ? ORIGIN + BASE_PATH : 'https://przyjacielodyseusza.p
 export const SHARED_404 = BASE_PATH.split('/').length > 2;
 export const PAGES_404 = SHARED_404 ? [] : ['/nie-istnieje-404'];
 
-/** Zamienia twarde spacje (wstawione przez tools/nbsp.mjs) na zwykłe – do porównań tekstu w testach. */
-export function bezTwardychSpacji(text) {
-  return text.replace(/&nbsp;| /g, ' ');
+/**
+ * Sprowadza tekst ze strony do postaci porównywalnej z tym, co widzi człowiek:
+ * twarde spacje (&nbsp;) na zwykłe, miękkie łączniki (&shy;) usunięte.
+ * Oba wstawia tools/typografia.mjs, więc żadna asercja na treści nie może ich zakładać.
+ */
+export function tekstWidoczny(text) {
+  return text.replace(/&nbsp;| /g, ' ').replace(/&shy;|­/g, '');
 }
 
 /** Dokleja podścieżkę bazową do adresu względem katalogu głównego; adresy już uzupełnione i absolutne zostawia. */

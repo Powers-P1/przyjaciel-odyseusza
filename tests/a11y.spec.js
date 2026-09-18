@@ -71,7 +71,9 @@ test.describe('Klawiatura i focus', () => {
         const cs = getComputedStyle(el);
         const r = el.getBoundingClientRect();
         return {
-          tag: el.tagName, id: el.id, text: (el.textContent || '').trim().slice(0, 30),
+          tag: el.tagName, id: el.id,
+          // tekst porównywalny z widzianym: bez miękkich łączników i twardych spacji (tools/typografia.mjs)
+          text: (el.textContent || '').replace(/­/g, '').replace(/ /g, ' ').trim().slice(0, 30),
           outline: cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0,
           visible: r.width > 0 && r.height > 0,
           hiddenAncestor: Boolean(el.closest('[hidden], [aria-hidden="true"]')),

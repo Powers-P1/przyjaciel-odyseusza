@@ -17,7 +17,8 @@
   Cache-Control: public, max-age=2592000
 
 /assets/js/*
-  Cache-Control: public, max-age=86400
+  # adres skryptu niesie odcisk treści (?v=…), więc cache może być roczny
+  Cache-Control: public, max-age=31536000, immutable
 
 # Uwaga: Cloudflare nie stosuje tego pliku do odpowiedzi z Pages Functions,
 # dlatego /api/contact ustawia swoje nagłówki samodzielnie (functions/api/contact.js).

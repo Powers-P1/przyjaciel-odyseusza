@@ -62,12 +62,26 @@ test.describe('Linki i zasoby', () => {
   });
 
   test('widoczna treść strony głównej nie zawiera atrap', async ({ page }) => {
-    // Sekcja „Opinie” jest w wersjach A i B ukryta atrybutem hidden do czasu otrzymania rekomendacji
-    // – to świadomy, opisany stan. Błędem jest dopiero atrapa, którą widzi odwiedzający, dlatego
-    // sprawdzamy tekst wyrenderowany (innerText pomija elementy ukryte), a nie źródło HTML.
+    // Sprawdzamy tekst wyrenderowany (innerText pomija elementy ukryte), a nie źródło HTML.
     await page.goto('/');
     const widoczny = tekstWidoczny(await page.locator('body').innerText());
     expect(widoczny, 'atrapa w widocznej treści')
       .not.toMatch(/miejsce na opinię|do uzupełnienia|imię i nazwisko,\s*stanowisko|lorem ipsum/i);
+  });
+
+  test('przykładowe opinie są oznaczone atrybutem, który blokuje publikację', async ({ page }) => {
+    // Sekcja „Opinie” pokazuje na razie przykładowe wypowiedzi, żeby klient zobaczył docelowy układ.
+    // Znacznik data-przyklad jest jedynym śladem, po którym widać, że to nie są prawdziwe
+    // rekomendacje – nie wolno go usunąć razem z przykładową treścią (CHECKLISTA.md, blokery).
+    await page.goto('/');
+    const opinie = page.locator('#opinie');
+    if (await opinie.count() === 0) return; // wersja bez sekcji opinii
+    const podpisy = tekstWidoczny(await opinie.innerText());
+    const przykladowe = /imię i nazwisko/i.test(podpisy);
+    const oznaczone = await opinie.getAttribute('data-przyklad') !== null;
+    expect(przykladowe === oznaczone,
+      przykladowe
+        ? 'przykładowe opinie bez atrybutu data-przyklad – publikacja przepuściłaby zmyśloną treść'
+        : 'atrybut data-przyklad przy prawdziwych rekomendacjach – usuń go').toBeTruthy();
   });
 });

@@ -78,6 +78,15 @@ export async function onRequestPost({ request, env }) {
   if (message.length < 10) invalid.push('message');
   if (invalid.length) return respond(422, { ok: false, error: 'validation', fields: invalid }, wantsJson);
 
+  // Fail-closed. Weryfikacja Turnstile jest warunkowa, żeby formularz działał na emulacji lokalnej
+  // (tam nie ma sekretów). Na działającym wdrożeniu – poznajemy je po kluczu do wysyłki maili –
+  // brak sekretu Turnstile oznaczałby formularz bez ochrony antyspamowej, więc zatrzymujemy go
+  // głośno. Literówka w nazwie zmiennej w panelu Pages nie może po cichu wyłączyć captchy.
+  if (env.RESEND_API_KEY && !env.TURNSTILE_SECRET) {
+    console.error('Brak TURNSTILE_SECRET przy skonfigurowanej wysyłce – formularz zatrzymany.');
+    return respond(500, { ok: false, error: 'not_configured' }, wantsJson);
+  }
+
   if (env.TURNSTILE_SECRET) {
     const token = clean(data['cf-turnstile-response'], 4096);
     const ip = request.headers.get('CF-Connecting-IP') || '';

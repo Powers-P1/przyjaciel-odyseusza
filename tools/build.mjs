@@ -39,6 +39,17 @@ for (const page of PAGES) {
   else html = html.replace(/<style data-inline="style\.css">[\s\S]*?<\/style>/, () => styleTag);
   fs.writeFileSync(page, html);
 }
+// Odcisk treści w adresie skryptu: pozwala trzymać rok cache'u (immutable), a mimo to wypuścić
+// zmianę natychmiast. Liczony z pliku, więc build zostaje deterministyczny – CI sprawdza,
+// czy `public/` po przebudowaniu niczego nie zmienia.
+const jsHash = createHash('sha256').update(fs.readFileSync('public/assets/js/main.js')).digest('hex').slice(0, 8);
+for (const page of PAGES) {
+  const html = fs.readFileSync(page, 'utf8');
+  const podmieniony = html.replace(/(<script src="\/assets\/js\/main\.js)(\?v=[0-9a-f]+)?(")/g, `$1?v=${jsHash}$3`);
+  if (podmieniony !== html) fs.writeFileSync(page, podmieniony);
+}
+console.log(`main.js: odcisk ?v=${jsHash} w adresie skryptu`);
+
 let headers = fs.readFileSync('public/_headers', 'utf8');
 headers = headers.replace(/style-src 'self'(?: 'sha256-[^']+')?;/, `style-src 'self' ${cspHash};`);
 fs.writeFileSync('public/_headers', headers);

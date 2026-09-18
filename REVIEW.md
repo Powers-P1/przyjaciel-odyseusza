@@ -253,51 +253,108 @@ Na stronie głównej dało to 247 twardych spacji zamiast 138.
 
 **Kontrola zamiast deklaracji.** `tests/typografia.spec.js` nie sprawdza źródła HTML, tylko mierzy
 w przeglądarce, gdzie faktycznie kończy się każdy wiersz, przy czterech szerokościach okna
-(390, 834, 1280, 1600 px) i na obu podstronach. Test nie przepuszcza ani sierot, ani wdów (akapitów
-z jednym wyrazem w ostatnim wierszu). Średni rozrzut długości wierszy wynosi po zmianach 8,6%,
-czyli mieści się w normie dla składu chorągiewkowego. Tekstu nie justujemy – WCAG 2.2 (1.4.8)
-odradza wyrównanie obustronne, a przy polskich długich wyrazach powstawałyby „rzeki”.
+(390, 834, 1280, 1600 px) i na obu podstronach.
+
+> Uzupełnienie z 18.09.2026: w tej sekcji stało wcześniej, że tekstu nie justujemy. Klient
+> zdecydował inaczej i tekst jest dziś justowany – bez dzielenia wyrazów. Jak to zrobiono
+> i co kosztowało: sekcja 4e.
 
 ---
 
-## 4e. Justowanie, dzielenie wyrazów i szerokość treści (18.09.2026)
+## 4e. Justowanie, mikrotypografia i szerokość kolumn (18.09.2026)
 
-Pytanie klienta: czy nie justować tekstu i czy strona nie powinna wykorzystywać szerokości
-monitora 2K. Obie sprawy rozstrzygnięte pomiarem na stronie, nie z zasady.
+Decyzja klienta: tekst ma być justowany na całej stronie i ma być równy, ale bez dzielenia wyrazów.
+To trudniejszy wariant niż jedno i drugie osobno, bo dzielenie wyrazów jest w składzie głównym
+narzędziem do wyrównywania odstępów. Poniżej: co zbudowano zamiast niego i ile to kosztuje.
 
-**Justowanie – odrzucone.** Przeglądarka łamie wiersze zachłannie (nie zna algorytmu Knutha-Plassa
-z TeX-a i InDesigna), więc nie potrafi rozłożyć luzu na akapit. Zmierzone odstępy między wyrazami
-przy szerokości okna 1440 px, w krotnościach zwykłej spacji:
+**Dlaczego samo `text-align: justify` nie wystarcza.** Przeglądarka łamie wiersze zachłannie: bierze
+tyle wyrazów, ile wejdzie, a dopiero potem rozciąga odstępy do prawego marginesu. Przy polskich
+wyrazach (długich i odmienionych) daje to pojedyncze wiersze rozstrzelone kilkakrotnie ponad normę
+i widoczne „rzeki” bieli. `text-wrap: pretty` i `balance` tego nie naprawiają – optymalizują
+chorągiewkę, nie wypełnienie wiersza, więc przy justowaniu wypadają jeszcze gorzej (zmierzone
+mediany 2,8 i 4,4 wobec 2,4 dla zwykłego justowania).
 
-| Wariant | mediana | 95. percentyl | maksimum | wypełnienie wiersza |
-| --- | --- | --- | --- | --- |
-| chorągiewka | 1,00 | 1,06 | 1,07 | 83,9% |
-| justowanie bez dzielenia wyrazów | 2,74 | 6,61 | 10,17 | 100% |
-| justowanie z dzieleniem wyrazów | 1,74 | 4,84 | 8,07 | 100% |
-| **chorągiewka z dzieleniem wyrazów (wdrożone)** | **1,00** | **1,06** | **1,07** | **92,5%** |
+**Cztery warstwy rozwiązania** (`src/js/justowanie.js`, `src/css/style.css`):
 
-Norma składu (InDesign, ustawienia domyślne) dopuszcza odstęp do 1,33 zwykłej spacji. Justowanie
-przekracza ją w 67% wierszy nawet z dzieleniem wyrazów – stąd „rzeki” białych przerw widoczne gołym
-okiem. Do tego WCAG 2.2 (1.4.8) odradza wyrównanie obustronne. Chorągiewka z dzieleniem daje
-odstępy nietknięte i równiejszy prawy brzeg: najkrótszy wiersz 44% → 70% szerokości kolumny,
-wierszy krótszych niż 80% szerokości 17 → 4.
+1. **Łamanie całego akapitu naraz** – algorytm Knutha–Plassa, ten sam co w TeX-u i InDesignie.
+   Kara za wiersz rośnie z trzecią potęgą rozciągnięcia, więc jeden fatalny wiersz kosztuje więcej
+   niż kilka lekko gorszych. Rozciąganie odstępów zostaje po stronie przeglądarki (każdy wiersz to
+   osobny blok z `text-align-last: justify`), my decydujemy wyłącznie o tym, gdzie złamać.
+2. **Drabinka progów** – kolejne przebiegi z coraz luźniejszym dopuszczalnym rozciągnięciem; bierzemy
+   pierwszy, który się uda. To daje podział o najmniejszym możliwym *najgorszym* wierszu, a nie
+   tylko o dobrej sumie. Ostatni przebieg idzie z progiem swobody, żeby kary (wdowa, krótki wyraz
+   na końcu wiersza) miały czym zapłacić.
+3. **Mikrotypografia** – resztkę luzu chowamy w świetle między literami zamiast oddawać ją odstępom,
+   a wiersz, któremu do następnego wyrazu zabrakło kilku pikseli, wolno odrobinę ścisnąć. Budżet to
+   +2,5% w górę i -3% w dół, w krokach po 0,0025 em (klasy `trak-*` i `zwez-*`). Tyle trackingu jest
+   dla oka niewidoczne, odstęp rozciągnięty o 200% – aż nadto. Na tym samym stoi program `hz`
+   Hermanna Zapfa i skalowanie glifów w InDesignie. Skąd te liczby: każdy stopień w dół zbijał
+   najgorszy wiersz na telefonie (2% → 5,5 zwykłej spacji, 2,5% → 5,4, 3% → 4,4), bo akapity
+   rozbijały się kolejno o 3 i o pół piksela; powyżej 3% nic już się nie zmienia. W górę mniej,
+   bo rozstrzelone światło między literami widać wcześniej niż ściśnięte.
+4. **Szerokość kolumn** – justowanie potrzebuje miary. Kolumna poniżej ok. 52 znaków nie ma w wierszu
+   dość odstępów, żeby rozłożyć luz. Siatki (oferta, dla kogo, współpraca, zasady) schodzą więc do
+   jednej kolumny poniżej `--min-kolumna` (26 rem) zamiast na sztywnych progach okna, a na telefonie
+   opis sytuacji idzie na pełną szerokość zamiast w kolumnie obok ikony (302 → 358 px).
 
-**Dzielenie wyrazów.** `tools/typografia.mjs` wstawia miękkie łączniki (`&shy;`) algorytmem Lianga
-na wzorcach hyph-pl z CTAN, z polskimi minimami przenoszenia (2 znaki zostają, 3 przechodzą).
-Nie dzieli nazw własnych ani adresów. Przeglądarkowe `hyphens: auto` nie wchodziło w grę –
-sprawdzone: dla polskiego nie działa (wysokość bloku testowego bez zmian), a gdyby zadziałało,
-rozcinałoby też nazwiska. CSS ustawia `hyphens: none` na `body` i `manual` na tekście ciągłym,
-więc nagłówki, etykiety i przyciski nie mają łączników, a wynik jest ten sam w każdej przeglądarce.
+**Twarde spacje są materiałem, nie wyrokiem.** `tools/typografia.mjs` wstawia je jak dawniej (to
+działa też bez JavaScriptu), ale algorytm łamania traktuje je różnie. Wyrazu jednoliterowego, skrótu,
+liczby z jednostką i kreski rozdzielającej nie rozerwie nigdy. Pozostałe wiązania wolno mu złamać za
+cenę, która mówi wprost, ile jest dla nas warte uniknięcie danej wady – kary są w tej samej skali,
+co kara za rozciągnięty wiersz:
 
-**Jedno narzędzie zamiast dwóch.** Twarde spacje i miękkie łączniki musiały trafić do jednego
-narzędzia, bo działając osobno psuły sobie wynik: łącznik odcinał końcówkę wyrazu („prak|tykę”),
-a reguła twardych spacji brała ją za osobny dwuliterowy wyraz i wiązała z następnym. Powstawały
-łańcuchy w rodzaju „praktykę biznesową z wiedzą” – nierozrywalne, szersze niż kolumna, przez co
-strona wychodziła poza ekran przy 320 px. Narzędzie zaczyna teraz zawsze od czystego tekstu.
+| Wada | Kara | Odpowiada wierszowi o odstępie |
+| --- | --- | --- |
+| wdowa (ostatni wiersz krótszy niż 20% kolumny) | 6·10⁷ | ok. 3,5 zwykłej spacji |
+| wyraz dwuliterowy na końcu wiersza | 3·10⁵ | ok. 2,1 zwykłej spacji |
+| dłuższy przyimek na końcu wiersza | 3·10⁴ | ok. 1,8 zwykłej spacji |
 
-**Wdowy.** Ostatni wiersz akapitu nie może być pojedynczym wyrazem: dwa ostatnie wyrazy wiążemy
-twardą spacją, jeśli razem mają najwyżej 22 znaki. Pilnuje tego `tests/typografia.spec.js`, który
-mierzy realnie złamane wiersze w przeglądarce.
+Kolejność zgadza się z polską normą składu: jednoliterowy spójnik na końcu wiersza to błąd, dłuższy
+przyimek – zalecenie. Wcześniej wszystkie wiązania były nierozerwalne i to właśnie one wymuszały
+najgorsze wiersze: akapit „Proces możesz zakończyć…” miał wiersz rozstrzelony 9,8 raza, bo ciąg
+„i bez zobowiązań.” był dla algorytmu jednym wyrazem.
+
+**Wynik.** Odstępy między wyrazami w krotnościach zwykłej spacji, mierzone na realnie złożonej
+stronie (`npm run pomiar:sklad`, Chromium):
+
+| Wariant | 390 px | 834 px | 1280 px | 2560 px | wypełnienie wiersza |
+| --- | --- | --- | --- | --- | --- |
+| chorągiewka (bez JavaScriptu) | 1,00 | 1,00 | 1,00 | 1,00 | 86–90% |
+| zachłanne justowanie przeglądarki | 2,95 | 2,02 | 2,56 | 2,27 | 100% |
+| **wdrożone** | **1,23** | **1,16** | **1,13** | **1,13** | **100%** |
+
+Wiersze skrajne (maksimum na całej stronie): zachłanne justowanie 9,8–14,5 zwykłej spacji,
+wdrożone 3,5–5,3. Norma składu (InDesign, ustawienia domyślne) dopuszcza 1,33 – wdrożona mediana
+mieści się w niej na każdej szerokości, czego zachłanne justowanie nie osiąga nigdzie.
+
+**Czego nie da się osiągnąć i dlaczego.** Luzu w akapicie nie da się zmniejszyć łamaniem: to różnica
+między sumą długości wyrazów a szerokością kolumny. Można go rozłożyć równo (warstwa 1 i 2) i w części
+schować (warstwa 3) – i tyle. Bez dzielenia wyrazów zostają trzy ustępstwa, wszystkie świadome:
+
+- **Telefon.** Przy kolumnie ok. 40 znaków pojedyncze wiersze wciąż dochodzą do 5,4 zwykłej spacji,
+  a ostatni wiersz akapitu bywa krótszy niż piąta część kolumny. Alternatywą jest rozstrzelenie
+  wiersza wcześniejszego – gorsze. Test sprawdza regułę ostatniego wiersza od szerokości laptopa.
+- **Krótkie wyrazy na końcu wiersza.** W akapitach justowanych algorytm zostawia ich 5–8 na stronę,
+  gdy ratuje to wiersz przed rozjazdem. Poza akapitami justowanymi nie ma ich wcale, a wyrazu
+  jednoliterowego nie ma nigdzie – i tego pilnuje test przy czterech szerokościach.
+- **WCAG 2.2, kryterium 1.4.8 (poziom AAA)** zaleca tekst niejustowany właśnie z powodu „rzek”.
+  Strona celuje w poziom AA (AAA nie jest tu deklarowany), a wdrożony skład zbija medianę odstępu
+  do 1,13–1,25 zwykłej spacji, czyli najbliżej chorągiewki, jak justowanie pozwala. To decyzja
+  klienta, podjęta świadomie i z policzonym kosztem.
+
+**Błędy złapane po drodze.** Każdy z nich dawał efekt odwrotny do zamierzonego, a widać je było
+dopiero z pomiaru:
+
+Jeden akapit („Łączę praktykę biznesową z wiedzą psychologa.” w wersji B) mieści się w jednym
+wierszu dopiero po ściśnięciu o 0,5% – i tak jest składany, bo jedna linijka z naturalnymi odstępami
+bije dwie, z których pierwsza byłaby rozstrzelona 7,3 raza.
+
+| Problem | Skutek | Test, który go dziś nie przepuści |
+| --- | --- | --- |
+| Wiersz dopychany trackingiem dokładnie do krawędzi kolumny | Przeglądarka łamała go po raz drugi i na końcu lądował wyraz jednoliterowy, wbrew regułom polskiego składu | „wierszy złożonych przez skrypt przeglądarka nie łamie po raz drugi” |
+| Szerokość liczona z ramki, nie z pola tekstu | To samo w akapicie z paddingiem (ramka „note” w polityce prywatności) | jw. |
+| Zapas dobrany pod jeden silnik | WebKit zaokrągla inaczej i rozbijał 6 wierszy na telefonie; dziś skrypt sprawdza wynik w układzie i powtarza z większym zapasem | jw., uruchamiany w 5 przeglądarkach |
+| Wiersze sklejane bez odstępu | Kopiowany tekst dawał „zrozumieszsiebie.” | – (naprawione znakiem nowego wiersza między blokami) |
 
 **Szerokość treści na dużych monitorach.** Ograniczenie szerokości to decyzja, nie błąd: wiersz
 dłuższy niż ok. 75 znaków gubi początek następnego. Na monitorze 2560 px kontener zajmował jednak

@@ -681,7 +681,7 @@ Stosuj następujące oznaczenia:
   - Dowód: `npm audit` → „found 0 vulnerabilities” (16.09.2026). Zależności wyłącznie deweloperskie (strona nie ma runtime dependencies).
 
 - [x] Usunięto nieużywane zależności.
-  - Dowód: `package.json` zawiera tylko używane: `@playwright/test`, `@axe-core/playwright`, `wrangler`, `esbuild`, `lighthouse`, `html-validate`, `wait-on` (CI), `hyphen` (wzorce dzielenia wyrazów dla `tools/typografia.mjs`). Wszystkie w `devDependencies` – do przeglądarki nie trafia żadna zależność.
+  - Dowód: `package.json` zawiera tylko używane: `@playwright/test`, `@axe-core/playwright`, `wrangler`, `esbuild`, `lighthouse`, `html-validate`, `wait-on` (CI). Wszystkie w `devDependencies` – do przeglądarki nie trafia żadna zależność.
 
 - [x] Skrypty zewnętrzne pochodzą wyłącznie ze świadomie zatwierdzonych źródeł.
   - Dowód: brak skryptów zewnętrznych; jedyne dopuszczone przez CSP źródło to `challenges.cloudflare.com` (opcjonalny Turnstile).

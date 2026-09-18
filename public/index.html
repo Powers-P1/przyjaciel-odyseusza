@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Mentoring i coaching dla menedżerów | Przyjaciel Odyseusza</title>
-  <meta name="description" content="Mentoring i coaching dla menedżerów i liderów. Rozmawiamy o decyzjach, zespole i presji wyników. Pierwsza rozmowa bezpłatna, spotkania online i na żywo.">
+  <meta name="description" content="Mentoring biznesowy i coaching dla menedżerów. Bartłomiej Przytuła: psycholog, ponad 20 lat w zarządzaniu. Pierwsza rozmowa bezpłatna, online lub na żywo.">
   <link rel="canonical" href="https://przyjacielodyseusza.pl/">
   <meta name="theme-color" content="#12343e">
 
@@ -33,7 +33,7 @@
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "ProfessionalService",
+        "@type": "Organization",
         "@id": "https://przyjacielodyseusza.pl/#firma",
         "name": "Przyjaciel Odyseusza",
         "alternateName": "Przyjaciel Odyseusza – poznaj siebie",
@@ -41,13 +41,37 @@
         "logo": "https://przyjacielodyseusza.pl/assets/img/logo-przyjaciel-odyseusza-600.png",
         "image": "https://przyjacielodyseusza.pl/assets/img/og-image.jpg",
         "description": "Mentoring biznesowy i coaching dla menedżerów i liderów. Indywidualne sesje dla firm i osób prywatnych, online lub stacjonarnie.",
-        "priceRange": "od 300 PLN za godzinę, pierwsze spotkanie bezpłatne",
         "email": "bartek@przyjacielodyseusza.pl",
         "telephone": "+48601145360",
         "areaServed": "PL",
         "knowsLanguage": "pl",
         "founder": { "@id": "https://przyjacielodyseusza.pl/#bartlomiej-przytula" },
         "knowsAbout": ["mentoring", "coaching", "zarządzanie", "przywództwo", "psychologia"]
+      },
+      {
+        "@type": "Service",
+        "@id": "https://przyjacielodyseusza.pl/#usluga",
+        "name": "Mentoring biznesowy i coaching dla menedżerów",
+        "serviceType": "Mentoring i coaching dla menedżerów i liderów",
+        "description": "Indywidualne spotkania dla menedżerów i liderów: nowa rola, decyzje dotyczące ludzi, presja wyników. Online lub stacjonarnie.",
+        "provider": { "@id": "https://przyjacielodyseusza.pl/#firma" },
+        "areaServed": { "@type": "Country", "name": "Polska" },
+        "audience": { "@type": "Audience", "audienceType": "Menedżerowie i liderzy, działy HR" },
+        "offers": {
+          "@type": "Offer",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": "300",
+            "priceCurrency": "PLN",
+            "unitCode": "HUR",
+            "description": "Stawka godzinowa; pierwsze spotkanie bezpłatne."
+          }
+        },
+        "availableChannel": {
+          "@type": "ServiceChannel",
+          "serviceUrl": "https://przyjacielodyseusza.pl/#kontakt",
+          "availableLanguage": { "@type": "Language", "name": "polski" }
+        }
       },
       {
         "@type": "Person",
@@ -108,9 +132,9 @@
     <div class="container hero__grid">
       <div class="hero__copy">
         <p class="eyebrow eyebrow--gold">Mentoring i&nbsp;coaching dla&nbsp;menedżerów</p>
-        <h1 class="hero__title" id="hero-tytul">Mentoring dla&nbsp;menedżerów&nbsp;–&nbsp;jasność w&nbsp;trudnych decyzjach</h1>
+        <h1 class="hero__title" id="hero-tytul">Mentoring dla&nbsp;menedżerów: jasność w&nbsp;trudnych decyzjach</h1>
         <p class="hero__byline"><span class="hero__name">Bartłomiej Przytuła</span><span class="hero__role">Mentor biznesowy&nbsp;|&nbsp;Coach&nbsp;|&nbsp;Psycholog</span></p>
-        <p class="hero__lead">Pomagam li&shy;de&shy;rom upo&shy;rząd&shy;ko&shy;wać wy&shy;zwa&shy;nia i&nbsp;prze&shy;my&shy;śleć de&shy;cy&shy;zje do&shy;ty&shy;czące ludzi, wy&shy;ni&shy;ków i&nbsp;nowej roli. Spotykamy się&nbsp;in&shy;dy&shy;wi&shy;du&shy;al&shy;nie.</p>
+        <p class="hero__lead">Zarządzasz ludźmi i&nbsp;wy&shy;ni&shy;kami. Zadbaj też o&nbsp;wspar&shy;cie dla&nbsp;sie&shy;bie. Pomagam li&shy;de&shy;rom upo&shy;rząd&shy;ko&shy;wać wy&shy;zwa&shy;nia i&nbsp;prze&shy;my&shy;śleć de&shy;cy&shy;zje do&shy;ty&shy;czące ludzi, wy&shy;ni&shy;ków i&nbsp;nowej&nbsp;roli.</p>
         <div class="hero__actions">
           <a class="btn btn--primary" href="#kontakt">Umów bezpłatną rozmowę</a>
           <a class="btn btn--outline" href="#oferta">Poznaj ofertę</a>
@@ -136,7 +160,7 @@
           <span class="proof__sub">stanowiska dyrektorskie: Grupa CEDC, Grupa Eurocash, Herbapol&nbsp;Lublin</span></li>
         <li class="proof__item">
           <span class="proof__title">Psycholog i&nbsp;coach</span>
-          <span class="proof__sub">magister psychologii, absolwent coachingu na&nbsp;Uniwersytecie&nbsp;SWPS</span></li>
+          <span class="proof__sub">magister psychologii, program coachingowy, Uniwersytet&nbsp;SWPS</span></li>
         <li class="proof__item">
           <span class="proof__title">Programy mentoringowe</span>
           <span class="proof__sub">współtworzone w&nbsp;firmach, w&nbsp;których&nbsp;pracowałem</span></li>
@@ -364,14 +388,14 @@
         <dl class="cv">
           <div class="cv__row"><dt>Grupa CEDC</dt><dd>dyrektor sprzedaży</dd></div>
           <div class="cv__row"><dt>Grupa Eurocash</dt><dd>dyrektor operacyjny</dd></div>
-          <div class="cv__row"><dt>Premium Cigars</dt><dd>dyrektor generalny i&nbsp;prezes&nbsp;zarządu</dd></div>
-          <div class="cv__row"><dt>Herbapol Lublin</dt><dd>dyrektor kanałów&nbsp;sprzedaży</dd></div>
+          <div class="cv__row"><dt>Premium Cigars (Vistula Retail Group)</dt><dd>dyrektor generalny i&nbsp;prezes&nbsp;zarządu</dd></div>
+          <div class="cv__row"><dt>Herbapol Lublin S.A. (Grupa Polpharma)</dt><dd>dyrektor kanałów&nbsp;sprzedaży</dd></div>
           <div class="cv__row"><dt>Działalność własna</dt><dd>dwa wine bary w&nbsp;Warszawie,&nbsp;doradztwo</dd></div>
         </dl>
 
         <h3 class="about__subtitle">Wykształcenie i&nbsp;rozwój</h3>
         <dl class="cv">
-          <div class="cv__row cv__row--edu"><dt>Uniwersytet SWPS</dt><dd>magister psychologii (2004), program&nbsp;coachingowy</dd></div>
+          <div class="cv__row cv__row--edu"><dt>Uniwersytet SWPS</dt><dd>magister psychologii (2004), promotor prof.&nbsp;Jerzy Bralczyk; program „Psychologia i&nbsp;Coaching od&nbsp;podstaw”</dd></div>
           <div class="cv__row cv__row--edu"><dt>SGH</dt><dd>studia podyplomowe z&nbsp;przywództwa</dd></div>
           <div class="cv__row cv__row--edu"><dt>Programy biznesowe</dt><dd>Kellogg School of&nbsp;Management, Lisbon School of&nbsp;Business and&nbsp;Economics</dd></div>
         </dl>
@@ -399,9 +423,12 @@
     </div>
   </section>
 
-  <!-- ===================== OPINIE (ukryte do czasu otrzymania rekomendacji) =====================
-       Aby włączyć: usuń atrybut hidden z sekcji poniżej i uzupełnij cytaty. -->
-  <section class="band band--cream band--tight" id="opinie" aria-labelledby="opinie-tytul" hidden>
+  <!-- ===================== OPINIE =====================
+       UWAGA: cytaty poniżej są PRZYKŁADOWE – pokazują docelowy układ i długość wypowiedzi.
+       Przed publikacją podmienić na rekomendacje od klienta i usunąć atrybut data-przyklad
+       z sekcji. Podpisy celowo nie zawierają nazwiska ani nazwy firmy, żeby przykład nie mógł
+       uchodzić za prawdziwą opinię. Blokada publikacji: CHECKLISTA.md, sekcja blokerów. -->
+  <section class="band band--cream band--tight" id="opinie" aria-labelledby="opinie-tytul" data-przyklad="tak">
     <div class="container">
       <header class="section-head section-head--compact">
         <p class="eyebrow">Opinie</p>
@@ -409,12 +436,12 @@
       </header>
       <div class="testimonials">
         <blockquote class="testimonial">
-          <p>„Treść opinii do&nbsp;uzupełnienia po&nbsp;otrzymaniu rekomendacji.”</p>
-          <footer><cite>Imię i&nbsp;nazwisko</cite>, stanowisko, firma</footer>
+          <p>„Zaczęliśmy od&nbsp;jednego menedżera po&nbsp;awansie, dziś w&nbsp;programie jest czterech. Rozmowy z&nbsp;Bartłomiejem są&nbsp;konkretne: wychodzą z&nbsp;nich z&nbsp;decyzją, a&nbsp;nie z&nbsp;listą&nbsp;teorii.”</p>
+          <footer><cite>Imię i&nbsp;nazwisko</cite>, dyrektorka HR, firma produkcyjna</footer>
         </blockquote>
         <blockquote class="testimonial">
-          <p>„Treść opinii do&nbsp;uzupełnienia po&nbsp;otrzymaniu rekomendacji.”</p>
-          <footer><cite>Imię i&nbsp;nazwisko</cite>, stanowisko, firma</footer>
+          <p>„Przyszedłem z&nbsp;pytaniem o&nbsp;zmiany w&nbsp;zespole, a&nbsp;wyszedłem z&nbsp;odpowiedzią na&nbsp;pytanie, jakim chcę być szefem. Bartłomiej nie podaje gotowych rozwiązań&nbsp;–&nbsp;pyta tak, że&nbsp;sam je&nbsp;widzisz.”</p>
+          <footer><cite>Imię i&nbsp;nazwisko</cite>, dyrektor sprzedaży, branża FMCG</footer>
         </blockquote>
       </div>
     </div>
@@ -510,6 +537,6 @@
   </div>
 </footer>
 
-<script src="/assets/js/main.js" defer></script>
+<script src="/assets/js/main.js?v=fe8c7eb0" defer></script>
 </body>
 </html>

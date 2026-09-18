@@ -127,7 +127,12 @@ test.describe('SEO techniczne', () => {
     const data = JSON.parse(raw);
     const graph = data['@graph'] || [data];
     const types = graph.map((n) => n['@type']);
-    expect(types).toContain('ProfessionalService');
+    // Organization opisuje firmę, Service usługę. ProfessionalService odpada: to podtyp LocalBusiness,
+    // a strona nie podaje adresu ani godzin otwarcia; słownik schema.org odradza ten typ wprost.
+    expect(types).toContain('Organization');
+    expect(types).toContain('Service');
+    expect(types, 'LocalBusiness i jego podtypy wymagają adresu, którego strona nie podaje')
+      .not.toContain('ProfessionalService');
     expect(types).toContain('Person');
     const person = graph.find((n) => n['@type'] === 'Person');
     const text = await page.locator('body').innerText();

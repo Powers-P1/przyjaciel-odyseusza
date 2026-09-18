@@ -73,8 +73,13 @@ Windows z długą ścieżką projektu: jeśli `wrangler pages dev` kończy się 
 ## Edycja treści
 
 1. Copy: `public/index.html` (sekcje opisane komentarzami `HERO`, `OFERTA`, `DLA KOGO`, `SYTUACJE`,
-   `WSPÓŁPRACA`, `O MNIE`, `OPINIE`, `KONTAKT`). Pisz zwykłe spacje, `npm run build` doda twarde spacje.
-2. Style i skrypt: edytuj **`src/`**, następnie `npm run build`. Pliki w `public/assets/css` i `js` są
+   `WSPÓŁPRACA`, `O MNIE`, `OPINIE`, `KONTAKT`). Pisz zwykłe spacje i zwykłe wyrazy – `npm run build`
+   doda twarde spacje i miejsca podziału wyrazów (`tools/typografia.mjs`). Nie wpisuj ich ręcznie:
+   narzędzie i tak zaczyna od czystego tekstu, więc nadpisze wszystko, co dodasz.
+2. Po zmianie treści podnieś `<lastmod>` w `public/sitemap.xml`. Nie jest to zautomatyzowane
+   świadomie: CI sprawdza, czy `npm run build` niczego nie zmienia w `public/`, a data brana
+   z zegara psułaby tę gwarancję przy każdym przebiegu w kolejnym dniu.
+3. Style i skrypt: edytuj **`src/`**, następnie `npm run build`. Pliki w `public/assets/css` i `js` są
    generowane; CI odrzuci commit, w którym `public/` nie zgadza się ze `src/`. Build dodatkowo wstawia
    zminifikowany CSS bezpośrednio do HTML (`<style data-inline="style.css">`, szybsze pierwsze malowanie na
    mobile) i wpisuje jego hash SHA-256 do `Content-Security-Policy` w `public/_headers`. Nie edytuj tego
@@ -106,6 +111,35 @@ npx wrangler login
 npx wrangler pages project create przyjaciel-odyseusza --production-branch main
 npm run deploy
 ```
+
+### Migracja DNS – wykonać PRZED podpięciem domeny
+
+> **Uwaga: w tej strefie MX wskazuje na sam adres domeny.** Przepięcie apeksu na Cloudflare Pages
+> bez wcześniejszego odtworzenia rekordów pocztowych odcina klientowi pocztę przychodzącą.
+
+Stan strefy odczytany 18.09.2026 (`nslookup -type=NS|A|MX|TXT przyjacielodyseusza.pl 8.8.8.8`):
+
+| Rekord | Wartość | Uwaga |
+| --- | --- | --- |
+| NS | `dns.home.pl`, `dns2.home.pl`, `dns3.home.pl` | domena obsługiwana przez home.pl |
+| A (apex) | `46.242.239.156` | serwer home.pl – to samo IP obsługuje WWW i pocztę |
+| MX | `przyjacielodyseusza.pl` (priorytet 10) | **wskazuje na apex, nie na osobny host pocztowy** |
+| TXT (SPF) | `v=spf1 a mx ~all` | autoryzuje to, na co wskazują `a` i `mx`, czyli apex |
+| `_dmarc` | zwraca rekord TXT zamiast NXDOMAIN | w strefie działa wildcard – DMARC praktycznie nie istnieje |
+
+Kolejność migracji:
+
+1. **Przed zmianą NS** ustal u klienta nazwę hosta lub adres IP serwera pocztowego w home.pl
+   (panel home.pl → poczta). Rekord MX musi wskazywać ten host, a nie apex.
+2. W Cloudflare (strefa dodana, ale NS jeszcze niezmienione) odtwórz: `MX` na host pocztowy,
+   `A`/`CNAME` dla tego hosta, `TXT` ze SPF wskazującym host pocztowy, nie apex –
+   np. `v=spf1 mx include:_spf.resend.com ~all` już z Resendem.
+3. Dodaj **jawne** rekordy `_dmarc` (`v=DMARC1; p=none; rua=mailto:…` na start) oraz
+   `<selektor>._domainkey` z panelu Resend. Wildcard w starej strefie powodował, że błędnie wpisana
+   nazwa też się rozwiązywała – jawny rekord wygrywa z wildcardem, więc weryfikacja przestaje kłamać.
+4. Dopiero teraz zmień NS na Cloudflare i dodaj domenę w Pages (**Custom domains** poniżej).
+5. Po migracji sprawdź: `nslookup -type=MX`, `-type=TXT` i wysyłkę testową na adres klienta,
+   oraz `-type=TXT _dmarc` – ma zwrócić Twój rekord, nie wildcard.
 
 ### Domena i kanoniczny host
 
@@ -146,11 +180,18 @@ stały adres z konfiguracji, więc nie da się go użyć jako otwartego przekaź
 4. Ponowny deploy (zmienne wczytują się przy deployu). Do czasu ustawienia klucza funkcja zwraca błąd,
    a strona pokazuje użytkownikowi bezpośredni e-mail i telefon.
 
-### Turnstile (opcjonalnie, darmowy antyspam bez CAPTCHA)
+### Turnstile (wymagany przed publikacją, darmowy antyspam bez CAPTCHA)
+
+Bez niego formularz chroni tylko honeypot i próg czasu wypełniania – obie pułapki omija się jednym
+`curl`em. Dlatego funkcja jest **fail-closed**: jeśli `RESEND_API_KEY` jest ustawiony (czyli wdrożenie
+działa), a `TURNSTILE_SECRET` nie, `/api/contact` zwraca 500, a strona pokazuje kontakt awaryjny.
+Literówka w nazwie zmiennej nie wyłączy captchy po cichu.
 
 1. Cloudflare → Turnstile → Add site (`przyjacielodyseusza.pl`, tryb Managed).
 2. `public/index.html`: `data-turnstile-sitekey="0x4AAA..."` na elemencie `<form>`.
 3. Zmienna `TURNSTILE_SECRET` (Secret) w Pages. CSP w `_headers` już dopuszcza `challenges.cloudflare.com`.
+4. Cloudflare → Security → WAF → Rate limiting: reguła na `/api/contact` (plan Free daje jedną regułę,
+   stałe okno 10 s). To jedyne miejsce w tym projekcie, w którym warto ją wydać.
 
 ## Analityka
 

@@ -96,9 +96,12 @@ test.describe('Polski skład tekstu', () => {
       for (const blok of bloki) {
         if (blok.wiersze.length < 2) continue;
         const ostatni = blok.wiersze[blok.wiersze.length - 1];
+        // liczymy wyrazy widziane przez czytelnika: twarda spacja też rozdziela wyrazy,
+        // choć nie pozwala złamać wiersza (tools/typografia.mjs wiąże nią parę na końcu akapitu)
+        const wyrazy = ostatni.join(' ').split(/[\s ]+/).filter(Boolean);
         // adresu e-mail ani numeru telefonu nie da się skrócić redakcyjnie, więc nie są wdową
-        if (ostatni.length === 1 && /^\p{L}[\p{L} -]*[.,;:!?…]?$/u.test(ostatni[0])) {
-          wdowy.push(`${sciezka} ${blok.tag}.${blok.klasa || '–'}: ostatni wiersz „${ostatni[0]}”`);
+        if (wyrazy.length === 1 && /^\p{L}[\p{L}-]*[.,;:!?…]?$/u.test(wyrazy[0])) {
+          wdowy.push(`${sciezka} ${blok.tag}.${blok.klasa || '–'}: ostatni wiersz „${wyrazy[0]}”`);
         }
       }
     }

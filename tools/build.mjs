@@ -43,6 +43,7 @@ headers = headers.replace(/style-src 'self'(?: 'sha256-[^']+')?;/, `style-src 's
 fs.writeFileSync('public/_headers', headers);
 console.log(`CSS inline w ${PAGES.length} stronach, CSP style-src ${cspHash.slice(0, 24)}…`);
 
-// polska typografia w HTML (idempotentne; omija bloki <style>)
+// Polski skład tekstu: twarde spacje i miękkie łączniki (tools/typografia.mjs).
+// Narzędzie zawsze zaczyna od czystego tekstu, więc wynik nie zależy od liczby uruchomień.
 const { execFileSync } = await import('node:child_process');
-execFileSync(process.execPath, ['tools/nbsp.mjs', ...PAGES], { stdio: 'inherit' });
+execFileSync(process.execPath, ['tools/typografia.mjs', ...PAGES], { stdio: 'inherit' });

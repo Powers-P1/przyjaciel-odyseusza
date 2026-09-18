@@ -130,8 +130,11 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
   test('bardzo szeroki ekran nie psuje układu', async ({ page }) => {
     await page.setViewportSize({ width: 2560, height: 1200 });
     await page.goto('/');
+    // treść ma się rozciągnąć na dużym monitorze (--container rośnie do 86rem), ale nie w nieskończoność:
+    // o czytelność wiersza dba osobno --miara na blokach tekstu
     const box = await page.locator('.hero .container').first().boundingBox();
-    expect(box.width).toBeLessThanOrEqual(1200);
+    expect(box.width, 'szerokość kontenera').toBeLessThanOrEqual(1376);
+    expect(box.width, 'kontener nie urósł wraz z ekranem').toBeGreaterThanOrEqual(1300);
     expect(box.x).toBeGreaterThan(500);
   });
 });

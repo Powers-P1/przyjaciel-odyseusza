@@ -260,6 +260,53 @@ odradza wyrównanie obustronne, a przy polskich długich wyrazach powstawałyby 
 
 ---
 
+## 4e. Justowanie, dzielenie wyrazów i szerokość treści (18.09.2026)
+
+Pytanie klienta: czy nie justować tekstu i czy strona nie powinna wykorzystywać szerokości
+monitora 2K. Obie sprawy rozstrzygnięte pomiarem na stronie, nie z zasady.
+
+**Justowanie – odrzucone.** Przeglądarka łamie wiersze zachłannie (nie zna algorytmu Knutha-Plassa
+z TeX-a i InDesigna), więc nie potrafi rozłożyć luzu na akapit. Zmierzone odstępy między wyrazami
+przy szerokości okna 1440 px, w krotnościach zwykłej spacji:
+
+| Wariant | mediana | 95. percentyl | maksimum | wypełnienie wiersza |
+| --- | --- | --- | --- | --- |
+| chorągiewka | 1,00 | 1,06 | 1,07 | 83,9% |
+| justowanie bez dzielenia wyrazów | 2,74 | 6,61 | 10,17 | 100% |
+| justowanie z dzieleniem wyrazów | 1,74 | 4,84 | 8,07 | 100% |
+| **chorągiewka z dzieleniem wyrazów (wdrożone)** | **1,00** | **1,06** | **1,07** | **92,5%** |
+
+Norma składu (InDesign, ustawienia domyślne) dopuszcza odstęp do 1,33 zwykłej spacji. Justowanie
+przekracza ją w 67% wierszy nawet z dzieleniem wyrazów – stąd „rzeki” białych przerw widoczne gołym
+okiem. Do tego WCAG 2.2 (1.4.8) odradza wyrównanie obustronne. Chorągiewka z dzieleniem daje
+odstępy nietknięte i równiejszy prawy brzeg: najkrótszy wiersz 44% → 70% szerokości kolumny,
+wierszy krótszych niż 80% szerokości 17 → 4.
+
+**Dzielenie wyrazów.** `tools/typografia.mjs` wstawia miękkie łączniki (`&shy;`) algorytmem Lianga
+na wzorcach hyph-pl z CTAN, z polskimi minimami przenoszenia (2 znaki zostają, 3 przechodzą).
+Nie dzieli nazw własnych ani adresów. Przeglądarkowe `hyphens: auto` nie wchodziło w grę –
+sprawdzone: dla polskiego nie działa (wysokość bloku testowego bez zmian), a gdyby zadziałało,
+rozcinałoby też nazwiska. CSS ustawia `hyphens: none` na `body` i `manual` na tekście ciągłym,
+więc nagłówki, etykiety i przyciski nie mają łączników, a wynik jest ten sam w każdej przeglądarce.
+
+**Jedno narzędzie zamiast dwóch.** Twarde spacje i miękkie łączniki musiały trafić do jednego
+narzędzia, bo działając osobno psuły sobie wynik: łącznik odcinał końcówkę wyrazu („prak|tykę”),
+a reguła twardych spacji brała ją za osobny dwuliterowy wyraz i wiązała z następnym. Powstawały
+łańcuchy w rodzaju „praktykę biznesową z wiedzą” – nierozrywalne, szersze niż kolumna, przez co
+strona wychodziła poza ekran przy 320 px. Narzędzie zaczyna teraz zawsze od czystego tekstu.
+
+**Wdowy.** Ostatni wiersz akapitu nie może być pojedynczym wyrazem: dwa ostatnie wyrazy wiążemy
+twardą spacją, jeśli razem mają najwyżej 22 znaki. Pilnuje tego `tests/typografia.spec.js`, który
+mierzy realnie złamane wiersze w przeglądarce.
+
+**Szerokość treści na dużych monitorach.** Ograniczenie szerokości to decyzja, nie błąd: wiersz
+dłuższy niż ok. 75 znaków gubi początek następnego. Na monitorze 2560 px kontener zajmował jednak
+tylko 46% ekranu, co wyglądało na ściśnięte. Od 1800 px kontener rośnie z 74rem do 86rem (54% ekranu),
+a o długość wiersza dba osobny token `--miara` (58ch) nałożony na wszystkie bloki tekstu ciągłego.
+Zmierzone po zmianie: najdłuższy wiersz na stronie 79 znaków, typowy 62–75.
+
+---
+
 ## 5. Do potwierdzenia z klientem (przed publikacją)
 
 Strona nie zawiera już twierdzeń bez pokrycia w źródle. Poniższe punkty to decyzje, a nie luki faktograficzne:

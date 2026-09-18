@@ -166,9 +166,9 @@ do porównania przez klienta i uruchamia na każdym smoke testy z jego gałęzi:
 
 | Wersja | Gałąź      | Adres testowy                                                | Zawartość |
 |--------|------------|--------------------------------------------------------------|-----------|
-| A      | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/>          | pełne copy zoptymalizowane pod SEO |
-| B      | `wersja-b` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-b/> | ten sam układ, tekst odchudzony na podstawie badań czytelnictwa (`docs/wersja-b-zalozenia.md`) |
-| C      | `wersja-c` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-c/> | układ i treść według uwag klienta z pliku „pełne morze uwagi” |
+| A      | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/>          | pełne copy zoptymalizowane pod SEO – 917 słów |
+| B      | `wersja-b` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-b/> | ten sam układ, tekst odchudzony na podstawie badań czytelnictwa (`docs/wersja-b-zalozenia.md`) – 630 słów |
+| C      | `wersja-c` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-c/> | układ i treść według uwag klienta z pliku „pełne morze uwagi” – 313 słów |
 | spis   | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/wersje/>   | strona z linkami do wszystkich wersji (`tools/wersje.html`) |
 
 Job `staging` buduje każdą wersję z jej gałęzi (`tools/staging.mjs --out …`) w jeden artefakt Pages, więc adresy są

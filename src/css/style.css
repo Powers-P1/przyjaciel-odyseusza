@@ -36,7 +36,11 @@
   --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
   --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 
+  /* Szerokość treści. Wiersz dłuższy niż ok. 75 znaków gubi początek następnego, dlatego kontener
+     jest ograniczony — ale na dużych monitorach może urosnąć, bo każdy blok tekstu ma własny limit
+     szerokości (--miara), więc wiersze i tak się nie wydłużą. */
   --container: 74rem;
+  --miara: 58ch; /* zmierzone: ok. 70 znaków w wierszu przy kroju Inter */
   --gutter: clamp(1rem, 4vw, 3rem);
   --chamfer: 18px;
   /* pełna wysokość przyklejonego nagłówka razem z kreską pod nim; hero odejmuje dokładnie tyle */
@@ -62,6 +66,32 @@ a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .18em
 p { margin: 0 0 1em; }
 /* bez pojedynczych słów w ostatniej linii akapitu (przeglądarki bez text-wrap: pretty ignorują regułę) */
 p, li, dd { text-wrap: pretty; }
+
+/* Dzielenie wyrazów. tools/dziel.mjs zaznacza w kroku budowania KAŻDE miejsce, w którym polski wyraz
+   wolno przenieść (miękki łącznik &shy;, wzorce hyph-pl, minima 2 znaki zostają / 3 przechodzą).
+   Tutaj decydujemy, GDZIE z tych miejsc korzystać: tylko w tekście ciągłym. Nagłówki, nadtytuły,
+   etykiety, przyciski i podpisy łamiemy bez łączników – przy dużym stopniu pisma łącznik rzuca się
+   w oczy, a wiersze są tam i tak krótkie. `manual` zamiast `auto`: dzielimy wyłącznie tam, gdzie
+   zaznaczyło narzędzie, więc wynik jest ten sam w każdej przeglądarce i nie rozcina nazw własnych.
+   Efekt w tekście ciągłym: średnie wypełnienie wiersza 83,9% → 92,5%, najkrótszy wiersz 44% → 70%,
+   wierszy krótszych niż 80% szerokości 17 → 4, odstępy między wyrazami bez zmian.
+   Tekstu nie justujemy: przeglądarka łamie wiersze zachłannie, więc justowanie rozstrzeliwuje odstępy
+   do 1,57 zwykłej spacji w medianie i 6,6 w skrajnym wierszu przy normie DTP 1,33; do tego WCAG 2.2
+   (1.4.8) odradza wyrównanie obustronne. Pomiary: REVIEW.md, sekcja 4e. */
+body { hyphens: none; }
+.hero__lead,
+.section-intro,
+.mode p,
+.card p,
+.situation__desc,
+.step p,
+.principle p,
+.about__copy > p,
+.about__private,
+.origin p,
+.contact__copy p,
+.prose p,
+.prose li { hyphens: manual; -webkit-hyphens: manual; }
 ul, ol { margin: 0; padding: 0; }
 h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; line-height: 1.15; letter-spacing: -.008em; }
 button { font: inherit; color: inherit; }
@@ -105,7 +135,7 @@ button { font: inherit; color: inherit; }
 .section-sub { margin: 1.1rem 0 0; font: 400 clamp(1.15rem, 1rem + .5vw, 1.4rem)/1.35 var(--serif); }
 .band--cream .section-sub { color: var(--ink); }
 .band--teal .section-sub { color: var(--paper); }
-.section-intro { margin: 1.1rem 0 0; font-size: 1.0625rem; max-width: 60ch; }
+.section-intro { margin: 1.1rem 0 0; font-size: 1.0625rem; max-width: var(--miara); }
 
 .link-arrow {
   display: inline-flex; align-items: center; gap: .5rem;
@@ -248,6 +278,11 @@ button { font: inherit; color: inherit; }
 .proof__title { font: 400 1.2rem/1.3 var(--serif); color: var(--paper); }
 .proof__sub { font-size: .88rem; color: var(--mist-soft); }
 
+/* Duże monitory (od 1800 px): kontener rośnie, żeby treść nie tonęła w pustych marginesach.
+   Wiersze zostają krótkie, bo pilnuje ich --miara na blokach tekstu. */
+@media (min-width: 112.5em) {
+  :root { --container: 86rem; }
+}
 @media (max-width: 64em) {
   .hero__grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); }
 }
@@ -273,6 +308,7 @@ button { font: inherit; color: inherit; }
 .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 0 4rem; }
 .mode + .mode { border-left: 1px solid var(--cream-line); padding-left: 4rem; }
 .mode__title { font-size: clamp(1.5rem, 1.2rem + .9vw, 1.9rem); margin-bottom: 1rem; }
+.mode p, .mode .ticks { max-width: var(--miara); }
 .mode__when { margin: 1.25rem 0 .5rem; font-weight: 600; font-size: .9rem; letter-spacing: .02em; color: var(--ink); }
 .ticks { list-style: none; display: grid; gap: .45rem; }
 .ticks li { position: relative; padding-left: 1.35rem; }
@@ -289,6 +325,7 @@ button { font: inherit; color: inherit; }
 .card--chamfer { clip-path: polygon(0 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer), 100% 100%, 0 100%); }
 .card__label { margin: 0 0 .75rem; font: 600 .75rem/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-ink); }
 .card__title { font-size: 1.4rem; margin-bottom: .85rem; }
+.card p, .card .ticks { max-width: var(--miara); }
 .card .ticks { margin-top: 1rem; }
 @media (max-width: 47.99em) { .audience { grid-template-columns: 1fr; } }
 
@@ -302,7 +339,7 @@ button { font: inherit; color: inherit; }
 .situation__num { font: 400 .95rem/1.3 var(--serif); color: var(--gold-ink); padding-top: .25rem; }
 .situation__icon { color: var(--ink-soft); }
 .situation__title { font-size: 1.3rem; }
-.situation__desc { margin: 0; }
+.situation__desc { margin: 0; max-width: var(--miara); }
 @media (max-width: 47.99em) {
   .situation { grid-template-columns: 2.5rem minmax(0, 1fr); gap: .5rem 1rem; padding: 1.4rem 0; }
   .situation__num { display: none; }
@@ -317,7 +354,7 @@ button { font: inherit; color: inherit; }
 .step::before { content: ""; position: absolute; top: -4px; left: 0; width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); }
 .step__num { display: block; font: 400 1.6rem/1 var(--serif); color: var(--gold); margin-bottom: .9rem; }
 .step__title { font-size: 1.25rem; margin-bottom: .7rem; }
-.step p { margin: 0; font-size: .97rem; color: var(--mist); }
+.step p { margin: 0; font-size: .97rem; color: var(--mist); max-width: var(--miara); }
 @media (max-width: 64em) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 40em) { .steps { grid-template-columns: 1fr; gap: 2rem; } }
 
@@ -326,13 +363,14 @@ button { font: inherit; color: inherit; }
 .principles__list { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
 .principle__icon { color: var(--gold); margin-bottom: .9rem; }
 .principle__title { font-size: 1.2rem; margin-bottom: .5rem; }
-.principle p { margin: 0; color: var(--mist-soft); font-size: .97rem; }
+.principle p { margin: 0; color: var(--mist-soft); font-size: .97rem; max-width: var(--miara); }
 @media (max-width: 47.99em) { .principles__list { grid-template-columns: 1fr; gap: 1.75rem; } }
 
 /* ---------- o mnie ---------- */
 .about { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 3rem 4.5rem; align-items: start; }
 .about__copy .section-title { margin-bottom: 1.25rem; }
 .about__name { font: 400 1.25rem/1.3 var(--serif); color: var(--gold-ink); margin-bottom: 1.25rem; }
+.about__copy > p { max-width: var(--miara); }
 .about__subtitle { margin: 2rem 0 .75rem; font-size: 1.25rem; }
 .cv { margin: 0; }
 .cv__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; padding: .7rem 0; border-top: 1px solid var(--cream-line); }
@@ -360,7 +398,7 @@ button { font: inherit; color: inherit; }
 }
 .origin__mark { width: 3.75rem; filter: brightness(.6) saturate(.9); }
 .origin__title { font-size: 1.35rem; margin-bottom: .6rem; }
-.origin p { margin: 0; max-width: 70ch; }
+.origin p { margin: 0; max-width: var(--miara); }
 @media (max-width: 64em) { .about { grid-template-columns: 1fr; } .about__figure { max-width: 30rem; } }
 @media (max-width: 40em) { .origin { grid-template-columns: 1fr; gap: 1.25rem; } }
 
@@ -375,6 +413,7 @@ button { font: inherit; color: inherit; }
 /* ---------- kontakt ---------- */
 .contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 3rem 4.5rem; align-items: start; }
 .contact__copy .section-title { margin-bottom: 1.25rem; }
+.contact__copy p { max-width: var(--miara); }
 .contact__direct { list-style: none; display: grid; gap: 1.25rem; margin-top: 2.25rem; padding-top: 2rem; border-top: 1px solid var(--teal-line); }
 .contact__label { display: block; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--mist-soft); margin-bottom: .2rem; }
 .contact__value { font: 400 1.3rem/1.3 var(--serif); color: var(--gold); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color .25s var(--ease); }
@@ -446,12 +485,12 @@ button { font: inherit; color: inherit; }
 
 /* ---------- uzupełnienia treści (wersja 05) ---------- */
 .situations__outro { margin-top: 2rem; }
-.principles__intro { max-width: 60ch; color: var(--mist); margin: .5rem 0 1.5rem; }
+.principles__intro { max-width: var(--miara); color: var(--mist); margin: .5rem 0 1.5rem; }
 .pricing { margin-top: 3rem; }
 .pricing__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1.25rem 2rem; margin: 1.25rem 0 1.5rem; }
 .pricing__row dt { font-family: var(--serif); font-size: 1.125rem; color: var(--gold); }
 .pricing__row dd { margin: .25rem 0 0; color: var(--mist); }
-.about__private { margin-top: 1.5rem; }
+.about__private { margin-top: 1.5rem; max-width: var(--miara); }
 @media (max-width: 47.99em) {
   .pricing { margin-top: 2.5rem; }
   .pricing__list { grid-template-columns: 1fr; gap: 1rem; }
@@ -459,7 +498,7 @@ button { font: inherit; color: inherit; }
 
 /* ---------- strony poboczne (polityka, 404) ---------- */
 .page { padding-block: clamp(3rem, 7vw, 6rem); }
-.page .prose { max-width: 70ch; }
+.page .prose { max-width: var(--miara); }
 .prose h1 { font-size: clamp(2rem, 1.4rem + 1.8vw, 3rem); margin-bottom: 1.5rem; }
 .prose h2 { font-size: 1.5rem; margin: 2.25rem 0 .75rem; }
 .prose ul, .prose ol { padding-left: 1.25rem; margin-bottom: 1em; }

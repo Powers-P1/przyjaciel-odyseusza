@@ -56,5 +56,8 @@ test.describe('Nagłówki bezpieczeństwa i cache (_headers)', () => {
     const r = await request.get('/api/contact');
     expect(r.status()).toBe(405);
     expect(r.headers()['allow']).toBe('POST');
+    // nagłówki muszą pochodzić z samej funkcji: Cloudflare nie stosuje _headers do Pages Functions
+    expect(r.headers()['cache-control'], 'brak no-store na odpowiedzi funkcji').toMatch(/no-store/);
+    expect(r.headers()['x-content-type-options']).toBe('nosniff');
   });
 });

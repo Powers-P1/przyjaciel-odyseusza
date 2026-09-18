@@ -29,8 +29,21 @@ test.describe('Formularz kontaktowy: walidacja po stronie serwera (/api/contact)
   });
 
   test('zbyt szybkie wysłanie (bot) → udawany sukces', async ({ request }) => {
-    const r = await request.post('/api/contact', { headers: { Accept: 'application/json' }, data: { ...VALID, ts: String(Date.now()) } });
+    const r = await request.post('/api/contact', { headers: { Accept: 'application/json' }, data: { ...VALID, elapsed_ms: '400' } });
     expect(r.status()).toBe(200);
+    expect((await r.json()).ok).toBe(true);
+  });
+
+  // Regresja: pułapka czasowa liczy czas zmierzony przez przeglądarkę, a nie różnicę zegarów.
+  // Wcześniej serwer robił `Date.now() - ts`, więc telefon ze spieszącym się zegarem dostawał
+  // potwierdzenie wysyłki, a wiadomość przepadała bez śladu.
+  test('rozjechany zegar urządzenia nie wrzuca zgłoszenia do pułapki na boty', async ({ request }) => {
+    for (const elapsed of ['3000', '86400000', '-5000', '']) {
+      const r = await request.post('/api/contact', { headers: { Accept: 'application/json' }, data: { ...VALID, elapsed_ms: elapsed } });
+      // zgłoszenie ma przejść dalej: albo do wysyłki (200 z kluczem API), albo do błędu konfiguracji
+      expect([200, 500], `elapsed_ms=${elapsed || 'brak'}`).toContain(r.status());
+      if (r.status() === 200) expect((await r.json()).ok, `elapsed_ms=${elapsed || 'brak'}`).not.toBe(true);
+    }
   });
 
   test('poprawne dane bez klucza API → 500 not_configured (lokalnie) albo 200 (z kluczem)', async ({ request }) => {
@@ -73,7 +86,8 @@ test.describe('Formularz kontaktowy: interfejs', () => {
 
   test('błąd backendu pokazuje zrozumiały komunikat z kontaktem awaryjnym; przycisk wraca do stanu wyjściowego', async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(() => { document.getElementById('f-ts').value = String(Date.now() - 60_000); });
+    // pole wypełnia skrypt strony przy wysyłce; tu tylko upewniamy się, że formularz nie trafi w pułapkę czasową
+    await page.waitForTimeout(2600);
     await page.fill('#f-name', 'Jan Kowalski');
     await page.fill('#f-email', 'jan@example.com');
     await page.check('input[name="subject_for"][value="ja"]');
@@ -99,7 +113,8 @@ test.describe('Formularz kontaktowy: interfejs', () => {
 
   test('podwójne kliknięcie nie wysyła dwóch żądań', async ({ page }) => {
     await page.goto('/');
-    await page.evaluate(() => { document.getElementById('f-ts').value = String(Date.now() - 60_000); });
+    // pole wypełnia skrypt strony przy wysyłce; tu tylko upewniamy się, że formularz nie trafi w pułapkę czasową
+    await page.waitForTimeout(2600);
     await page.fill('#f-name', 'Jan Kowalski');
     await page.fill('#f-email', 'jan@example.com');
     await page.fill('#f-message', 'Testowa wiadomość o odpowiedniej długości.');

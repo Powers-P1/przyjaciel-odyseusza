@@ -7,11 +7,13 @@ import esbuild from 'esbuild';
 const jobs = [
   // Arkusz trafia wyłącznie do <style> w HTML, więc plik pośredni nie ma czego szukać w public/.
   { from: 'src/css/style.css', to: '.build/style.css', loader: 'css' },
-  { from: 'src/js/main.js', to: 'public/assets/js/main.js', loader: 'js' },
+  // justowanie.js dokleja się do main.js: jeden plik, jedno żądanie, ta sama pamięć podręczna
+  { from: ['src/js/main.js', 'src/js/justowanie.js'], to: 'public/assets/js/main.js', loader: 'js' },
 ];
 
 for (const job of jobs) {
-  const source = fs.readFileSync(job.from, 'utf8');
+  const zrodla = Array.isArray(job.from) ? job.from : [job.from];
+  const source = zrodla.map((f) => fs.readFileSync(f, 'utf8')).join('\n');
   const result = await esbuild.transform(source, {
     loader: job.loader,
     minify: true,
@@ -21,7 +23,7 @@ for (const job of jobs) {
   });
   fs.mkdirSync(path.dirname(job.to), { recursive: true });
   fs.writeFileSync(job.to, result.code);
-  console.log(`${job.from} → ${job.to}  ${source.length} → ${result.code.length} B`);
+  console.log(`${zrodla.join(' + ')} → ${job.to}  ${source.length} → ${result.code.length} B`);
 }
 
 // Krytyczny CSS inline: one-pager, więc cały (zminifikowany) arkusz trafia do <style> w HTML.

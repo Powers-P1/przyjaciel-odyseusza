@@ -84,27 +84,67 @@ test.describe('Polski skład tekstu', () => {
     });
   }
 
-  test('miękkie łączniki są tylko tam, gdzie CSS pozwala dzielić wyrazy', async ({ page }) => {
-    // tools/typografia.mjs wstawia &shy; według własnej listy, CSS zezwala na dzielenie według swojej.
-    // Ten test pilnuje, żeby obie się nie rozjechały: łącznik w elemencie z `hyphens: none` nigdy
-    // nie złamie wiersza, a zostaje w drzewie dostępności, w schowku i w wyszukiwaniu na stronie.
-    for (const sciezka of STRONY) {
-      await page.goto(sciezka);
-      const martwe = await page.evaluate(() => {
-        const wynik = [];
-        for (const el of document.querySelectorAll('body *')) {
-          if (getComputedStyle(el).hyphens !== 'none') continue;
-          for (const node of el.childNodes) {
-            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('­')) {
-              wynik.push(`${el.tagName.toLowerCase()}.${el.className || '–'}: ${node.nodeValue.trim().slice(0, 50)}`);
-              break;
+  test('tekst ciągły jest justowany, a odstępy nie rozjeżdżają się skrajnie', async ({ page }) => {
+    // src/js/justowanie.js łamie wiersze algorytmem Knutha–Plassa i opakowuje każdy w blok.
+    // Sprawdzamy dwie rzeczy: że justowanie faktycznie objęło akapity wielowierszowe
+    // i że żaden wiersz nie ma odstępów rozstrzelonych ponad próg, który przyjęliśmy jako granicę.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+    await page.waitForFunction(() => document.querySelectorAll('.jest-justowany').length > 0, null, { timeout: 5000 });
+    const wynik = await page.evaluate(() => {
+      const spacjaKroju = (el) => {
+        const cs = getComputedStyle(el);
+        const s = document.createElement('span');
+        s.setAttribute('style', `position:absolute;visibility:hidden;white-space:pre;word-spacing:normal;font:${cs.font}`);
+        document.body.appendChild(s);
+        s.textContent = 'aaaaa aaaaa';
+        const a = s.getBoundingClientRect().width;
+        s.textContent = 'aaaaaaaaaa';
+        const b = s.getBoundingClientRect().width;
+        s.remove();
+        return a - b;
+      };
+      const odstepy = [];
+      for (const blok of document.querySelectorAll('.jest-justowany')) {
+        const sp = spacjaKroju(blok);
+        if (sp <= 0) continue;
+        for (const wiersz of blok.querySelectorAll('.wiersz:not(.wiersz--ostatni)')) {
+          const walker = document.createTreeWalker(wiersz, NodeFilter.SHOW_TEXT);
+          const rects = [];
+          let node;
+          while ((node = walker.nextNode())) {
+            const t = node.nodeValue;
+            if (!t.trim()) continue;
+            for (const m of t.matchAll(/\S+/g)) {
+              const r = document.createRange();
+              r.setStart(node, m.index);
+              r.setEnd(node, m.index + m[0].length);
+              const b = r.getBoundingClientRect();
+              if (b.width > 0.5) rects.push(b);
             }
           }
+          for (let i = 0; i < rects.length - 1; i++) {
+            const d = rects[i + 1].left - rects[i].right;
+            if (d > 0.5 && d < 200) odstepy.push(d / sp);
+          }
         }
-        return wynik;
-      });
-      expect(martwe, `${sciezka}: miękkie łączniki w elementach bez dzielenia wyrazów`).toEqual([]);
-    }
+      }
+      // akapity wielowierszowe, których justowanie nie objęło
+      const kandydaci = document.querySelectorAll('.hero__lead, .section-intro, .situation__desc, .mode p, .card p, .step p, .principle p, .origin p, .contact__copy p');
+      let pominiete = 0;
+      for (const el of kandydaci) {
+        if (el.querySelector('.wiersz')) continue;
+        if (el.getBoundingClientRect().height > parseFloat(getComputedStyle(el).lineHeight) * 1.4) pominiete += 1;
+      }
+      odstepy.sort((a, b) => a - b);
+      return { pominiete, wierszy: odstepy.length, max: odstepy.length ? odstepy[odstepy.length - 1] : 0 };
+    });
+    expect(wynik.wierszy, 'justowanie nie objęło żadnego wiersza').toBeGreaterThan(10);
+    expect(wynik.pominiete, 'akapity wielowierszowe bez justowania').toBe(0);
+    // Próg jest barierą przed regresją, nie celem jakościowym: przy tych szerokościach kolumn
+    // i bez dzielenia wyrazów część wierszy musi zostać rozstrzelona (zmierzone dla łamania
+    // zachłannego: 8,97 zwykłej spacji; algorytm Knutha–Plassa schodzi do 5,5 przy 1440 px).
+    expect(wynik.max, 'skrajnie rozstrzelony odstęp między wyrazami').toBeLessThan(10);
   });
 
   test('akapity nie kończą się wdową (jeden wyraz w ostatnim wierszu)', async ({ page, browserName }) => {

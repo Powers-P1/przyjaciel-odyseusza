@@ -2,9 +2,8 @@
 (function () {
   'use strict';
 
-  var root = document.documentElement;
-  root.classList.remove('no-js');
-  root.classList.add('js');
+  // klasa .js włącza animacje pojawiania (.js .reveal) – bez skryptu treść jest widoczna od razu
+  document.documentElement.classList.add('js');
 
   /* ---------- aliasy kotwic z poprzedniej strony (WordPress one-pager) ---------- */
   var LEGACY_HASHES = { '#dla-ciebie': '#oferta', '#dla-biznesu': '#oferta' };
@@ -43,6 +42,11 @@
     });
     document.addEventListener('click', function (e) {
       if (nav.classList.contains('is-open') && !header.contains(e.target)) setNavOpen(false);
+    });
+    // Wyjście fokusem poza nagłówek zamyka menu. Bez tego panel zostaje otwarty i zasłania
+    // kolejny element w kolejności Tab – przy powiększeniu 200% zakrywa go w całości (WCAG 2.4.11).
+    header.addEventListener('focusout', function (e) {
+      if (nav.classList.contains('is-open') && !header.contains(e.relatedTarget)) setNavOpen(false);
     });
     var mq = window.matchMedia('(min-width: 48em)');
     if (mq.addEventListener) mq.addEventListener('change', function () { setNavOpen(false); });
@@ -118,8 +122,17 @@
 
   var status = document.getElementById('form-status');
   var submitBtn = form.querySelector('.form__submit');
-  var tsField = document.getElementById('f-ts');
-  if (tsField) tsField.value = String(Date.now());
+  // Czas wypełniania formularza mierzy przeglądarka (od wczytania strony), a nie różnica zegarów
+  // dwóch maszyn. Zegar urządzenia potrafi spieszyć się o minuty i wtedy serwer uznawał prawdziwe
+  // zgłoszenie za bota, pokazując użytkownikowi potwierdzenie wysyłki i porzucając wiadomość.
+  var elapsedField = document.getElementById('f-elapsed');
+  var teraz = (window.performance && performance.now)
+    ? function () { return performance.now(); }
+    : function () { return Date.now(); };
+  var poczatek = teraz();
+  function zapiszCzas() {
+    if (elapsedField) elapsedField.value = String(Math.round(teraz() - poczatek));
+  }
 
   var fields = {
     name: form.elements.namedItem('name'),
@@ -220,6 +233,7 @@
       if (first) first.focus();
       return;
     }
+    zapiszCzas();
     if (!window.fetch) { form.submit(); return; }
 
     var originalLabel = submitBtn ? submitBtn.textContent : '';
@@ -244,7 +258,8 @@
             track('form_submit_success', { subject_for: payload.subject_for || 'brak' });
             formStarted = false;
             form.reset();
-            if (tsField) tsField.value = String(Date.now());
+            poczatek = teraz();
+            if (elapsedField) elapsedField.value = '';
             if (window.turnstile && typeof window.turnstile.reset === 'function') window.turnstile.reset();
           } else {
             throw new Error(json.error || ('http_' + res.status));

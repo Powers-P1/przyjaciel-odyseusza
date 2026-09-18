@@ -4,7 +4,7 @@ import { test, expect } from './_fixtures.js';
 // mierzymy w przeglądarce, gdzie faktycznie kończy się każdy wiersz przy danej szerokości okna.
 // Wykrywa „sierotę”, czyli krótki wyraz (spójnik, przyimek) zostawiony na końcu wiersza,
 // oraz „wdowę”, czyli ostatni wiersz akapitu złożony z jednego wyrazu.
-// Naprawia to tools/nbsp.mjs (twarde spacje) i CSS `text-wrap: pretty`.
+// Naprawia to tools/typografia.mjs (twarde spacje, dzielenie wyrazów, wiązanie wdów) i CSS `text-wrap: pretty`.
 
 const SZEROKOSCI = [
   { name: 'telefon', width: 390, height: 844 },
@@ -47,7 +47,7 @@ const zmierzWiersze = (selektor) => {
   return bloki;
 };
 
-// Wyrazy, które nie mogą kończyć wiersza – zgodne z listą w tools/nbsp.mjs.
+// Wyrazy, które nie mogą kończyć wiersza – zgodne z listą w tools/typografia.mjs.
 const SPOJNIKI = new Set([
   'bez', 'dla', 'nad', 'pod', 'ani', 'lub', 'czy', 'gdy', 'aby', 'niż', 'zza',
   'przy', 'poza', 'oraz', 'albo', 'lecz', 'więc', 'żeby', 'obok',

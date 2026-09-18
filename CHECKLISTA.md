@@ -45,7 +45,7 @@ Stosuj następujące oznaczenia:
 
 - [x] Build produkcyjny kończy się bez błędów.
   - Warunek zaliczenia: polecenie budujące wersję produkcyjną kończy się sukcesem i generuje oczekiwane pliki do wdrożenia.
-  - Dowód: `npm run build` (`tools/build.mjs`): `src/css/style.css → public/assets/css/style.css`, `src/js/main.js → public/assets/js/main.js` (minifikacja esbuild) + `tools/nbsp.mjs` na HTML; kończy się kodem 0. Hosting nie potrzebuje builda, `public/` jest publikowane bezpośrednio.
+  - Dowód: `npm run build` (`tools/build.mjs`): `src/css/style.css → .build/style.css` (wstawiany do `<style>` w HTML, nie publikowany jako plik), `src/js/main.js → public/assets/js/main.js` (minifikacja esbuild) + `tools/typografia.mjs` na HTML; kończy się kodem 0. Hosting nie potrzebuje builda, `public/` jest publikowane bezpośrednio.
 
 - [x] Podczas buildu produkcyjnego nie występują krytyczne ostrzeżenia.
   - Dotyczy m.in. brakujących assetów, błędnych importów, problemów z hydracją, błędnej konfiguracji.
@@ -560,7 +560,7 @@ Stosuj następujące oznaczenia:
   - Dowód: portret hero bez `loading="lazy"`, z `fetchpriority="high"`.
 
 - [x] Preload / fetch priority dla krytycznego obrazu jest używany tylko wtedy, gdy faktycznie poprawia critical path.
-  - Dowód: `fetchpriority="high"` tylko na portrecie hero; preload tylko 3 krytycznych fontów (H1 i tekst); brak preloadu obrazów.
+  - Dowód: `fetchpriority="high"` tylko na portrecie hero; ani jednego `<link rel="preload">` – fontów i obrazów nie preloadujemy (pomiar: LCP 5,2 s z preloadem wobec 3,4 s bez, patrz punkt o preloadzie fontów niżej).
 
 - [x] Duże materiały wideo i tła wideo zostały zoptymalizowane. **N/D: brak wideo.**
   - Dowód:
@@ -681,7 +681,7 @@ Stosuj następujące oznaczenia:
   - Dowód: `npm audit` → „found 0 vulnerabilities” (16.09.2026). Zależności wyłącznie deweloperskie (strona nie ma runtime dependencies).
 
 - [x] Usunięto nieużywane zależności.
-  - Dowód: `package.json` zawiera tylko używane: `@playwright/test`, `@axe-core/playwright`, `wrangler`, `esbuild`, `lighthouse`, `html-validate`, `wait-on` (CI).
+  - Dowód: `package.json` zawiera tylko używane: `@playwright/test`, `@axe-core/playwright`, `wrangler`, `esbuild`, `lighthouse`, `html-validate`, `wait-on` (CI), `hyphen` (wzorce dzielenia wyrazów dla `tools/typografia.mjs`). Wszystkie w `devDependencies` – do przeglądarki nie trafia żadna zależność.
 
 - [x] Skrypty zewnętrzne pochodzą wyłącznie ze świadomie zatwierdzonych źródeł.
   - Dowód: brak skryptów zewnętrznych; jedyne dopuszczone przez CSP źródło to `challenges.cloudflare.com` (opcjonalny Turnstile).
@@ -1101,6 +1101,18 @@ Wpisz wszystko, co uniemożliwia release:
 2. Polityka prywatności bez danych administratora (forma prawna, adres, NIP) i bez akceptacji klienta.
 3. Fakty i decyzje z listy „Do potwierdzenia” w `REVIEW.md` (sekcja 5) nie zostały potwierdzone przez klienta (m.in. aktualność „nadal zarządzam”, cennik netto/brutto, forma pierwszego spotkania).
 4. Zdjęcia to wycinki z makiet PNG; przed publikacją podmienić na oryginały z sesji.
+5. **Migracja DNS grozi utratą poczty przychodzącej klienta.** Stan strefy odczytany 18.09.2026
+   (`nslookup ... 8.8.8.8`): NS to `dns.home.pl`, `dns2.home.pl`, `dns3.home.pl`; rekord A apeksu
+   wskazuje `46.242.239.156` (home.pl); **rekord MX wskazuje na sam apex** (`przyjacielodyseusza.pl`,
+   priorytet 10), a nie na osobny host pocztowy. Przepięcie apeksu na Cloudflare Pages sprawia, że
+   MX rozwiąże się na adres Cloudflare i poczta przychodząca przestaje docierać. Zapytanie o
+   `_dmarc.przyjacielodyseusza.pl` zwraca rekord TXT zamiast NXDOMAIN, co wskazuje na wildcard
+   w strefie – przez to weryfikacja DKIM w Resend może „przejść” także przy błędnej nazwie rekordu.
+   Kolejność migracji: (1) odtworzyć w Cloudflare MX i SPF wskazujące na dotychczasowy serwer
+   pocztowy po jego adresie IP lub nazwie hosta, a nie po apeksie, (2) dodać jawne rekordy `_dmarc`
+   i `<selektor>._domainkey` zamiast polegać na wildcardzie, (3) dopiero wtedy zmienić NS,
+   (4) po podpięciu Resend rozszerzyć SPF o `include:_spf.resend.com`.
+   Właściciel: agencja; do wykonania razem z klientem, przed podpięciem domeny.
 
 ## Świadomie zaakceptowane wyjątki
 
@@ -1117,7 +1129,7 @@ Każdy wyjątek musi mieć powód i właściciela/decyzję.
 ## Status końcowy
 
 - [x] OPUBLIKOWANE NA DOMENIE TESTOWEJ: https://powers-p1.github.io/przyjaciel-odyseusza/ (17.09.2026, `noindex`)
-- [ ] GOTOWE DO PRODUKCJI (po zamknięciu 4 blokerów powyżej)
+- [ ] GOTOWE DO PRODUKCJI (po zamknięciu 5 blokerów powyżej)
 - [ ] OPUBLIKOWANE NA PRODUKCJI
 - [ ] KONTROLA PO PUBLIKACJI ZAKOŃCZONA
 

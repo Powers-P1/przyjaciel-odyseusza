@@ -19,16 +19,20 @@ function clean(value, max) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
+// Nagłówki ustawiamy w samej funkcji: Cloudflare nie stosuje reguł z pliku _headers do odpowiedzi
+// generowanych przez Pages Functions, więc wpis /api/* nigdy by tu nie dotarł.
+const NAGLOWKI = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
+
 function respond(status, body, wantsJson) {
   if (wantsJson) {
     return new Response(JSON.stringify(body), {
       status,
-      headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+      headers: { ...NAGLOWKI, 'Content-Type': 'application/json; charset=utf-8' },
     });
   }
   // wariant bez JavaScriptu: przekierowanie z powrotem do sekcji kontakt
   const target = body.ok ? '/?wyslano=1#kontakt' : '/?blad=1#kontakt';
-  return new Response(null, { status: 303, headers: { Location: target, 'Cache-Control': 'no-store' } });
+  return new Response(null, { status: 303, headers: { ...NAGLOWKI, Location: target } });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -54,11 +58,19 @@ export async function onRequestPost({ request, env }) {
   const message = String(data.message == null ? '' : data.message).trim().slice(0, 4000);
   const subjectFor = clean(data.subject_for, 10);
   const honeypot = clean(data.website, 200);
-  const ts = Number(data.ts) || 0;
+  // czas wypełniania mierzony przez przeglądarkę (performance.now od wczytania strony).
+  // Nie wolno tu porównywać zegara serwera ze znacznikiem czasu z urządzenia: zegar telefonu
+  // potrafi spieszyć się o minuty, a wtedy różnica wychodzi ujemna i prawdziwe zgłoszenie
+  // ląduje w pułapce na boty – użytkownik widzi potwierdzenie, a wiadomość przepada.
+  // Puste pole znaczy „brak pomiaru” (formularz wysłany bez JavaScriptu), a nie „zero milisekund”.
+  const surowyCzas = data.elapsed_ms == null ? '' : String(data.elapsed_ms).trim();
+  const elapsed = surowyCzas === '' ? null : Number(surowyCzas);
 
   // pułapki na boty: udajemy sukces, żeby nie zdradzać mechanizmu
   if (honeypot) return respond(200, { ok: true }, wantsJson);
-  if (ts && Date.now() - ts < 2500) return respond(200, { ok: true }, wantsJson);
+  if (elapsed !== null && Number.isFinite(elapsed) && elapsed >= 0 && elapsed < 2500) {
+    return respond(200, { ok: true }, wantsJson);
+  }
 
   const invalid = [];
   if (name.length < 2) invalid.push('name');
@@ -133,5 +145,5 @@ export async function onRequestPost({ request, env }) {
 
 export function onRequest({ request }) {
   if (request.method === 'POST') return undefined;
-  return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'POST' } });
+  return new Response('Method Not Allowed', { status: 405, headers: { ...NAGLOWKI, Allow: 'POST' } });
 }

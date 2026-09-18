@@ -13,3 +13,6 @@ docs/screens/local-*
 
 # katalog roboczy na wyciągi i porównania treści
 .tmp/
+
+# zminifikowany arkusz wstawiany do HTML (nie jest publikowany)
+.build/

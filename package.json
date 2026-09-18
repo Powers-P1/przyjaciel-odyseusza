@@ -8,7 +8,7 @@
     "dev": "wrangler pages dev --port 8788 --ip 127.0.0.1",
     "build": "node tools/build.mjs",
     "build:staging": "node tools/staging.mjs",
-    "validate": "html-validate public/index.html public/polityka-prywatnosci.html public/404.html && node tools/css-unused.mjs",
+    "validate": "html-validate public/index.html public/polityka-prywatnosci.html public/404.html && node tools/css-unused.mjs && node tools/csp-hash.mjs",
     "test": "playwright test",
     "test:quick": "playwright test --project=chromium --project=mobile-chrome",
     "test:staging": "playwright test --config playwright.staging.config.js",

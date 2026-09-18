@@ -9,7 +9,7 @@ const css = fs.readFileSync('src/css/style.css', 'utf8')
   .replace(/\{[^{}]*\}/g, '{}'); // zostają same selektory
 const classes = new Set([...css.matchAll(/\.([a-zA-Z_][\w-]*)/g)].map((m) => m[1]));
 
-const sources = ['public/index.html', 'public/polityka-prywatnosci.html', 'public/404.html', 'src/js/main.js']
+const sources = ['public/index.html', 'public/polityka-prywatnosci.html', 'public/404.html', 'src/js/main.js', 'src/js/justowanie.js']
   .map((f) => fs.readFileSync(f, 'utf8').replace(/<style[\s\S]*?<\/style>/g, ''))
   .join('\n');
 

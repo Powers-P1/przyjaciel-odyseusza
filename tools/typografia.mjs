@@ -1,13 +1,11 @@
-// Polski skład tekstu w HTML: twarde spacje (gdzie nie wolno łamać) i miękkie łączniki
-// (gdzie wolno przenieść wyraz). Jedno narzędzie, bo obie warstwy muszą widzieć ten sam tekst:
-// gdy działały osobno, miękki łącznik odcinał końcówkę wyrazu („prak|tykę”), a reguła twardych
-// spacji brała ją za osobny krótki wyraz i wiązała z następnym – powstawały łańcuchy w rodzaju
-// „praktykę praktykę biznesową z wiedzą”, nierozrywalne i szersze niż kolumna na telefonie.
+// Polski skład tekstu w HTML: twarde spacje tam, gdzie polski skład nie pozwala złamać wiersza.
+// Wyrazów NIE dzielimy. Tekst jest justowany, a równość wierszy bierze się z łamania całego akapitu
+// naraz (src/js/justowanie.js, algorytm Knutha–Plassa), a nie z przenoszenia połowy wyrazu.
 //
 // Przebieg (zawsze od czystego tekstu, więc wynik nie zależy od tego, ile razy uruchomiono narzędzie):
-//   1. usuń wszystkie twarde spacje i miękkie łączniki wstawione wcześniej,
+//   1. usuń twarde spacje i ewentualne miękkie łączniki wstawione wcześniej,
 //   2. wstaw twarde spacje,
-//   3. wstaw miękkie łączniki.
+//   3. zwiąż dwa ostatnie wyrazy akapitu, żeby w ostatnim wierszu nie został jeden wyraz.
 //
 // Twarde spacje (żaden z tych elementów nie zostaje na końcu wiersza):
 //   - wyraz jedno- i dwuliterowy (a, i, o, u, w, z, na, do, za, ze, we, po, od, to, że…),
@@ -16,17 +14,8 @@
 //   - skrót i inicjał (prof. Jerzy, m.in. Grupa, B. Przytuła),
 //   - numer telefonu, półpauza i kreska rozdzielająca (Coach | Psycholog).
 //
-// Miękkie łączniki: algorytm Franklina M. Lianga (ten sam co w TeX-u), wzorce polskie z CTAN
-// (pakiet `hyphen`). Polskie minima przenoszenia: 2 znaki zostają w wierszu, 3 przechodzą.
-// Nie dzielimy wyrazów zaczynających się wielką literą (nazwiska, nazwy firm) ani tokenów
-// z cyfrą, kropką w środku, ukośnikiem czy małpą (adresy, e-maile).
-// O tym, gdzie z tych podziałów wolno skorzystać, decyduje CSS (`hyphens`) – patrz src/css/style.css.
-//
 // Użycie: node tools/typografia.mjs public/index.html public/polityka-prywatnosci.html
 import fs from 'node:fs';
-import pl from 'hyphen/pl/index.js';
-
-const { hyphenateSync } = pl;
 
 // ---------- twarde spacje ----------
 
@@ -43,71 +32,21 @@ const PRZEZROCZYSTE = '(?:\\uE002\\d+\\uE003)*';
 
 const REGULY_NBSP = [
   // wyraz krótki (1–2 litery) albo przyimek/spójnik z listy + następny wyraz
-  [new RegExp(`(?<!${LITERA})((?:${SPOJNIKI.join('|')})|\\p{L}\\p{L}?)\\s+(?=${PRZEZROCZYSTE}(?:${LITERA}|${OTWARCIE}))`, 'giu'), '$1\u00A0'],
+  [new RegExp(`(?<!${LITERA})((?:${SPOJNIKI.join('|')})|\\p{L}\\p{L}?)\\s+(?=${PRZEZROCZYSTE}(?:${LITERA}|${OTWARCIE}))`, 'giu'), '$1 '],
   // liczba + jednostka lub waluta
-  [/(\d)\s+(lat|lata|roku|PLN|zł|min|godz|proc|r\.|s\.|tys|mln)(?![\p{L}])/gu, '$1\u00A0$2'],
+  [/(\d)\s+(lat|lata|roku|PLN|zł|min|godz|proc|r\.|s\.|tys|mln)(?![\p{L}])/gu, '$1 $2'],
   // skrót nie zostaje sam na końcu wiersza
-  [/(?<![\p{L}])(prof|dr|mgr|inż|np|tj|tzw|m\.in|ul|al|nr|tel|pt)\.\s+(?=\S)/gu, '$1.\u00A0'],
+  [/(?<![\p{L}])(prof|dr|mgr|inż|np|tj|tzw|m\.in|ul|al|nr|tel|pt)\.\s+(?=\S)/gu, '$1. '],
   // inicjał przy nazwisku
-  [/(?<!\p{L})(\p{Lu})\.\s+(?=\p{Lu})/gu, '$1.\u00A0'],
+  [/(?<!\p{L})(\p{Lu})\.\s+(?=\p{Lu})/gu, '$1. '],
   // numer telefonu w całości w jednym wierszu
-  [/(\+\d{2})\s(\d{3})\s(\d{3})\s(\d{3})/g, '$1\u00A0$2\u00A0$3\u00A0$4'],
+  [/(\+\d{2})\s(\d{3})\s(\d{3})\s(\d{3})/g, '$1 $2 $3 $4'],
   // kreska rozdzielająca i półpauza nie zaczynają wiersza (Mentor biznesowy | Coach | Psycholog)
-  [/\s+(?=[|–—]\s)/g, '\u00A0'],
-  [/(?<=[|–—])\s+(?=\S)/g, '\u00A0'],
+  [/\s+(?=[|–—]\s)/g, ' '],
+  [/(?<=[|–—])\s+(?=\S)/g, ' '],
 ];
 
-// ---------- miękkie łączniki ----------
-
-// Polska konfiguracja TeX-a (hyph-pl): co najmniej 2 znaki zostają w wierszu, co najmniej 3 przechodzą.
-const MIN_PRZED = 2;
-const MIN_PO = 3;
-const MIN_DLUGOSC = 6; // krótszych wyrazów dzielić nie ma po co
-const ZNACZNIK = '\u0001'; // tymczasowy separator podziałów, nie występuje w treści
-const SHY = '\u00AD';
-// Token, w którym nie ruszamy nic: adres, e-mail, nazwa pliku, cokolwiek z cyfrą.
-const TECHNICZNY = /[@/\\\d]|\.\p{L}/u;
-
-/** Dzieli pojedynczy wyraz, odrzucając podziały zbyt blisko brzegów. */
-function podzielWyraz(wyraz) {
-  const czesci = hyphenateSync(wyraz, { hyphenChar: ZNACZNIK, minWordLength: MIN_DLUGOSC }).split(ZNACZNIK);
-  if (czesci.length < 2) return wyraz;
-  let wynik = czesci[0];
-  let przed = czesci[0].length;
-  for (let i = 1; i < czesci.length; i += 1) {
-    if (przed >= MIN_PRZED && wyraz.length - przed >= MIN_PO) wynik += SHY;
-    wynik += czesci[i];
-    przed += czesci[i].length;
-  }
-  return wynik;
-}
-
-/** Dzieli wyrazy wewnątrz jednego tokenu (token = ciąg bez spacji, razem z interpunkcją). */
-function podzielToken(token) {
-  if (TECHNICZNY.test(token)) return token;
-  // wielka litera na początku wyrazu = nazwa własna (nazwisko, firma, program) – nie dzielimy
-  return token.replace(/\p{L}+/gu, (wyraz) =>
-    (wyraz.length >= MIN_DLUGOSC && /^\p{Ll}/u.test(wyraz) ? podzielWyraz(wyraz) : wyraz));
-}
-
-// Gdzie wolno wstawiać miękkie łączniki. Lustro reguły `hyphens: manual` z src/css/style.css:
-// tylko akapity i pozycje list w tekście ciągłym. Poza nią łącznik i tak nigdy nie złamie wiersza,
-// a zostaje w drzewie dostępności, w schowku i w wyszukiwaniu na stronie – czyli szkodzi za darmo.
-// Spójność obu list pilnuje tests/typografia.spec.js (żaden element z `hyphens: none` nie ma U+00AD).
-const AKAPITY = new Set(['p', 'li']);
-const KLASY_TEKSTU = [
-  'hero__lead', 'section-intro', 'situation__desc', 'about__private', // akapity z własną klasą
-  'mode', 'card', 'step', 'principle', 'origin', 'contact__copy', 'about__copy', 'prose', // pojemniki
-];
-
-/** Czy w tym miejscu drzewa CSS pozwala dzielić wyrazy (stos otwartych elementów, od korzenia). */
-function wolnoDzielic(stos) {
-  const element = stos[stos.length - 1];
-  if (!element || !AKAPITY.has(element.nazwa)) return false;
-  return stos.some((e) => e.klasy.some((k) => KLASY_TEKSTU.includes(k)));
-}
-
-// ---------- wspólna obsługa HTML ----------
+// ---------- maskowanie HTML ----------
 
 // Elementy, które nie przerywają wiersza. Reszta (akapity, listy, <br>, obrazy) jest granicą wiązania.
 const INLINE = new Set(['a', 'abbr', 'b', 'bdi', 'bdo', 'cite', 'code', 'data', 'dfn', 'del', 'em', 'i',
@@ -115,13 +54,13 @@ const INLINE = new Set(['a', 'abbr', 'b', 'bdi', 'bdo', 'cite', 'code', 'data', 
 
 /**
  * Chowa encje i znaczniki pod symbole zastępcze, żeby reguły widziały sam tekst.
- * Znaczniki inline dostają symbol przezroczysty (\uE002…\uE003), pozostałe – nieprzezroczysty,
- * dzięki czemu twarda spacja nigdy nie powstaje w poprzek akapitu ani <br>.
+ * Znaczniki inline dostają symbol przezroczysty, pozostałe – nieprzezroczysty, dzięki czemu
+ * twarda spacja nigdy nie powstaje w poprzek akapitu ani <br>.
  */
 function zamaskuj(html, schowek) {
   const zapisz = (fragment, przezroczysty) => {
     schowek.push(fragment);
-    return przezroczysty ? `\uE002${schowek.length - 1}\uE003` : `\uE000${schowek.length - 1}\uE001`;
+    return przezroczysty ? `${schowek.length - 1}` : `${schowek.length - 1}`;
   };
   // Kolejność jest istotna: najpierw znaczniki, dopiero potem encje w samym tekście. Odwrotnie
   // encja stojąca w atrybucie trafiała do schowka już podmieniona na symbol zastępczy, a jedno
@@ -134,7 +73,7 @@ function zamaskuj(html, schowek) {
 }
 
 function odmaskuj(html, schowek) {
-  return html.replace(/\uE000(\d+)\uE001|\uE002(\d+)\uE003/g, (_, a, b) => schowek[Number(a ?? b)]);
+  return html.replace(/(\d+)|(\d+)/g, (_, a, b) => schowek[Number(a ?? b)]);
 }
 
 // ---------- wdowy ----------
@@ -147,78 +86,40 @@ const ZAMYKA_AKAPIT = /^<\/(?:p|li|dd|figcaption)>$/i;
 // Szukamy w tekście zamaskowanym: odstęp + ostatni wyraz + ewentualne znaczniki inline + koniec akapitu.
 // Dzięki maskowaniu reguła nie widzi znaczników jako tekstu, więc nie może wstawić twardej spacji
 // w środek atrybutu – wcześniejsza wersja działała na surowym HTML i psuła `<a href=…>`.
-const KONIEC_AKAPITU = /[ \t\n\r]+([^\s\uE000-\uE003]+)((?:\uE002\d+\uE003)*)[ \t\n\r]*(?=\uE000(\d+)\uE001)/g;
+const KONIEC_AKAPITU = /[ \t\n\r]+([^\s-]+)((?:\d+)*)[ \t\n\r]*(?=(\d+))/g;
 
 /** Wiąże dwa ostatnie wyrazy akapitu, żeby w ostatnim wierszu nie został jeden wyraz. */
 function bezWdow(zamaskowany, schowek) {
   return zamaskowany.replace(KONIEC_AKAPITU, (calosc, ostatni, inline, indeks, offset) => {
     if (!ZAMYKA_AKAPIT.test(schowek[Number(indeks)])) return calosc;
-    const czysty = (t) => t.replace(/\u00A0/g, ' ').replace(/\u00AD/g, '');
+    const czysty = (t) => t.replace(/ /g, ' ');
     // liczymy cały nierozrywalny ciąg, a nie sam wyraz: poprzedni wyraz bywa już związany
     // twardą spacją z kolejnym („z którymi”), a wtedy wiązanie robi z nich trójkę szerszą niż kolumna
     const poprzedni = zamaskowany.slice(0, offset).split(/[ \t\n\r]+/).filter(Boolean).pop() || '';
     if (!poprzedni || !/\p{L}/u.test(czysty(ostatni))) return calosc; // pusty akapit albo liczba/adres
     if (`${czysty(poprzedni)} ${czysty(ostatni)}`.length > WDOWA_MAKS) return calosc;
-    return `\u00A0${ostatni}${inline}`;
+    return ` ${ostatni}${inline}`;
   });
 }
 
-/**
- * Przechodzi po zamaskowanym dokumencie, pilnując stosu otwartych elementów, i dzieli wyrazy
- * tylko tam, gdzie CSS na to pozwala. Symbole zastępcze niosą oryginalne znaczniki, więc stos
- * odtwarzamy z nich, a nie z tekstu – dzięki temu reguła nie może dotknąć atrybutów.
- */
-function podzielWTekscieCiaglym(zamaskowany, schowek) {
-  const SAMOZAMYKAJACE = new Set(['br', 'img', 'input', 'hr', 'meta', 'link', 'source', 'path', 'use']);
-  const stos = [];
-  return zamaskowany.replace(/\uE000(\d+)\uE001|\uE002(\d+)\uE003|[^\uE000-\uE003]+/g, (fragment, a, b) => {
-    const indeks = a ?? b;
-    if (indeks === undefined) {
-      // fragment tekstu: dzielimy, jeśli jesteśmy w akapicie tekstu ciągłego
-      if (!wolnoDzielic(stos)) return fragment;
-      return fragment.replace(/[^\s\u00A0]+/g, podzielToken);
-    }
-    const znacznik = schowek[Number(indeks)];
-    const otwierajacy = znacznik.match(/^<([a-zA-Z][a-zA-Z0-9-]*)/);
-    const zamykajacy = znacznik.match(/^<\/([a-zA-Z][a-zA-Z0-9-]*)/);
-    if (otwierajacy) {
-      const nazwa = otwierajacy[1].toLowerCase();
-      if (!SAMOZAMYKAJACE.has(nazwa) && !znacznik.endsWith('/>')) {
-        const klasy = (znacznik.match(/\bclass="([^"]*)"/) || [, ''])[1].split(/\s+/).filter(Boolean);
-        stos.push({ nazwa, klasy });
-      }
-    } else if (zamykajacy) {
-      const nazwa = zamykajacy[1].toLowerCase();
-      for (let i = stos.length - 1; i >= 0; i -= 1) {
-        if (stos[i].nazwa === nazwa) { stos.length = i; break; }
-      }
-    }
-    return fragment;
-  });
-}
+// ---------- całość ----------
 
 function typografia(html) {
   // Bloki nietykalne: kod, tytuł dokumentu oraz treść pola formularza i tekstu preformatowanego –
-  // tam twarda spacja i miękki łącznik byłyby widoczne dla użytkownika albo zepsułyby wartość pola.
+  // tam twarda spacja byłaby widoczna dla użytkownika albo zepsułaby wartość pola.
   return html
     .split(/(<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<title\b[\s\S]*?<\/title>|<textarea\b[\s\S]*?<\/textarea>|<pre\b[\s\S]*?<\/pre>|<code\b[\s\S]*?<\/code>)/i)
     .map((blok, i) => {
       if (i % 2 === 1) return blok;
       const schowek = [];
       // 1. czysty tekst: zdejmujemy wszystko, co narzędzie wstawiło wcześniej
-      const czysty = blok.replace(/&nbsp;|\u00A0/g, ' ').replace(/&shy;|\u00AD/g, '');
+      const czysty = blok.replace(/&nbsp;| /g, ' ').replace(/&shy;|­/g, '');
       const zamaskowany = zamaskuj(czysty, schowek);
       // 2. twarde spacje
       const zeSpacjami = REGULY_NBSP.reduce((tekst, [re, na]) => tekst.replace(re, na), zamaskowany);
-      // 3. miękkie łączniki
-      // token = ciąg bez odstępów; twarda spacja i symbole zastępcze dzielą tokeny, więc wyrazy
-      // związane twardą spacją dzielimy osobno, a symboli zastępczych nie tykamy
-      const podzielony = podzielWTekscieCiaglym(zeSpacjami, schowek);
-      // 4. wdowy – jeszcze w tekście zamaskowanym, żeby reguła nie mogła dotknąć znaczników
-      const bezWdowy = bezWdow(podzielony, schowek);
-      return odmaskuj(bezWdowy, schowek)
-        .replace(/\u00A0/g, '&nbsp;')
-        .replace(/\u00AD/g, '&shy;');
+      // 3. wdowy – jeszcze w tekście zamaskowanym, żeby reguła nie mogła dotknąć znaczników
+      const bezWdowy = bezWdow(zeSpacjami, schowek);
+      return odmaskuj(bezWdowy, schowek).replace(/ /g, '&nbsp;');
     })
     .join('');
 }
@@ -227,7 +128,5 @@ for (const plik of process.argv.slice(2)) {
   const przed = fs.readFileSync(plik, 'utf8');
   const po = typografia(przed);
   if (po !== przed) fs.writeFileSync(plik, po);
-  const twarde = (po.match(/&nbsp;/g) || []).length;
-  const lacznik = (po.match(/&shy;/g) || []).length;
-  console.log(`${plik}: ${twarde} twardych spacji, ${lacznik} miejsc podziału wyrazów`);
+  console.log(`${plik}: ${(po.match(/&nbsp;/g) || []).length} twardych spacji`);
 }

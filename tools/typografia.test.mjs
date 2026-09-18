@@ -30,10 +30,9 @@ const przypadki = [
     zawiera: ['<!DOCTYPE html>'],
   },
   {
-    nazwa: 'nazwy własne nie są dzielone, wyrazy pospolite tak',
-    wejscie: '<p>Bartłomiej Przytuła zarządzał operacjami.</p>',
-    zawiera: ['Bartłomiej', 'Przytuła'],
-    niezawiera: ['Bar&shy;', 'Przy&shy;'],
+    nazwa: 'wyrazów nie dzielimy – żadnych miękkich łączników w wyniku',
+    wejscie: '<p>Odpowiedzialność za zespół i przewidywalność decyzji menedżerskich.</p>',
+    niezawiera: ['&shy;', '­'],
   },
   {
     nazwa: 'adres e-mail nie jest dzielony ani wiązany w środku',
@@ -63,11 +62,8 @@ for (const p of przypadki) {
   execFileSync(process.execPath, ['tools/typografia.mjs', plik], { stdio: 'pipe' });
   const dwa = fs.readFileSync(plik, 'utf8');
 
-  // „zawiera” sprawdzamy na tekście bez miękkich łączników: interesuje nas to, co widzi czytelnik,
-  // a łącznik może wypaść w środku dowolnego wyrazu. „niezawiera” działa na surowym wyniku.
-  const bezLacznikow = raz.replace(/&shy;/g, '');
   const zarzuty = [];
-  for (const oczekiwane of p.zawiera || []) if (!bezLacznikow.includes(oczekiwane)) zarzuty.push(`brak: ${oczekiwane}`);
+  for (const oczekiwane of p.zawiera || []) if (!raz.includes(oczekiwane)) zarzuty.push(`brak: ${oczekiwane}`);
   for (const zakazane of p.niezawiera || []) if (raz.includes(zakazane)) zarzuty.push(`jest, a nie powinno: ${zakazane}`);
   if (raz !== dwa) zarzuty.push('drugie uruchomienie zmienia wynik (brak idempotentności)');
 

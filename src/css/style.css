@@ -65,32 +65,17 @@ p { margin: 0 0 1em; }
 /* bez pojedynczych słów w ostatniej linii akapitu (przeglądarki bez text-wrap: pretty ignorują regułę) */
 p, li, dd { text-wrap: pretty; }
 
-/* Dzielenie wyrazów. tools/typografia.mjs zaznacza w kroku budowania KAŻDE miejsce, w którym polski wyraz
-   wolno przenieść (miękki łącznik &shy;, wzorce hyph-pl, minima 2 znaki zostają / 3 przechodzą).
-   Tutaj decydujemy, GDZIE z tych miejsc korzystać: tylko w tekście ciągłym. Nagłówki, nadtytuły,
-   etykiety, przyciski i podpisy łamiemy bez łączników – przy dużym stopniu pisma łącznik rzuca się
-   w oczy, a wiersze są tam i tak krótkie. `manual` zamiast `auto`: dzielimy wyłącznie tam, gdzie
-   zaznaczyło narzędzie, więc wynik jest ten sam w każdej przeglądarce i nie rozcina nazw własnych.
-   Efekt w tekście ciągłym: średnie wypełnienie wiersza 83,9% → 92,5%, najkrótszy wiersz 44% → 70%,
-   wierszy krótszych niż 80% szerokości 17 → 4, odstępy między wyrazami bez zmian.
-   Tekstu nie justujemy: przeglądarka łamie wiersze zachłannie, więc justowanie rozstrzeliwuje odstępy
-   do 1,57 zwykłej spacji w medianie i 6,6 w skrajnym wierszu przy normie DTP 1,33; do tego WCAG 2.2
-   (1.4.8) odradza wyrównanie obustronne. Pomiary: REVIEW.md, sekcja 4e. */
-body { hyphens: none; }
-.hero__lead,
-.section-intro,
-.mode p,
-.card p,
-.situation__desc,
-.step p,
-.principle p,
-.about__copy > p,
-.about__private,
-.origin p,
-.contact__copy p,
-.prose p,
-.prose li,
-.ticks li { hyphens: manual; -webkit-hyphens: manual; }
+/* Justowanie tekstu ciągłego. Bez JavaScriptu zostaje chorągiewka: zachłanne justowanie
+   przeglądarki wygląda gorzej niż wyrównanie do lewej – zmierzone na tej stronie odstępy między
+   wyrazami sięgały mediany 2,4 zwykłej spacji i 9,0 w skrajnym wierszu, co daje widoczne „rzeki”.
+   `text-wrap: pretty` i `balance` tego nie naprawiają (2,8 i 4,4 mediany) – optymalizują
+   chorągiewkę, nie wypełnienie wiersza.
+   src/js/justowanie.js liczy podział na wiersze dla całego akapitu naraz (algorytm Knutha–Plassa,
+   ten sam co w TeX-u) i opakowuje każdy wiersz w blok; ostateczne rozciągnięcie odstępów robi
+   przeglądarka, co do piksela. Wyrazów nie dzielimy. Pomiary: REVIEW.md, sekcja 4e. */
+.jest-justowany { word-spacing: -.06em; }
+.jest-justowany .wiersz { display: block; text-align: justify; text-align-last: justify; }
+.jest-justowany .wiersz--ostatni { text-align: left; text-align-last: left; }
 ul, ol { margin: 0; padding: 0; }
 h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; line-height: 1.15; letter-spacing: -.008em; }
 button { font: inherit; color: inherit; }
@@ -349,18 +334,22 @@ button { font: inherit; color: inherit; }
 .section-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-top: 2.5rem; }
 
 /* ---------- współpraca ---------- */
-.steps { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.5rem 2rem; }
+/* Dwie kolumny, nie cztery: przy czterech kolumna tekstu miała ok. 270 px, czyli za mało
+   odstępów w wierszu, żeby justowanie rozłożyło luz (zmierzone: te akapity jako jedyne
+   nie dawały się złamać sensownie). Przy dwóch kolumnach tekst kroku ma ok. 560 px. */
+.steps { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem 3rem; }
 .step { position: relative; padding-top: 1.5rem; border-top: 1px solid var(--teal-line); }
 .step::before { content: ""; position: absolute; top: -4px; left: 0; width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); }
 .step__num { display: block; font: 400 1.6rem/1 var(--serif); color: var(--gold); margin-bottom: .9rem; }
 .step__title { font-size: 1.25rem; margin-bottom: .7rem; }
 .step p { margin: 0; font-size: .97rem; color: var(--mist); max-width: var(--miara); }
-@media (max-width: 64em) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 40em) { .steps { grid-template-columns: 1fr; gap: 2rem; } }
 
 .principles { margin-top: clamp(3rem, 6vw, 5rem); padding-top: clamp(2.5rem, 4vw, 3.5rem); border-top: 1px solid var(--teal-line); }
 .principles__title { font-size: clamp(1.4rem, 1.15rem + .8vw, 1.8rem); margin-bottom: 1.75rem; }
-.principles__list { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+/* Dwie kolumny, nie trzy: przy trzech kolumna tekstu miała ok. 370 px – najwęższy tekst ciągły
+   na stronie i jedyne miejsce, w którym justowanie nie miało jak rozłożyć luzu. */
+.principles__list { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem 3rem; }
 .principle__icon { color: var(--gold); margin-bottom: .9rem; }
 .principle__title { font-size: 1.2rem; margin-bottom: .5rem; }
 .principle p { margin: 0; color: var(--mist-soft); font-size: .97rem; max-width: var(--miara); }

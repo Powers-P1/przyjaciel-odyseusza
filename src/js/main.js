@@ -113,8 +113,9 @@
     function sync() {
       frame = 0;
       var state = view();
-      previous.disabled = track.scrollLeft <= 1;
-      next.disabled = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1;
+      // aria-disabled zachowuje fokus przycisku po dojściu do końca listy.
+      previous.setAttribute('aria-disabled', track.scrollLeft <= 1 ? 'true' : 'false');
+      next.setAttribute('aria-disabled', track.scrollLeft >= track.scrollWidth - track.clientWidth - 1 ? 'true' : 'false');
       var range = state.visible === 1 ? String(state.first + 1) : (state.first + 1) + '–' + (state.first + state.visible);
       var label = (state.visible === 1 ? 'Przykład ' : 'Przykłady ') + range + ' z\u00a0' + cards.length;
       if (counter.textContent !== label) counter.textContent = label;
@@ -128,10 +129,12 @@
       track.scrollTo({ left: target * state.step, behavior: motion.matches ? 'auto' : 'smooth' });
     }
     previous.addEventListener('click', function () {
+      if (previous.getAttribute('aria-disabled') === 'true') return;
       var state = view();
       move(state.first - state.visible);
     });
     next.addEventListener('click', function () {
+      if (next.getAttribute('aria-disabled') === 'true') return;
       var state = view();
       move(state.first + state.visible);
     });

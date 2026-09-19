@@ -75,6 +75,52 @@ test.describe('Opinie: dostępne, ręczne przewijanie przykładów układu', () 
     expect(await track.evaluate((element) => getComputedStyle(element).scrollBehavior)).toBe('auto');
   });
 
+  for (const width of [390, 1024]) {
+    test(`przyciski zachowują fokus na krańcach i blokują dalszą aktywację przy ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      const slider = await openSlider(page);
+      const track = slider.locator('.testimonials');
+      const counter = slider.getByRole('status');
+      const previous = slider.getByRole('button', { name: 'Poprzednie przykłady opinii' });
+      const next = slider.getByRole('button', { name: 'Następne przykłady opinii' });
+      const perPage = width < 768 ? 1 : 2;
+      const label = (first) => perPage === 1
+        ? `Przykład ${first + 1} z 6`
+        : `Przykłady ${first + 1}–${first + perPage} z 6`;
+
+      await next.focus();
+      for (let first = perPage; first <= 6 - perPage; first += perPage) {
+        await page.keyboard.press('Enter');
+        await expect(counter).toHaveText(label(first));
+        await expect(next).toBeFocused();
+      }
+      await expect(next).toBeDisabled();
+      await expect(next).toHaveJSProperty('disabled', false);
+      const end = await track.evaluate((element) => element.scrollLeft);
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Space');
+      await expect(next).toBeFocused();
+      await next.click({ force: true });
+      await expect(counter).toHaveText(label(6 - perPage));
+      await expect(track).toHaveJSProperty('scrollLeft', end);
+
+      await previous.focus();
+      for (let first = 6 - 2 * perPage; first >= 0; first -= perPage) {
+        await page.keyboard.press('Enter');
+        await expect(counter).toHaveText(label(first));
+        await expect(previous).toBeFocused();
+      }
+      await expect(previous).toBeDisabled();
+      await expect(previous).toHaveJSProperty('disabled', false);
+      await page.keyboard.press('Enter');
+      await page.keyboard.press('Space');
+      await expect(previous).toBeFocused();
+      await previous.click({ force: true });
+      await expect(counter).toHaveText(label(0));
+      await expect(track).toHaveJSProperty('scrollLeft', 0);
+    });
+  }
+
   test('natywne przewinięcie i zmiana szerokości aktualizują licznik i przyciski', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     const slider = await openSlider(page);

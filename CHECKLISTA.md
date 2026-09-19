@@ -914,6 +914,9 @@ Stosuj następujące oznaczenia:
   Chromium, Firefox i Pixel 7; build, HTML/CSS/CSP i typografia poprawne.
   Backend: A 11/11, B i C po 13/13. Dodatkowa kontrola wygenerowanego demo B/C:
   wymagany checkbox, brak POST i brak czyszczenia danych po kliknięciu przycisku.
+- Końcowy przegląd klawiatury: naprawiono utratę fokusu na krańcach slidera przez użycie
+  aria-disabled i guardów aktywacji. Po poprawce 118 testów slidera/dostępności/typografii przeszło
+  w każdym z B/C (2 pominięcia warunkowe; Chromium, Firefox, Pixel 7).
 
 - [x] Build produkcyjny uruchamia się w CI.
   - Dowód: krok `npm run build` + `git diff --exit-code -- public` w `.github/workflows/qa.yml` przechodzi na `ubuntu-latest` (17.09.2026) – build jest powtarzalny między Windows a Linuksem (LF wymuszone w `.gitattributes`, esbuild z lockfile).

@@ -1,6 +1,5 @@
 // Polski skład tekstu w HTML: twarde spacje tam, gdzie polski skład nie pozwala złamać wiersza.
-// Wyrazów NIE dzielimy. Tekst jest justowany, a równość wierszy bierze się z łamania całego akapitu
-// naraz (src/js/justowanie.js, algorytm Knutha–Plassa), a nie z przenoszenia połowy wyrazu.
+// Łamanie wierszy pozostaje natywne; skrypt nie zmienia DOM w przeglądarce.
 //
 // Przebieg (zawsze od czystego tekstu, więc wynik nie zależy od tego, ile razy uruchomiono narzędzie):
 //   1. usuń twarde spacje i ewentualne miękkie łączniki wstawione wcześniej,
@@ -8,8 +7,7 @@
 //   3. zwiąż dwa ostatnie wyrazy akapitu, żeby w ostatnim wierszu nie został jeden wyraz.
 //
 // Twarde spacje (żaden z tych elementów nie zostaje na końcu wiersza):
-//   - wyraz jedno- i dwuliterowy (a, i, o, u, w, z, na, do, za, ze, we, po, od, to, że…),
-//   - przyimki i spójniki z listy (bez, dla, nad, pod, oraz, przy, przed, według…),
+//   - pojedyncza litera (a, i, o, u, w, z) z następującym wyrazem,
 //   - liczba i jednostka (20 lat, 300 PLN, 15 min) oraz przyimek przed liczbą (od 300),
 //   - skrót i inicjał (prof. Jerzy, m.in. Grupa, B. Przytuła),
 //   - numer telefonu, półpauza i kreska rozdzielająca (Coach | Psycholog).
@@ -19,20 +17,14 @@ import fs from 'node:fs';
 
 // ---------- twarde spacje ----------
 
-const SPOJNIKI = [
-  'bez', 'dla', 'nad', 'pod', 'ani', 'lub', 'czy', 'gdy', 'aby', 'niż', 'zza',
-  'przy', 'poza', 'oraz', 'albo', 'lecz', 'więc', 'żeby', 'obok',
-  'przed', 'wśród', 'wobec', 'ponad', 'około', 'spośród', 'według', 'poprzez', 'między', 'pomiędzy',
-];
-
 const LITERA = '[\\p{L}\\p{N}]';
 const OTWARCIE = '[„"\'(]'; // po twardej spacji może stać cudzysłów lub nawias otwierający
 // znaczniki inline są dla łamania wiersza przezroczyste: „napisz na <a>adres</a>” ma wiązać „na” z linkiem
 const PRZEZROCZYSTE = '(?:\\uE002\\d+\\uE003)*';
 
 const REGULY_NBSP = [
-  // wyraz krótki (1–2 litery) albo przyimek/spójnik z listy + następny wyraz
-  [new RegExp(`(?<!${LITERA})((?:${SPOJNIKI.join('|')})|\\p{L}\\p{L}?)\\s+(?=${PRZEZROCZYSTE}(?:${LITERA}|${OTWARCIE}))`, 'giu'), '$1 '],
+  // Pojedyncza litera + następny wyraz. Dłuższe słowa mogą łamać się naturalnie.
+  [new RegExp(`(?<!${LITERA})(\\p{L})\\s+(?=${PRZEZROCZYSTE}(?:${LITERA}|${OTWARCIE}))`, 'giu'), '$1 '],
   // liczba + jednostka lub waluta
   [/(\d)\s+(lat|lata|roku|PLN|zł|min|godz|proc|r\.|s\.|tys|mln)(?![\p{L}])/gu, '$1 $2'],
   // skrót nie zostaje sam na końcu wiersza
@@ -43,7 +35,6 @@ const REGULY_NBSP = [
   [/(\+\d{2})\s(\d{3})\s(\d{3})\s(\d{3})/g, '$1 $2 $3 $4'],
   // kreska rozdzielająca i półpauza nie zaczynają wiersza (Mentor biznesowy | Coach | Psycholog)
   [/\s+(?=[|–—]\s)/g, ' '],
-  [/(?<=[|–—])\s+(?=\S)/g, ' '],
 ];
 
 // ---------- maskowanie HTML ----------
@@ -82,7 +73,7 @@ function odmaskuj(html, schowek) {
 // ale tylko gdy razem są krótkie – dłuższa para rozpychałaby wąskie kolumny na telefonie.
 const WDOWA_MAKS = 22;
 // nagłówków nie ruszamy: mają `text-wrap: balance`, a wiązanie groziłoby ciągiem szerszym niż kolumna
-const ZAMYKA_AKAPIT = /^<\/(?:p|li|dd|figcaption)>$/i;
+const ZAMYKA_AKAPIT = /^<\/(?:p|li|dt|dd|figcaption)>$/i;
 // Szukamy w tekście zamaskowanym: odstęp + ostatni wyraz + ewentualne znaczniki inline + koniec akapitu.
 // Dzięki maskowaniu reguła nie widzi znaczników jako tekstu, więc nie może wstawić twardej spacji
 // w środek atrybutu – wcześniejsza wersja działała na surowym HTML i psuła `<a href=…>`.
@@ -92,7 +83,7 @@ const KONIEC_AKAPITU = /[ \t\n\r]+([^\s-]+)((?:\d+)*)[ \t\n\r]*(?=�
 function bezWdow(zamaskowany, schowek) {
   return zamaskowany.replace(KONIEC_AKAPITU, (calosc, ostatni, inline, indeks, offset) => {
     if (!ZAMYKA_AKAPIT.test(schowek[Number(indeks)])) return calosc;
-    const czysty = (t) => t.replace(/ /g, ' ');
+    const czysty = (t) => t.replace(/[]\d+[]/g, '').replace(/ /g, ' ');
     // liczymy cały nierozrywalny ciąg, a nie sam wyraz: poprzedni wyraz bywa już związany
     // twardą spacją z kolejnym („z którymi”), a wtedy wiązanie robi z nich trójkę szerszą niż kolumna
     const poprzedni = zamaskowany.slice(0, offset).split(/[ \t\n\r]+/).filter(Boolean).pop() || '';

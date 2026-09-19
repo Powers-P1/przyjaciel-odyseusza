@@ -7,7 +7,7 @@ import { test as base, expect } from '@playwright/test';
 export const STAGING_URL = process.env.PW_STAGING_URL || '';
 export const STAGING = Boolean(STAGING_URL);
 const parsed = STAGING ? new URL(STAGING_URL) : null;
-export const ORIGIN = parsed ? parsed.origin : 'http://127.0.0.1:8788';
+export const ORIGIN = parsed ? parsed.origin : `http://127.0.0.1:${process.env.QA_PORT || 8788}`;
 export const BASE_PATH = parsed ? parsed.pathname.replace(/\/+$/, '') : '';
 // adres, który ma stać w canonical/og:url/JSON-LD/llms.txt (bez końcowego ukośnika)
 export const SITE = parsed ? ORIGIN + BASE_PATH : 'https://przyjacielodyseusza.pl';

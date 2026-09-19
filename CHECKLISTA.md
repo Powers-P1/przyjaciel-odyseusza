@@ -16,13 +16,14 @@ Stosuj następujące oznaczenia:
 - Nigdy nie usuwaj po cichu punktów z checklisty.
 - Nie oznaczaj wymagań prawnych, prywatności, dostępności lub bezpieczeństwa jako spełnionych wyłącznie dlatego, że zainstalowano bibliotekę lub wtyczkę. Sprawdź faktyczne działanie.
 
-> **Zakres tego przebiegu (16.09.2026):** zrealizowano i zweryfikowano wszystko, co da się zrobić na localhoście
-> (lokalna emulacja Cloudflare Pages przez `wrangler pages dev`: nagłówki, funkcja formularza, statusy 404).
-> Punkty oznaczone **PO PUBLIKACJI** wymagają dostępu do kont dostawców (Cloudflare, Resend, Google Search Console)
-> lub działającej domeny i są celowo pozostawione otwarte.
+> **Aktualizacja 19.09.2026:** bieżące zmiany dotyczą trzech wariantów do przeglądu klienta.
+> Jawny tryb demo formularza i oznaczone przykłady opinii są dopuszczalnymi elementami podglądu.
+> Gotowość do produkcji wymaga osobnego zamknięcia DNS/MX, dostarczania poczty, dokumentów prawnych,
+> wyboru finalnych materiałów i kontroli wdrożenia. Brak dostępu do kont nie przesuwa tych warunków na czas po starcie.
 >
-> Dowody z testów odnoszą się do `npm test` (Playwright: Chromium, Firefox, WebKit, Pixel 7, iPhone 14) uruchamianego
-> na `wrangler pages dev`. Wynik ostatniego pełnego przebiegu: patrz sekcja 15.
+> Datowane dowody z 16–18.09 są historyczne. Bieżące wyniki lokalne z 19.09 oraz zakres ponownej
+> weryfikacji znajdują się w sekcji 15. Publikację konkretnego zestawu SHA potwierdza GitHub Actions;
+> nie należy utożsamiać poprawnego podglądu z odbiorem produkcyjnym.
 
 ## Dane projektu
 
@@ -36,7 +37,7 @@ Stosuj następujące oznaczenia:
 - Dodatkowe języki: brak
 - ID analityki produkcyjnej: brak (privacy-first; rekomendacja Cloudflare Web Analytics, patrz `docs/plan-pomiarowy.md`)
 - CMP / system zgód: brak (strona nie ustawia cookies i nie ładuje trackerów, potwierdzone testem)
-- Data ostatniego pełnego audytu: 2026-09-18 (lokalnie na emulacji Cloudflare + na domenie testowej GitHub Pages, przed publikacją produkcyjną)
+- Data bieżącego QA lokalnego: 2026-09-19 (zakres, wyniki i ograniczenia w sekcji 15)
 - Audyt wykonał: Claude (agent) dla OK Agency / Damian Karolewski Technology Solutions
 
 ---
@@ -53,14 +54,14 @@ Stosuj następujące oznaczenia:
 
 - [ ] Produkcja działa wyłącznie po HTTPS.
   - HTTP ma przekierowywać na HTTPS, a wszystkie zasoby mają ładować się bez mixed content.
-  - **CZĘŚCIOWO:** w kodzie brak zasobów `http://` (wszystko względne / same-origin), HSTS w `public/_headers`, canonical/OG/sitemap na `https://`. Przekierowanie HTTP→HTTPS zapewnia Cloudflare (Always Use HTTPS) – **PO PUBLIKACJI** sprawdzić `curl -I http://przyjacielodyseusza.pl`.
+  - **CZĘŚCIOWO:** w kodzie brak zasobów `http://` (wszystko względne / same-origin), HSTS w `public/_headers`, canonical/OG/sitemap na `https://`. Przekierowanie HTTP→HTTPS zapewnia Cloudflare (Always Use HTTPS) – **PRZED URUCHOMIENIEM PRODUKCJI** sprawdzić `curl -I http://przyjacielodyseusza.pl`.
   - Dowód: `tests/headers.spec.js` (nagłówek `strict-transport-security`), `grep -r "http://" public/*.html` zwraca tylko namespace w sitemapie.
   - Domena testowa (17.09.2026): `http://powers-p1.github.io/przyjaciel-odyseusza/` → 301 na `https://`, odpowiedź z `Strict-Transport-Security: max-age=31556952`; brak mixed content (test `tests/smoke.spec.js` „bez błędów w konsoli” na żywym adresie). Test `tests/staging.spec.js` „HTTP przekierowuje na HTTPS”.
 
 - [ ] Wymuszona jest jedna kanoniczna wersja domeny.
   - Przykład: `https://example.com` ALBO `https://www.example.com`.
   - Wszystkie inne warianty hosta i protokołu mają przekierowywać do wersji kanonicznej.
-  - **CZĘŚCIOWO:** kanoniczna to apex `https://przyjacielodyseusza.pl/` (canonical, og:url, sitemap, JSON-LD, `llms.txt`, `security.txt`). Plik `_redirects` w Pages nie obsługuje reguł per host, więc przekierowanie `www` → apex trzeba ustawić jako Redirect Rule w dashboardzie Cloudflare – instrukcja w `README.md` („Domena i kanoniczny host”). **PO PUBLIKACJI.**
+  - **CZĘŚCIOWO:** kanoniczna to apex `https://przyjacielodyseusza.pl/` (canonical, og:url, sitemap, JSON-LD, `llms.txt`, `security.txt`). Plik `_redirects` w Pages nie obsługuje reguł per host, więc przekierowanie `www` → apex trzeba ustawić jako Redirect Rule w dashboardzie Cloudflare – instrukcja w `README.md` („Domena i kanoniczny host”). **PRZED URUCHOMIENIEM PRODUKCJI.**
   - Dowód: `tests/seo.spec.js` (canonical == adres w sitemapie), `README.md`.
 
 - [x] Środowiska staging / preview nie mogą być indeksowane.
@@ -68,7 +69,7 @@ Stosuj następujące oznaczenia:
   - Sam `robots.txt` nie jest zabezpieczeniem prywatności.
   - Domena testowa GitHub Pages (`tools/staging.mjs`): każda strona ma `<meta name="robots" content="noindex, nofollow">`, `robots.txt` bez `Disallow` (żeby robot zobaczył noindex) i bez sitemapy, `sitemap.xml` nie jest publikowana, canonical/OG/JSON-LD wskazują adres testowy (brak sygnału „to produkcja”). GitHub Pages nie oferuje autoryzacji dostępu – świadomy wyjątek (sekcja 19).
   - Dowód: `tests/staging.spec.js` „każda strona ma noindex…” na żywym adresie; `curl -s https://powers-p1.github.io/przyjaciel-odyseusza/ | grep robots`.
-  - **PO PUBLIKACJI:** włączyć Access policy dla preview deployments w Cloudflare Pages (Settings → General). Instrukcja w `README.md`.
+  - **PRZED URUCHOMIENIEM PRODUKCJI:** włączyć Access policy dla preview deployments w Cloudflare Pages (Settings → General). Instrukcja w `README.md`.
 
 - [x] Istnieje własna strona 404 i naprawdę zwraca kod HTTP 404.
   - Nie może to być "ładna strona błędu" zwracająca kod 200.
@@ -159,20 +160,20 @@ Stosuj następujące oznaczenia:
 ## 2.3 Narzędzia dla wyszukiwarek
 
 - [ ] Domena produkcyjna jest skonfigurowana w Google Search Console.
-  - **PO PUBLIKACJI** (wymaga dostępu do konta Google i domeny). Domeny testowej celowo nie zgłaszamy: jest poza indeksem (`noindex`), a GSC nie da nic poza raportem „wykluczone przez noindex”.
+  - **PRZED URUCHOMIENIEM PRODUKCJI** (wymaga dostępu do konta Google i domeny). Domeny testowej celowo nie zgłaszamy: jest poza indeksem (`noindex`), a GSC nie da nic poza raportem „wykluczone przez noindex”.
   - Dowód:
 
 - [ ] Produkcyjna sitemap została zgłoszona w Google Search Console.
-  - **PO PUBLIKACJI.**
+  - **PRZED URUCHOMIENIEM PRODUKCJI.**
   - Dowód:
 
 - [ ] Bing Webmaster Tools jest skonfigurowany.
   - Zalecane, ale niekonieczne w każdym projekcie.
-  - **PO PUBLIKACJI** (import z GSC zajmuje kilka minut).
+  - **PRZED URUCHOMIENIEM PRODUKCJI** (import z GSC zajmuje kilka minut).
   - Dowód:
 
 - [ ] Po publikacji sprawdzono najważniejsze błędy indeksowania.
-  - **PO PUBLIKACJI.**
+  - **PRZED URUCHOMIENIEM PRODUKCJI.**
   - Dowód:
 
 ---
@@ -185,7 +186,7 @@ Stosuj następujące oznaczenia:
 
 - [x] Obraz social preview jest przygotowany świadomie.
   - Nie może nim być przypadkowy obraz znaleziony przez platformę na stronie.
-  - Dowód: dedykowany `public/assets/img/og-image.jpg` 1200×630 (logo, hasło, portret); test sprawdza, że plik istnieje i jest JPEG. Podgląd: `docs/og-image-podglad.jpg`. Podgląd na żywym adresie testowym (opengraph.xyz, 17.09.2026): obraz ładuje się (74 KB, 1200×630, `summary_large_image`, `og:site_name`); dwa ostrzeżenia o długości poprawione: `og:title` skrócony do 58 znaków (jak `<title>`), `og:description` do 121 znaków (podglądy ucinają ok. 125). **PO PUBLIKACJI:** LinkedIn Post Inspector na adresie produkcyjnym (wymaga zalogowania).
+  - Dowód: dedykowany `public/assets/img/og-image.jpg` 1200×630 (logo, hasło, portret); test sprawdza, że plik istnieje i jest JPEG. Podgląd: `docs/og-image-podglad.jpg`. Podgląd na żywym adresie testowym (opengraph.xyz, 17.09.2026): obraz ładuje się (74 KB, 1200×630, `summary_large_image`, `og:site_name`); dwa ostrzeżenia o długości poprawione: `og:title` skrócony do 58 znaków (jak `<title>`), `og:description` do 121 znaków (podglądy ucinają ok. 125). **PRZED URUCHOMIENIEM PRODUKCJI:** LinkedIn Post Inspector na adresie produkcyjnym (wymaga zalogowania).
 
 - [x] Metadata X/Twitter Card są wdrożone, jeśli mają sens w projekcie.
   - Dowód: `<meta name="twitter:card" content="summary_large_image">`; test.
@@ -420,8 +421,8 @@ Stosuj następujące oznaczenia:
 - [x] Regulamin istnieje tam, gdzie wymaga tego model usługi lub sprzedaży. **N/D: brak sprzedaży online; warunki ustalane w pisemnym kontrakcie z klientem (informacja w sekcji „Współpraca”).**
   - Dowód:
 
-- [x] Informacja / deklaracja dostępności istnieje tam, gdzie jest wymagana prawnie lub kontraktowo. **N/D: podmiot prywatny, strona nie jest usługą objętą ustawą o dostępności cyfrowej ani EAA (brak e-commerce).**
-  - Dowód:
+- [ ] Informacja / deklaracja dostępności istnieje tam, gdzie jest wymagana prawnie lub kontraktowo.
+  - **PRZED PRODUKCJĄ:** klient powinien potwierdzić zakres obowiązków, w tym ewentualne zastosowanie EAA, dla rzeczywistej usługi i sposobu jej oferowania. Sam prywatny charakter podmiotu nie jest dowodem wyłączenia; przegląd techniczny nie stanowi oceny prawnej.
 
 ## 7.2 Cookies i zgody
 
@@ -466,10 +467,10 @@ Stosuj następujące oznaczenia:
 - [x] GTM lub inny świadomie wybrany tag manager jest skonfigurowany, jeśli jest potrzebny. **N/D: świadomie bez tag managera (privacy-first, brak CMP).**
   - Dowód: `docs/plan-pomiarowy.md`.
 
-- [x] GA4 jest skonfigurowane, jeśli zostało wybrane dla projektu. **N/D: rekomendowane Cloudflare Web Analytics (bez cookies); włączenie wymaga konta – PO PUBLIKACJI.**
+- [x] GA4 jest skonfigurowane, jeśli zostało wybrane dla projektu. **N/D: GA4 nie wybrano; docelowe narzędzie pomiaru i jego konfigurację uzgodnić przed produkcją.**
   - Dowód: `docs/plan-pomiarowy.md`.
 
-- [x] Analityka jest połączona z systemem zgód tam, gdzie jest to wymagane. **N/D: narzędzie bez cookies nie wymaga zgody.**
+- [x] Analityka jest połączona z systemem zgód tam, gdzie jest to wymagane. **N/D: analityka nieaktywna; wymogi ocenić po wybraniu narzędzia i jego konfiguracji.**
   - Dowód:
 
 - [x] Google Consent Mode jest poprawnie skonfigurowany, jeśli używane są tagi Google i projekt go wymaga. **N/D: brak tagów Google.**
@@ -508,7 +509,7 @@ Stosuj następujące oznaczenia:
   - Dowód: `tests/smoke.spec.js` „żaden link nie otwiera nowej karty”; brak `href="http`.
 
 - [ ] Najważniejsze biznesowo eventy są oznaczone jako konwersje / key events.
-  - **PO PUBLIKACJI** (po włączeniu narzędzia): `form_submit_success`, `tel_click`.
+  - **PRZED URUCHOMIENIEM PRODUKCJI** (po włączeniu narzędzia): `form_submit_success`, `tel_click`.
   - Dowód: definicja w `docs/plan-pomiarowy.md`.
 
 - [x] Sprawdzono, czy eventy nie naliczają się podwójnie.
@@ -585,10 +586,10 @@ Stosuj następujące oznaczenia:
 ## 9.3 CSS i JavaScript
 
 - [x] CSS produkcyjny jest minifikowany.
-  - Dowód: `npm run build` (esbuild) 27,4 KB → 23,0 KB; źródło w `src/css/style.css`.
+  - Dowód implementacji: `npm run build` (esbuild), źródło w `src/css/style.css`, CSS inline w HTML. Rozmiary z dawnych buildów nie opisują bieżącego kodu.
 
 - [x] JavaScript produkcyjny jest minifikowany.
-  - Dowód: `npm run build` 9,9 KB → 6,1 KB; źródło w `src/js/main.js`.
+  - Dowód implementacji: `npm run build`, źródło wyłącznie w `src/js/main.js`; usunięto runtime justowania. Aktualny rozmiar podaje build.
 
 - [x] Ilość zbędnego JS po stronie klienta jest zminimalizowana.
   - Strona statyczna nie powinna wysyłać użytkownikowi wielkiej aplikacji JS bez powodu.
@@ -601,23 +602,23 @@ Stosuj następujące oznaczenia:
   - Dowód: brak skryptów zewnętrznych w domyślnej konfiguracji; Turnstile (opcjonalny) ładowany `async defer` tylko po ustawieniu klucza.
 
 - [x] Zasoby blokujące renderowanie są ograniczone.
-  - Dowód: brak zewnętrznych zasobów blokujących: zminifikowany CSS (20 KB) jest wstawiany do HTML przez `npm run build` (`<style data-inline>`), skrypt z `defer`, fonty `swap`. Lighthouse „render-blocking” bez wskazań po zmianie.
+  - Dowód implementacji: CSS jest inline, główny skrypt ma `defer`, fonty `swap`. Mały synchroniczny init inline ustala klasę `js` przed CSS, aby menu nie zmieniało układu po pierwszym malowaniu; nie wymaga żądania sieciowego i ma dokładny hash CSP. Wpływ na CLS wymaga aktualnego pomiaru Lighthouse.
 
 ## 9.4 Cache i dostarczanie zasobów
 
 - [ ] Assety z fingerprintem/hashami mają długi cache tam, gdzie hosting to wspiera.
-  - **CZĘŚCIOWO:** brak hashy w nazwach (świadomie, żeby uniknąć builda na hostingu). Fonty `immutable, max-age=31536000` (nie zmieniają się), obrazy 30 dni, CSS/JS 1 dzień. Przy częstych zmianach CSS/JS można dodać `?v=` w linkach.
+  - **CZĘŚCIOWO:** build dodaje hash treści `?v=` do adresu JS; CSS jest inline, a ustawienia cache dla fontów, obrazów i JS są w `public/_headers`. Działanie nagłówków należy potwierdzić na docelowym hostingu.
   - Dowód: `public/_headers`; `tests/headers.spec.js` „fonty i obrazy mają długi cache…”.
 
 - [x] Strategia cache dla HTML jest odpowiednia dla platformy hostingowej.
   - Dowód: HTML bez `immutable` (domyślne zachowanie Pages, walidacja ETag); test sprawdza, że HTML nie ma `immutable`.
 
 - [ ] Brotli/Gzip jest aktywne tam, gdzie platforma to wspiera.
-  - **PO PUBLIKACJI:** Cloudflare kompresuje automatycznie (Brotli); sprawdzić `content-encoding` w odpowiedzi produkcyjnej.
+  - **PRZED URUCHOMIENIEM PRODUKCJI:** Cloudflare kompresuje automatycznie (Brotli); sprawdzić `content-encoding` w odpowiedzi produkcyjnej.
   - Dowód: domena testowa (GitHub Pages, 17.09.2026): `content-encoding: gzip`, HTML strony głównej 14,0 KB po kompresji (`curl -H "Accept-Encoding: br, gzip"`).
 
 - [ ] CDN/edge jest wykorzystywany, jeśli hosting zapewnia taką możliwość.
-  - **PO PUBLIKACJI:** Cloudflare Pages serwuje z edge; potwierdzić nagłówek `cf-cache-status` / `server: cloudflare`.
+  - **PRZED URUCHOMIENIEM PRODUKCJI:** Cloudflare Pages serwuje z edge; potwierdzić nagłówek `cf-cache-status` / `server: cloudflare`.
   - Dowód: domena testowa: GitHub Pages serwuje przez CDN Fastly (`x-served-by: cache-ber…`, `x-cache: HIT`, `cache-control: max-age=600`).
 
 ## 9.5 Weryfikacja wydajności
@@ -654,7 +655,7 @@ Stosuj następujące oznaczenia:
 
 - [x] `Content-Security-Policy` jest skonfigurowane.
   - Preferuj rzeczywiście egzekwowaną politykę, a nie bezwartościowe wildcardy.
-  - Dowód: `default-src 'self'`, skrypty i połączenia tylko `'self'` + `challenges.cloudflare.com`, `style-src 'self' 'sha256-…'` (hash bloku inline liczony w buildzie, bez `'unsafe-inline'`), `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`; test sprawdza brak `*` i brak błędów CSP w konsoli (`CSP nie blokuje własnych zasobów`). `upgrade-insecure-requests` usunięte (zbędne przy HTTPS-only, łamało testy WebKit na localhoście).
+  - Dowód implementacji: `default-src 'self'`, skrypty z `'self'` i `challenges.cloudflare.com` oraz dokładny hash małego init inline; CSS inline ma osobny hash w `style-src`. `tools/csp-hash.mjs` sprawdza obie dyrektywy i kolejność init/CSS. Bez `unsafe-inline` i wildcardów; zachowane `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`. Testy sprawdzają egzekwowanie CSP i stan menu przed dotarciem głównego skryptu.
 
 - [x] Ochrona przed clickjackingiem jest skonfigurowana.
   - Preferuj CSP `frame-ancestors`; starsze nagłówki można zachować, jeśli są potrzebne.
@@ -714,13 +715,13 @@ Stosuj następujące oznaczenia:
 
 - [x] Publiczne formularze posiadają ochronę antyspamową.
   - Zalecane rozwiązania: Cloudflare Turnstile i honeypot.
-  - Dowód: honeypot `website` + minimalny czas wypełnienia (2,5 s) po stronie serwera (`contact.js`), testy „honeypot wypełniony → udawany sukces”, „zbyt szybkie wysłanie (bot)”. Turnstile gotowy do włączenia jednym atrybutem + sekretem (README).
+  - Dowód implementacji: honeypot `website` i Turnstile wymagany przy skonfigurowanej wysyłce. Usunięto arbitralny próg czasu wypełniania; szybkie pisanie lub autouzupełnianie nie powoduje pozornego sukcesu. Konfigurację dostawcy potwierdzić przed produkcją.
 
 - [x] Antyspam nie powoduje problemów z dostępnością.
   - Dowód: honeypot `aria-hidden`, `tabindex="-1"`, poza ekranem; test klawiaturowy potwierdza, że nie dostaje focusu; Turnstile w trybie `interaction-only` (bez CAPTCHA dla ludzi).
 
 - [x] Stan sukcesu pojawia się dopiero po potwierdzeniu sukcesu przez backend.
-  - Dowód: `showStatus('ok')` tylko dla `res.ok && json.ok` (`src/js/main.js`); test „błąd backendu pokazuje zrozumiały komunikat…”.
+  - Dowód implementacji: `res.ok && json.ok` w rzeczywistej ścieżce wysyłki; demo nie emituje `form_submit_success`. Odpowiedź HTML na POST bez JS pokazuje wynik bez zależności od skryptu. Honeypot zachowuje celową odpowiedź pozornego sukcesu dla botów.
 
 - [x] Błąd backendu pokazuje użytkownikowi zrozumiały komunikat.
   - Dowód: „Nie udało się wysłać wiadomości. Napisz bezpośrednio na … lub zadzwoń …” z linkami `mailto:`/`tel:`; test.
@@ -732,7 +733,7 @@ Stosuj następujące oznaczenia:
   - Dowód: odbiorca wyłącznie z `env.CONTACT_TO` (pola `to`/`subject` z żądania są ignorowane), tylko `POST`, `GET` → 405; testy „endpoint nie jest otwartym relayem”, „endpoint formularza odrzuca GET”.
 
 - [ ] Wiadomości/formularze trafiają do właściwego odbiorcy.
-  - **PO PUBLIKACJI:** wymaga klucza Resend i zweryfikowanej domeny; domyślny odbiorca `bartek@przyjacielodyseusza.pl`.
+  - **PRZED PRODUKCJĄ:** skonfigurować dostawców i zweryfikowaną domenę; wysłać test end-to-end i potwierdzić wiadomość u właściwego odbiorcy. Domyślny adres: `bartek@przyjacielodyseusza.pl`.
   - Dowód: lokalnie bez klucza funkcja zwraca `500 not_configured`, a UI pokazuje kontakt awaryjny (test).
 
 - [ ] `From`, `Reply-To` i nadawca techniczny są skonfigurowane poprawnie.
@@ -740,19 +741,19 @@ Stosuj następujące oznaczenia:
   - Dowód: `functions/api/contact.js`, README (tabela zmiennych).
 
 - [ ] SPF jest skonfigurowany dla domeny/usługi wysyłającej, jeśli dotyczy.
-  - **PO PUBLIKACJI** (rekordy z panelu Resend, instrukcja w README).
+  - **PRZED URUCHOMIENIEM PRODUKCJI** (rekordy z panelu Resend, instrukcja w README).
   - Dowód:
 
 - [ ] DKIM jest skonfigurowany, jeśli dotyczy.
-  - **PO PUBLIKACJI.**
+  - **PRZED URUCHOMIENIEM PRODUKCJI.**
   - Dowód:
 
 - [ ] DMARC został skonfigurowany albo świadomie przeanalizowany.
-  - **PO PUBLIKACJI:** zalecany rekord `v=DMARC1; p=quarantine; rua=mailto:bartek@przyjacielodyseusza.pl` (README).
+  - **PRZED PRODUKCJĄ:** uzgodnić politykę DMARC z administratorem poczty i sprawdzić SPF/DKIM dla wszystkich uprawnionych nadawców; nie kopiować arbitralnej polityki z przykładu.
   - Dowód:
 
 - [ ] Dostarczanie formularza przetestowano end-to-end na produkcji.
-  - **PO PUBLIKACJI.**
+  - **PRZED URUCHOMIENIEM PRODUKCJI.**
   - Dowód:
 
 ---
@@ -792,7 +793,7 @@ Stosuj następujące oznaczenia:
   - Dowód: brak `target="_blank"`; test.
 
 - [ ] Nie pozostał żaden placeholder ani Lorem Ipsum.
-  - **CZĘŚCIOWO:** brak Lorem Ipsum (test `links.spec.js`); dwa świadome miejsca do uzupełnienia: sekcja opinii (ukryta `hidden` do czasu rekomendacji) i dane administratora w polityce prywatności (ramka „Do uzupełnienia”).
+  - **CZĘŚCIOWO:** w podglądzie sekcja opinii pokazuje widocznie oznaczony przykład układu; dane administratora pozostają do uzupełnienia. Przed produkcją zastąpić przykłady prawdziwymi opiniami albo ukryć sekcję oraz zatwierdzić politykę prywatności.
   - Dowód: `tests/links.spec.js` „w kodzie nie ma adresów stagingu, localhost ani placeholderów”.
 
 - [x] Nie pozostały żadne TODO, debugowe teksty ani komunikaty developerskie widoczne dla użytkownika.
@@ -839,13 +840,13 @@ Stosuj następujące oznaczenia:
 # 14. Gotowość operacyjna
 
 - [x] Pipeline CI/CD jest skonfigurowany.
-  - Dowód: repozytorium https://github.com/Powers-P1/przyjaciel-odyseusza, workflow `.github/workflows/qa.yml` (17.09.2026): job `qa` (build + `git diff --exit-code -- public`, walidacja HTML, kontrola wariantu testowego, Playwright w 3 silnikach + 2 profile mobilne, Lighthouse – mediana z 3 przebiegów), po nim `staging` (GitHub Pages) i `staging-smoke` (testy na opublikowanym adresie po potwierdzeniu, że CDN podaje bieżący commit). Historia: przebieg 1 zatrzymany przez Lighthouse (TBT 662 ms na współdzielonym runnerze → mediana), przebieg 2 przez niestabilny test WebKit (poprawiony), przebieg 3 wdrożył wersję testową, `staging-smoke` wykrył brak plików z kropką w artefakcie Pages (poprawione: `include-hidden-files`). **PO PUBLIKACJI:** deploy produkcyjny z Git w Cloudflare Pages (podpięcie repozytorium).
+  - Dowód implementacji (19.09): `.github/workflows/qa.yml` przypina SHA A/B/C, wykonuje pełne QA każdego wariantu, a `staging` pobiera konkretne artefakty tych przebiegów. Smoke używa tych samych SHA. Publikacja jest serializowana i ograniczona do github.io; wdrożenie tej zmiany w CI nie zostało jeszcze potwierdzone.
 
 - [x] Deploy z głównej gałęzi produkcyjnej jest powtarzalny i deterministyczny.
   - Dowód: brak builda na hostingu, publikowany jest katalog `public/` 1:1; `public/assets` generowane z `src/` i weryfikowane w CI (`git diff --exit-code`).
 
 - [x] Preview/staging działa, jeśli wymaga tego workflow projektu.
-  - Dowód: wersja testowa https://powers-p1.github.io/przyjaciel-odyseusza/ publikowana automatycznie z `main` po zielonym QA (GitHub Pages; podkatalog, `noindex`, bez nagłówków `_headers` i bez funkcji formularza – ograniczenia opisane w `README.md`). **PO PUBLIKACJI:** podglądy Cloudflare Pages `*.pages.dev` dla gałęzi/PR, do objęcia Access policy.
+  - Dowód: wersja testowa https://powers-p1.github.io/przyjaciel-odyseusza/ publikowana automatycznie z `main` po zielonym QA (GitHub Pages; podkatalog, `noindex`, bez nagłówków `_headers` i bez funkcji formularza – ograniczenia opisane w `README.md`). **PRZED URUCHOMIENIEM PRODUKCJI:** podglądy Cloudflare Pages `*.pages.dev` dla gałęzi/PR, do objęcia Access policy.
 
 - [x] Znana i udokumentowana jest procedura rollbacku.
   - Dowód: `README.md` sekcja „Rollback” (Deployments → Rollback to this deployment; alternatywnie `git revert`).
@@ -866,16 +867,16 @@ Stosuj następujące oznaczenia:
   - Dowód: `README.md` (tabela `RESEND_API_KEY`, `CONTACT_TO`, `CONTACT_FROM`, `TURNSTILE_SECRET`), `.dev.vars.example`, nagłówek `functions/api/contact.js`.
 
 - [ ] Sekrety produkcyjne są przechowywane w systemie sekretów hostingu/providerów.
-  - **PO PUBLIKACJI:** Pages → Environment variables (Secret). W kodzie tylko `env.*`.
+  - **PRZED URUCHOMIENIEM PRODUKCJI:** Pages → Environment variables (Secret). W kodzie tylko `env.*`.
   - Dowód: `functions/api/contact.js`.
 
 - [ ] Monitoring uptime jest skonfigurowany.
   - Zalecane dla stron istotnych biznesowo.
-  - **PO PUBLIKACJI** (np. UptimeRobot free lub Cloudflare Health Checks).
+  - **PRZED URUCHOMIENIEM PRODUKCJI** (np. UptimeRobot free lub Cloudflare Health Checks).
   - Dowód:
 
 - [ ] Istnieje monitoring krytycznych formularzy/endpointów tam, gdzie utrata leadów byłaby kosztowna.
-  - **PO PUBLIKACJI:** zalecenie: cotygodniowy testowy formularz + alert Resend o błędach dostarczania; Turnstile analytics.
+  - **PRZED URUCHOMIENIEM PRODUKCJI:** zalecenie: cotygodniowy testowy formularz + alert Resend o błędach dostarczania; Turnstile analytics.
   - Dowód:
 
 - [x] Monitoring błędów jest wdrożony, jeśli serwis zawiera istotną logikę aplikacyjną. **N/D: prosta strona statyczna; jedyna logika (formularz) ma awaryjną ścieżkę `mailto:`/`tel:`.**
@@ -911,7 +912,7 @@ Stosuj następujące oznaczenia:
   - Dowód: `tests/smoke.spec.js` (kotwice, CTA → formularz, menu mobilne, tel/mailto, reflow, zoom, ultra-wide, konsola, cookies, stare kotwice).
 
 - [x] Krytyczny formularz posiada automatyczny albo powtarzalny udokumentowany test.
-  - Dowód: `tests/form.spec.js` (7 testów serwera + 4 testy interfejsu na lokalnej funkcji Pages).
+  - Dowód implementacji: `tests/form.spec.js`, `tests/backend/contact-handler.node.js` i `tests/staging.spec.js`. Testy dostawców używają atrap, nie wysyłają maili. Weryfikacja end-to-end skrzynki pozostaje osobnym warunkiem produkcji.
 
 - [x] Dostępność sitemap jest testowana.
   - Dowód: `tests/seo.spec.js`.
@@ -929,7 +930,7 @@ Stosuj następujące oznaczenia:
   - Dowód: `tests/headers.spec.js` na `wrangler pages dev` (czyta realne `_headers`).
 
 - [x] CI zatrzymuje release przy poważnej regresji dostępności.
-  - Dowód: `npm test` kończy się błędem przy dowolnym naruszeniu axe, a job `staging` ma `needs: qa` – bez zielonego QA nie ma wdrożenia. Potwierdzone w praktyce 16–17.09.2026: przebiegi 1 i 2 (błąd Lighthouse, potem błąd testu) zakończyły się bez wdrożenia (`staging: skipped`). `.github/workflows/qa.yml`, `tests/a11y.spec.js`.
+  - Dowód implementacji: `staging` zależy od `snapshots` i całej macierzy `qa`; błąd dowolnego wariantu zatrzymuje publikację. Nowe przebiegi trzeba potwierdzić po włączeniu workflow; historyczne wyniki z 16–18.09 nie weryfikują nowej konfiguracji.
 
 - [x] CI zatrzymuje release przy błędzie buildu lub krytycznych smoke testach.
   - Dowód: jak wyżej (`git diff --exit-code`, `npm run validate`, `npm test`, Lighthouse – każdy błąd zatrzymuje pipeline przed jobem `staging`).
@@ -937,7 +938,30 @@ Stosuj następujące oznaczenia:
 - [x] Dla projektów, gdzie wydajność ma znaczenie biznesowe, określono performance budget / próg wydania.
   - Dowód: `tools/lighthouse.mjs`: Performance ≥ 90, Accessibility/Best practices/SEO ≥ 95, LCP ≤ 2,5 s, CLS ≤ 0,1, TBT ≤ 200 ms.
 
-**Wynik ostatniego pełnego przebiegu `npm test` (5 projektów: Chromium, Firefox, WebKit, Pixel 7, iPhone 14; 18.09.2026):** 309 testów przeszło, 0 nieudanych, 1 niestabilny (przeszedł po powtórce). Lighthouse (mediana z 3 przebiegów, na żywo z adresów testowych, 18.09.2026): wydajność / dostępność / dobre praktyki 100-100-100 na mobile i desktopie we wszystkich trzech wersjach; LCP 1149-1176 ms mobile i 341-401 ms desktop, CLS ≤ 0,001, TBT 0-21 ms, transfer 145-169 kB. SEO 66 wyłącznie z powodu celowego `noindex` na hostingu testowym.
+**Bieżące QA lokalne — 19.09.2026 (Codex):** A, B i C: po 235 testów przeszło, 8 pominięć zgodnych
+z warunkami testów, 0 błędów i 0 niestabilnych powtórek. Przeglądarki: Chromium, Firefox, profil Pixel 7
+(`npm test -- --project=chromium --project=firefox --project=mobile-chrome --workers=2`).
+Dodatkowo w każdym wariancie: build, walidacja HTML/CSS/CSP, 9 przypadków typografii i 11 testów backendu.
+Wspólny demonstrator: 4 testy formularza (brak POST i zachowanie danych, także bez JS) oraz 2 testy
+dostępności spisu wariantów. `npm audit`: 0 zgłoszonych podatności.
+Wizualnie sprawdzono A/B/C przy 1440×900, 390×844 i 320×844; testy składu obejmują też 834/1280/1600 px
+i odstępy użytkownika WCAG 1.4.12. Naprawiono inicjalizację menu powodującą przesunięcie treści.
+
+Lighthouse, mediana z 3 przebiegów lokalnych dla każdego profilu:
+
+| Wariant | Performance mobile / desktop | Accessibility / Best practices / SEO | LCP mobile | CLS mobile |
+| --- | --- | --- | --- | --- |
+| A | 99 / 100 | 100 / 100 / 100 | 786 ms | 0,013 |
+| B | 100 / 100 | 100 / 100 / 100 | 919 ms | 0,000 |
+| C | 100 / 100 | 100 / 100 / 100 | 1893 ms | 0,000 |
+
+Są to pomiary laboratoryjne, nie dane rzeczywistych użytkowników. Lokalny WebKit blokuje polityka
+Windows Code Integrity; nie zmieniano zabezpieczeń systemu. Pełny zestaw 5 projektów, w tym WebKit
+i profil iPhone, pozostaje obowiązkową bramką CI na Ubuntu przed publikacją. Wynik wdrożenia
+i smoke testów dla konkretnych SHA: [GitHub Actions](https://github.com/Powers-P1/przyjaciel-odyseusza/actions).
+Produkcyjna wysyłka i domena nie były zmieniane ani testowane prawdziwymi wiadomościami.
+
+**Historyczny wynik przebiegu `npm test` (sprzed zmian 19.09; nie potwierdza obecnego kodu) (5 projektów: Chromium, Firefox, WebKit, Pixel 7, iPhone 14; 18.09.2026):** 309 testów przeszło, 0 nieudanych, 1 niestabilny (przeszedł po powtórce). Lighthouse (mediana z 3 przebiegów, na żywo z adresów testowych, 18.09.2026): wydajność / dostępność / dobre praktyki 100-100-100 na mobile i desktopie we wszystkich trzech wersjach; LCP 1149-1176 ms mobile i 341-401 ms desktop, CLS ≤ 0,001, TBT 0-21 ms, transfer 145-169 kB. SEO 66 wyłącznie z powodu celowego `noindex` na hostingu testowym.
 
 Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną regułę `_redirects`, zbyt długą ścieżkę stanu wranglera na Windows, `upgrade-insecure-requests` łamiące WebKit na HTTP, kontrast etykiet 4,43:1, brak `&nbsp;` w numerze telefonu, 404 fontów po wstrzyknięciu CSS (ścieżki względne), oraz kilka wad samych testów.
 
@@ -945,7 +969,9 @@ Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną 
 
 # 16. Ostateczna checklista przed publikacją
 
-> Cała sekcja **PO PUBLIKACJI** / po podpięciu domeny i kont. Punkty możliwe do sprawdzenia lokalnie zaznaczono.
+> Kontrole wydania: konfigurację kont, DNS, poczty i treści zamknąć przed uruchomieniem produkcji.
+> Kontrole działającej domeny wykonać podczas wdrożenia, przed skierowaniem ruchu; potem powtarzać je w monitoringu.
+> Zaznaczenia i datowane dowody z poprzednich przebiegów nie zastępują ponownego sprawdzenia zmienionego kodu.
 
 - [ ] Domena produkcyjna rozwiązuje się poprawnie.
   - Dowód:
@@ -957,7 +983,7 @@ Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną 
   - Dowód:
 
 - [x] Produkcyjny `robots.txt` jest poprawny.
-  - Dowód: treść finalna w `public/robots.txt`, test lokalny; **po publikacji** potwierdzić pod produkcyjnym adresem.
+  - Dowód: treść finalna w `public/robots.txt`, test lokalny; **przy wdrożeniu, przed skierowaniem ruchu** potwierdzić pod produkcyjnym adresem.
 
 - [x] Produkcyjna sitemap zawiera wyłącznie produkcyjne URL-e.
   - Dowód: `public/sitemap.xml`; test `links.spec.js` (brak `localhost`/`pages.dev`).
@@ -975,7 +1001,7 @@ Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną 
   - Dowód:
 
 - [ ] Główne CTA działa.
-  - Dowód: lokalnie `tests/smoke.spec.js` „główne CTA prowadzi do formularza”; na domenie testowej (17.09.2026, `npm run test:staging`, 5 przeglądarek) test przechodzi na żywym adresie; **po publikacji** powtórzyć na produkcji.
+  - Dowód: lokalnie `tests/smoke.spec.js` „główne CTA prowadzi do formularza”; na domenie testowej (17.09.2026, `npm run test:staging`, 5 przeglądarek) test przechodzi na żywym adresie; **przy wdrożeniu, przed skierowaniem ruchu** powtórzyć na produkcji.
 
 - [ ] Każdy produkcyjny formularz został skutecznie wysłany przynajmniej raz.
   - Dowód:
@@ -984,7 +1010,7 @@ Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną 
   - Dowód:
 
 - [ ] Social preview używa produkcyjnych adresów i assetów.
-  - Dowód: w kodzie tak (test); **po publikacji** LinkedIn Post Inspector.
+  - Dowód: w kodzie tak (test); **przy wdrożeniu, przed skierowaniem ruchu** LinkedIn Post Inspector.
 
 - [x] Schema.org używa produkcyjnych URL-i.
   - Dowód: `tests/seo.spec.js`.
@@ -996,13 +1022,13 @@ Przebiegi pośrednie wyłapały realne błędy przed finałem: nieobsługiwaną 
   - Dowód: brak jakichkolwiek ID analityki w kodzie (`grep -ri "G-\|GTM-\|clarity" public` bez trafień).
 
 - [ ] Sprawdzono konsolę przeglądarki na produkcji.
-  - Dowód: na domenie testowej test „strona główna ładuje się bez błędów w konsoli” (błędy konsoli, `pageerror`, nieudane żądania) przechodzi w Chromium, Firefoksie, WebKicie, Pixel 7 i iPhone 14 (17.09.2026). **PO PUBLIKACJI** powtórzyć na produkcji (`STAGING_URL=https://przyjacielodyseusza.pl/ npm run test:staging` działa też dla katalogu głównego).
+  - Dowód historyczny: sprawdzono wersję testową 17.09.2026. Bieżący kod wymaga nowego przebiegu lokalnego i kontroli na docelowej domenie podczas wdrożenia. Konfiguracja `test:staging` jest dla noindex/demo i nie jest testem produkcyjnym.
 
 - [ ] Wykonano produkcyjny smoke test na urządzeniu mobilnym.
-  - Dowód: domena testowa: `npm run test:staging` 17.09.2026 – **218 testów przeszło, 0 nieudanych, 77 pominiętych celowo** (testy nagłówków `_headers` i backendu formularza, których GitHub Pages nie ma, plus testy tylko-desktop/tylko-mobile i Tab w WebKicie), 54 s; profile Pixel 7 i iPhone 14 (menu mobilne, reflow 320 px, formularz, dostępność axe). Job `staging-smoke` w CI powtarza to po każdym wdrożeniu (Chromium desktop + Pixel 7). **PO PUBLIKACJI:** ręcznie na fizycznym telefonie.
+  - Dowód: domena testowa: `npm run test:staging` 17.09.2026 (wynik historyczny, sprzed bieżących zmian) – **218 testów przeszło, 0 nieudanych, 77 pominiętych celowo** (testy nagłówków `_headers` i backendu formularza, których GitHub Pages nie ma, plus testy tylko-desktop/tylko-mobile i Tab w WebKicie), 54 s; profile Pixel 7 i iPhone 14 (menu mobilne, reflow 320 px, formularz, dostępność axe). Job `staging-smoke` w CI powtarza to po każdym wdrożeniu (Chromium desktop + Pixel 7). **PRZED URUCHOMIENIEM PRODUKCJI:** ręcznie na fizycznym telefonie.
 
 - [ ] Wykonano produkcyjny smoke test na desktopie.
-  - Dowód: jak wyżej (Chromium, Firefox, WebKit na żywym adresie testowym). **PO PUBLIKACJI** na produkcji.
+  - Dowód: jak wyżej (Chromium, Firefox, WebKit na żywym adresie testowym). **PRZED URUCHOMIENIEM PRODUKCJI** na produkcji.
 
 ---
 
@@ -1111,16 +1137,15 @@ Wpisz wszystko, co uniemożliwia release:
    MX rozwiąże się na adres Cloudflare i poczta przychodząca przestaje docierać. Zapytanie o
    `_dmarc.przyjacielodyseusza.pl` zwraca rekord TXT zamiast NXDOMAIN, co wskazuje na wildcard
    w strefie – przez to weryfikacja DKIM w Resend może „przejść” także przy błędnej nazwie rekordu.
-   Kolejność migracji: (1) odtworzyć w Cloudflare MX i SPF wskazujące na dotychczasowy serwer
-   pocztowy po jego adresie IP lub nazwie hosta, a nie po apeksie, (2) dodać jawne rekordy `_dmarc`
-   i `<selektor>._domainkey` zamiast polegać na wildcardzie, (3) dopiero wtedy zmienić NS,
-   (4) po podpięciu Resend rozszerzyć SPF o `include:_spf.resend.com`.
+   Kolejność migracji: (1) potwierdzić z dotychczasowym operatorem poczty właściwą nazwę serwera
+   i skierować MX na ten hostname (nigdy bezpośrednio na IP), z poprawnymi rekordami A/AAAA;
+   host pocztowy ma działać w trybie DNS-only. Zachować usługę i wszystkich uprawnionych nadawców klienta.
+   (2) SPF/DKIM pobrać z aktualnych paneli operatora i Resend; politykę DMARC uzgodnić z administratorem.
+   (3) Sprawdzić rekordy, dopiero potem zmieniać NS; po zmianie ponownie potwierdzić odbiór i wysyłkę.
+   Źródła: [Cloudflare – problemy z pocztą](https://developers.cloudflare.com/dns/troubleshooting/email-issues/),
+   [Resend – weryfikacja domeny](https://resend.com/changelog/domain-verification-events).
    Właściciel: agencja; do wykonania razem z klientem, przed podpięciem domeny.
-6. **Sekcja „Opinie” zawiera przykładowe wypowiedzi, nie prawdziwe rekomendacje.** Cytaty pokazują
-   docelowy układ i długość; podpisy celowo nie zawierają nazwiska ani nazwy firmy. Sekcja niesie
-   atrybut `data-przyklad="tak"`, a `tests/links.spec.js` pilnuje, żeby przykładowa treść nie została
-   bez tego znacznika. Przed publikacją: wstawić rekomendacje od klienta i usunąć atrybut, albo ukryć
-   sekcję atrybutem `hidden`. Właściciel: klient (treść), agencja (wdrożenie).
+6. **Opinie są widocznym przykładem układu w podglądzie**, z etykietą „Przykładowy układ opinii — treść do zatwierdzenia” oraz `data-przyklad="tak"`. Przed produkcją wstawić zatwierdzone prawdziwe rekomendacje i usunąć oznaczenia albo ukryć sekcję. Brak opinii nie blokuje przeglądu wariantów. Właściciel: klient (treść), agencja (wdrożenie).
 
 ## Świadomie zaakceptowane wyjątki
 
@@ -1129,19 +1154,19 @@ Każdy wyjątek musi mieć powód i właściciela/decyzję.
 1. Brak analityki i CMP na start (privacy-first, brak banera cookies) – właściciel: agencja; rewizja po decyzji klienta o kampaniach (`docs/plan-pomiarowy.md`).
 2. Przekierowanie `www` → apex realizowane regułą w dashboardzie Cloudflare, nie w kodzie (ograniczenie `_redirects` w Pages) – właściciel: agencja przy podpinaniu domeny.
 3. Test czytnikiem ekranu i na fizycznych urządzeniach mobilnych do wykonania ręcznie przed publikacją – właściciel: agencja.
-4. Sekcja „Opinie” pokazuje przykładowe wypowiedzi do czasu otrzymania rekomendacji od klienta; oznaczona `data-przyklad`, wymieniona wśród blokerów – właściciel: klient.
+4. W podglądzie sekcja „Opinie” pokazuje jawnie oznaczony przykład układu. To wyjątek dla demonstratora; przed produkcją prawdziwe opinie albo ukrycie sekcji – właściciel: klient i agencja.
 5. Wersja testowa na GitHub Pages jest publicznie dostępna bez autoryzacji (GitHub Pages jej nie oferuje) i leży w publicznym repozytorium (plan GitHub Free nie daje Pages dla repozytoriów prywatnych). Ochrona przed indeksowaniem: `noindex, nofollow` na każdej stronie, bez sitemapy. W repozytorium nie ma sekretów ani danych innych niż te, które klient publikuje na swojej obecnej stronie. Po starcie produkcji wersję testową wyłączyć (Settings → Pages → Unpublish) – właściciel: agencja.
-6. GitHub Pages nie obsługuje `_headers` (brak CSP/HSTS własnych) ani funkcji `/api/contact` – na domenie testowej formularz kończy się błędem HTTP 405, a interfejs pokazuje kontakt awaryjny (e-mail, telefon). Nagłówki i backend są weryfikowane na emulacji Cloudflare (`npm test`) i będą działać na produkcji – właściciel: agencja.
+6. GitHub Pages nie obsługuje `_headers` ani funkcji `/api/contact`. Podgląd ma jawny tryb demo: informacja przed przyciskiem, lokalne sprawdzenie pól, zachowanie danych, bez żądania i bez sukcesu analitycznego; bez JS przycisk jest wyłączony. Nagłówki i backend wymagają sprawdzenia na Cloudflare przed produkcją – właściciel: agencja.
 
 ## Status końcowy
 
-- [x] OPUBLIKOWANE NA DOMENIE TESTOWEJ: https://powers-p1.github.io/przyjaciel-odyseusza/ (17.09.2026, `noindex`)
+- [x] ŚRODOWISKO TESTOWE DOSTĘPNE: https://powers-p1.github.io/przyjaciel-odyseusza/ (`noindex`; aktualny commit wskazują stempel build w HTML i GitHub Actions)
 - [ ] GOTOWE DO PRODUKCJI (po zamknięciu 6 blokerów powyżej)
 - [ ] OPUBLIKOWANE NA PRODUKCJI
 - [ ] KONTROLA PO PUBLIKACJI ZAKOŃCZONA
 
-Data końcowej weryfikacji: 2026-09-18 (weryfikacja lokalna i na domenie testowej, przed publikacją produkcyjną)
+Data bieżącej weryfikacji lokalnej i aktualizacji dokumentacji: 2026-09-19. Wyniki: sekcja 15.
 
-Zweryfikował: Claude (agent) na zlecenie OK Agency / Damian Karolewski Technology Solutions
+Historyczny audyt z 18.09: Claude. Bieżące poprawki i QA z 19.09: Codex na zlecenie OK Agency / Damian Karolewski Technology Solutions.
 
-Uwagi: Wszystkie punkty możliwe do zrealizowania bez dostępu do kont dostawców zostały wykonane i zweryfikowane lokalnie na emulacji Cloudflare Pages, a te, które mają sens na publicznej domenie testowej (HTTPS, 404, CDN, kompresja, walidatory schema.org i W3C na żywym adresie, podgląd Open Graph, CI z automatycznym wdrożeniem i smoke testami po wdrożeniu, Lighthouse i PageSpeed Insights z internetu), na GitHub Pages. Pozostałe punkty są oznaczone **PO PUBLIKACJI** wraz z instrukcją w `README.md`.
+Uwagi: trzy warianty przeszły lokalne QA i są przygotowane do przeglądu klienta; przed publikacją zestawu CI powtarza pełne testy. Ten etap nie wymaga produkcyjnej wysyłki z formularza demonstracyjnego ani finalnych opinii, gdy ograniczenia są widoczne. Przed produkcją trzeba zamknąć konfigurację poczty i DNS/MX, potwierdzić dostarczenie wiadomości, zaakceptować dokumenty i materiały oraz wykonać kontrolę wdrożenia. Kontrole indeksacji, danych terenowych i rzeczywistego ruchu należą do okresu po uruchomieniu.

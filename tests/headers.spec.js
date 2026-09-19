@@ -9,6 +9,8 @@ test.describe('Nagłówki bezpieczeństwa i cache (_headers)', () => {
     expect(h['content-security-policy']).toContain("default-src 'self'");
     expect(h['content-security-policy']).toContain("frame-ancestors 'none'");
     expect(h['content-security-policy']).not.toMatch(/\*/);
+    expect(h['content-security-policy']).not.toContain("'unsafe-inline'");
+    expect(h['content-security-policy']).toMatch(/script-src [^;]*'sha256-[A-Za-z0-9+/=]+'(?:;| )/);
     expect(h['x-content-type-options']).toBe('nosniff');
     expect(h['x-frame-options']).toBe('DENY');
     expect(h['referrer-policy']).toBe('strict-origin-when-cross-origin');
@@ -21,6 +23,15 @@ test.describe('Nagłówki bezpieczeństwa i cache (_headers)', () => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.locator('#formularz .form__submit').click();
     expect(cspErrors).toEqual([]);
+  });
+
+  test('menu ma układ JS zanim dotrze odroczony skrypt, a CSP dopuszcza init', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.route('**/assets/js/main.js*', (route) => route.abort());
+    await page.goto('/', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('html')).toHaveClass(/\bjs\b/);
+    await expect(page.locator('.site-nav')).toBeHidden();
+    await expect(page.locator('.nav-toggle')).toBeVisible();
   });
 
   test('fonty i obrazy mają długi cache, HTML nie jest immutable', async ({ request, page }) => {

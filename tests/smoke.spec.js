@@ -1,6 +1,22 @@
-import { test, expect, ORIGIN } from './_fixtures.js';
+import { test, expect, ORIGIN, BASE_PATH } from './_fixtures.js';
 
 test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
+  test('bez JavaScriptu mobilna nawigacja i kontakt pozostają dostępne', async ({ browser, baseURL }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false, baseURL, viewport: { width: 390, height: 844 } });
+    try {
+      const page = await context.newPage();
+      await page.goto(`${ORIGIN}${BASE_PATH}/`);
+      await expect(page.locator('.nav-toggle')).toBeHidden();
+      await expect(page.locator('.site-nav')).toBeVisible();
+      await page.locator('.site-nav a[href="#oferta"]').click();
+      await expect(page).toHaveURL(/#oferta$/);
+      await expect(page.locator('.form__noscript')).toBeVisible();
+      await expect(page.locator('.form__noscript a[href^="mailto:"]')).toBeVisible();
+    } finally {
+      await context.close();
+    }
+  });
+
   test('strona główna ładuje się bez błędów w konsoli', async ({ page }) => {
     const errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });

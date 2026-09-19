@@ -42,7 +42,7 @@
   --gutter: clamp(1rem, 4vw, 3rem);
   --chamfer: 18px;
   /* pełna wysokość przyklejonego nagłówka razem z kreską pod nim; hero odejmuje dokładnie tyle */
-  --header-h: 5.25rem;
+  --header-h: 6rem;
   --header-line: 1px;
   --ease: cubic-bezier(.2, .7, .2, 1);
 }
@@ -63,47 +63,8 @@ img { height: auto; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .18em; }
 p { margin: 0 0 1em; }
 /* bez pojedynczych słów w ostatniej linii akapitu (przeglądarki bez text-wrap: pretty ignorują regułę) */
-p, li, dd { text-wrap: pretty; }
+p, li, dt, dd { text-wrap: pretty; }
 
-/* Justowanie tekstu ciągłego. Bez JavaScriptu zostaje chorągiewka: zachłanne justowanie
-   przeglądarki wygląda gorzej niż wyrównanie do lewej – zmierzone na tej stronie odstępy między
-   wyrazami sięgały mediany 2,4 zwykłej spacji i 9,0 w skrajnym wierszu, co daje widoczne „rzeki”.
-   `text-wrap: pretty` i `balance` tego nie naprawiają (2,8 i 4,4 mediany) – optymalizują
-   chorągiewkę, nie wypełnienie wiersza.
-   src/js/justowanie.js liczy podział na wiersze dla całego akapitu naraz (algorytm Knutha–Plassa,
-   ten sam co w TeX-u) i opakowuje każdy wiersz w blok; ostateczne rozciągnięcie odstępów robi
-   przeglądarka, co do piksela. Wyrazów nie dzielimy. Pomiary: REVIEW.md, sekcja 4e. */
-.jest-justowany .wiersz { display: block; text-align: justify; text-align-last: justify; }
-.jest-justowany .wiersz--ostatni { text-align: left; text-align-last: left; }
-/* Mikrotypografia. Luz wiersza chowamy najpierw w świetle między literami, zamiast oddawać go
-   w całości odstępom; w drugą stronę wolno wiersz ścisnąć, żeby ściągnąć wyraz, któremu zabrakło
-   kilku pikseli – taki wiersz ma odstępy naturalne, więc wychodzi najrówniejszy. Budżet to
-   +2,5% w górę i -3% w dół, w krokach po 0,0025 em: niewidoczne, podczas gdy odstęp rozciągnięty
-   o 200% widać z drugiego końca pokoju. Stopień wybiera src/js/justowanie.js osobno dla każdego
-   wiersza (klasy muszą być wypisane wprost, bo arkusz i skrypt trzyma w zgodzie
-   tools/css-unused.mjs). Pomiary i uzasadnienie progu: REVIEW.md, sekcja 4e. */
-.wiersz.trak-1 { letter-spacing: .0025em; }
-.wiersz.trak-2 { letter-spacing: .005em; }
-.wiersz.trak-3 { letter-spacing: .0075em; }
-.wiersz.trak-4 { letter-spacing: .01em; }
-.wiersz.trak-5 { letter-spacing: .0125em; }
-.wiersz.trak-6 { letter-spacing: .015em; }
-.wiersz.trak-7 { letter-spacing: .0175em; }
-.wiersz.trak-8 { letter-spacing: .02em; }
-.wiersz.trak-9 { letter-spacing: .0225em; }
-.wiersz.trak-10 { letter-spacing: .025em; }
-.wiersz.zwez-1 { letter-spacing: -.0025em; }
-.wiersz.zwez-2 { letter-spacing: -.005em; }
-.wiersz.zwez-3 { letter-spacing: -.0075em; }
-.wiersz.zwez-4 { letter-spacing: -.01em; }
-.wiersz.zwez-5 { letter-spacing: -.0125em; }
-.wiersz.zwez-6 { letter-spacing: -.015em; }
-.wiersz.zwez-7 { letter-spacing: -.0175em; }
-.wiersz.zwez-8 { letter-spacing: -.02em; }
-.wiersz.zwez-9 { letter-spacing: -.0225em; }
-.wiersz.zwez-10 { letter-spacing: -.025em; }
-.wiersz.zwez-11 { letter-spacing: -.0275em; }
-.wiersz.zwez-12 { letter-spacing: -.03em; }
 ul, ol { margin: 0; padding: 0; }
 h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; line-height: 1.15; letter-spacing: -.008em; }
 button { font: inherit; color: inherit; }
@@ -161,7 +122,6 @@ button { font: inherit; color: inherit; }
 .btn:active { transform: translateY(1px); }
 .btn--primary {
   background: var(--gold); color: var(--teal); border-color: var(--gold);
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
 }
 .btn--primary:hover { background: var(--gold-hover); border-color: var(--gold-hover); }
 .btn--outline { background: transparent; border-color: var(--gold); color: var(--paper); }
@@ -185,7 +145,7 @@ button { font: inherit; color: inherit; }
   min-height: calc(var(--header-h) - var(--header-line));
 }
 .brand { display: inline-flex; align-items: center; }
-.brand__logo { width: auto; height: 3.5rem; }
+.brand__logo { width: auto; height: 4.75rem; }
 
 .site-nav__list { display: flex; align-items: center; gap: clamp(1.25rem, 2.5vw, 2.25rem); list-style: none; }
 .site-nav__list a:not(.btn) {
@@ -211,16 +171,18 @@ button { font: inherit; color: inherit; }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::after { transform: translateY(-5px) rotate(-45deg); }
 
 @media (max-width: 47.99em) {
-  :root { --header-h: 4.25rem; }
-  .brand__logo { height: 2.75rem; }
-  .nav-toggle { display: inline-flex; }
-  .site-nav {
+  :root { --header-h: 5rem; }
+  .brand__logo { height: 3.75rem; }
+  .js .nav-toggle { display: inline-flex; }
+  html:not(.js) .site-header__inner { flex-wrap: wrap; padding-block: .5rem; }
+  html:not(.js) .site-nav { width: 100%; }
+  .js .site-nav {
     position: absolute; left: 0; right: 0; top: 100%;
     background: var(--teal-deep); border-bottom: 1px solid var(--teal-line);
     padding: .5rem var(--gutter) 1.5rem;
     display: none;
   }
-  .site-nav.is-open { display: block; }
+  .js .site-nav.is-open { display: block; }
   .site-nav__list { flex-direction: column; align-items: stretch; gap: 0; }
   .site-nav__list li { border-bottom: 1px solid var(--teal-line); }
   .site-nav__list li:last-child { border-bottom: 0; padding-top: 1rem; }
@@ -262,6 +224,7 @@ button { font: inherit; color: inherit; }
 .hero__role { font-size: .9rem; color: var(--mist-soft); letter-spacing: .01em; }
 .hero__lead { font-size: 1.0625rem; max-width: 36rem; margin-bottom: calc(2 * var(--hero-rytm)); }
 .hero__actions { display: flex; flex-wrap: wrap; gap: .85rem; }
+.hero__individual { margin: 1rem 0 0; font-size: .9rem; color: var(--mist-soft); max-width: 36rem; }
 
 .hero__figure { position: relative; margin: 0; min-height: 0; align-self: stretch; }
 .hero__portrait {
@@ -332,8 +295,6 @@ button { font: inherit; color: inherit; }
 .situation__icon { color: var(--ink-soft); }
 .situation__title { font-size: 1.3rem; }
 .situation__desc { margin: 0; max-width: var(--miara); }
-/* Próg 58 em, nie 48: przy czterech kolumnach opis dostaje 1,6fr z reszty wiersza, więc poniżej
-   tej szerokości spadał do ok. 340 px – zmierzone 14,3 zwykłej spacji w najgorszym wierszu. */
 @media (max-width: 57.99em) {
   .situation { grid-template-columns: 2.5rem minmax(0, 1fr); gap: .5rem 1rem; padding: 1.4rem 0; }
   .situation__num { display: none; }
@@ -375,6 +336,8 @@ button { font: inherit; color: inherit; }
 @media (max-width: 64em) { .about { grid-template-columns: 1fr; } .about__figure { max-width: 30rem; } }
 
 /* ---------- opinie ---------- */
+.sample-note { max-width: var(--miara); margin: 0 0 1.5rem; padding: .75rem 1rem; border-left: 2px solid var(--gold-ink); font-size: .9rem; }
+
 .testimonials { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
 .testimonial { margin: 0; padding: 2rem; background: var(--cream-2); border-left: 2px solid var(--gold); }
 .testimonial p { font: 400 1.15rem/1.5 var(--serif); color: var(--ink); }
@@ -383,6 +346,8 @@ button { font: inherit; color: inherit; }
 @media (max-width: 47.99em) { .testimonials { grid-template-columns: 1fr; } }
 
 /* ---------- kontakt ---------- */
+#form-demo-note, .form__noscript { padding: 1rem; border: 1px solid var(--gold); color: var(--paper); font-size: .9rem; }
+
 .contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 3rem 4.5rem; align-items: start; }
 .contact__copy .section-title { margin-bottom: 1.25rem; }
 .contact__copy p { max-width: var(--miara); }

@@ -14,6 +14,22 @@
 const DEFAULT_TO = 'bartek@przyjacielodyseusza.pl';
 const DEFAULT_FROM = 'Formularz – Przyjaciel Odyseusza <formularz@przyjacielodyseusza.pl>';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const VERIFY_TIMEOUT_MS = 8_000;
+const MAIL_TIMEOUT_MS = 10_000;
+
+async function fetchWithTimeout(url, options, timeoutMs, readJson = false) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return readJson ? { ok: response.ok, body: await response.json() } : response;
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error('upstream_timeout');
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 function clean(value, max) {
   return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
@@ -30,9 +46,22 @@ function respond(status, body, wantsJson) {
       headers: { ...NAGLOWKI, 'Content-Type': 'application/json; charset=utf-8' },
     });
   }
-  // wariant bez JavaScriptu: przekierowanie z powrotem do sekcji kontakt
-  const target = body.ok ? '/?wyslano=1#kontakt' : '/?blad=1#kontakt';
-  return new Response(null, { status: 303, headers: { ...NAGLOWKI, Location: target } });
+  // Wynik musi być czytelny także bez JS — parametr w URL sam nie pokaże komunikatu.
+  const title = body.ok ? 'Dziękuję za wiadomość.' : 'Nie udało się wysłać wiadomości.';
+  const descriptions = {
+    validation: 'Sprawdź imię i nazwisko, adres e-mail oraz treść wiadomości (co najmniej 10 znaków).',
+    turnstile: 'Weryfikacja antyspamowa wymaga JavaScriptu. Włącz go lub skorzystaj z kontaktu poniżej.',
+    turnstile_unavailable: 'Weryfikacja antyspamowa jest chwilowo niedostępna. Spróbuj ponownie później.',
+    mail_timeout: 'Nie udało się potwierdzić wysyłki w wyznaczonym czasie. Wiadomość mogła już dotrzeć.',
+  };
+  const description = body.ok
+    ? 'Odezwę się, żeby umówić rozmowę.'
+    : descriptions[body.error] || 'Formularz jest chwilowo niedostępny. Skorzystaj z bezpośredniego kontaktu.';
+  const html = `<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${title} | Przyjaciel Odyseusza</title></head><body><main><h1>${title}</h1><p>${description}</p><p>Napisz na <a href="mailto:bartek@przyjacielodyseusza.pl">bartek@przyjacielodyseusza.pl</a> lub zadzwoń: <a href="tel:+48601145360">+48 601 145 360</a>.</p>${body.ok ? '' : '<p>Użyj przycisku Wstecz w przeglądarce, aby wrócić do wypełnionego formularza.</p>'}<p><a href="/#kontakt">Wróć do strony kontaktowej</a></p></main></body></html>`;
+  return new Response(html, {
+    status,
+    headers: { ...NAGLOWKI, 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': "default-src 'none'; base-uri 'none'; frame-ancestors 'none'" },
+  });
 }
 
 export async function onRequestPost({ request, env }) {
@@ -51,6 +80,9 @@ export async function onRequestPost({ request, env }) {
   } catch (err) {
     return respond(400, { ok: false, error: 'bad_request' }, wantsJson);
   }
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return respond(400, { ok: false, error: 'bad_request' }, wantsJson);
+  }
 
   const name = clean(data.name, 100);
   const email = clean(data.email, 200);
@@ -58,19 +90,8 @@ export async function onRequestPost({ request, env }) {
   const message = String(data.message == null ? '' : data.message).trim().slice(0, 4000);
   const subjectFor = clean(data.subject_for, 10);
   const honeypot = clean(data.website, 200);
-  // czas wypełniania mierzony przez przeglądarkę (performance.now od wczytania strony).
-  // Nie wolno tu porównywać zegara serwera ze znacznikiem czasu z urządzenia: zegar telefonu
-  // potrafi spieszyć się o minuty, a wtedy różnica wychodzi ujemna i prawdziwe zgłoszenie
-  // ląduje w pułapce na boty – użytkownik widzi potwierdzenie, a wiadomość przepada.
-  // Puste pole znaczy „brak pomiaru” (formularz wysłany bez JavaScriptu), a nie „zero milisekund”.
-  const surowyCzas = data.elapsed_ms == null ? '' : String(data.elapsed_ms).trim();
-  const elapsed = surowyCzas === '' ? null : Number(surowyCzas);
-
-  // pułapki na boty: udajemy sukces, żeby nie zdradzać mechanizmu
+  // Honeypot jest pułapką na boty. Szybkość pisania/autouzupełniania nie świadczy o spamie.
   if (honeypot) return respond(200, { ok: true }, wantsJson);
-  if (elapsed !== null && Number.isFinite(elapsed) && elapsed >= 0 && elapsed < 2500) {
-    return respond(200, { ok: true }, wantsJson);
-  }
 
   const invalid = [];
   if (name.length < 2) invalid.push('name');
@@ -89,18 +110,19 @@ export async function onRequestPost({ request, env }) {
 
   if (env.TURNSTILE_SECRET) {
     const token = clean(data['cf-turnstile-response'], 4096);
+    if (!token) return respond(403, { ok: false, error: 'turnstile' }, wantsJson);
     const ip = request.headers.get('CF-Connecting-IP') || '';
     let verified = false;
     try {
-      const vr = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      const vr = await fetchWithTimeout('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ secret: env.TURNSTILE_SECRET, response: token, remoteip: ip }),
-      });
-      const vj = await vr.json();
-      verified = Boolean(vj && vj.success);
+      }, VERIFY_TIMEOUT_MS, true);
+      if (!vr.ok) return respond(503, { ok: false, error: 'turnstile_unavailable' }, wantsJson);
+      verified = Boolean(vr.body && vr.body.success === true);
     } catch (err) {
-      verified = false;
+      return respond(503, { ok: false, error: 'turnstile_unavailable' }, wantsJson);
     }
     if (!verified) return respond(403, { ok: false, error: 'turnstile' }, wantsJson);
   }
@@ -138,14 +160,15 @@ export async function onRequestPost({ request, env }) {
 
   let sent = false;
   try {
-    const r = await fetch('https://api.resend.com/emails', {
+    const r = await fetchWithTimeout('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    });
+    }, MAIL_TIMEOUT_MS);
     sent = r.ok;
   } catch (err) {
-    sent = false;
+    const timedOut = err && err.message === 'upstream_timeout';
+    return respond(timedOut ? 504 : 502, { ok: false, error: timedOut ? 'mail_timeout' : 'mail_failed' }, wantsJson);
   }
 
   if (!sent) return respond(502, { ok: false, error: 'mail_failed' }, wantsJson);

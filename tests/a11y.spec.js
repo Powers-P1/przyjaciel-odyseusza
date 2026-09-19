@@ -48,6 +48,40 @@ test.describe('Dostępność WCAG 2.2 AA (axe-core)', () => {
 });
 
 test.describe('Klawiatura i focus', () => {
+  test('focus głównego przycisku jest widoczny poza jego obrysem i nie zostaje przycięty', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'webkit' || testInfo.project.name === 'mobile-safari', 'WebKit domyślnie nie fokusuje linków Tabem');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    const primary = page.locator('main .btn--primary').first();
+    for (let i = 0; i < 30 && !(await primary.evaluate((el) => el === document.activeElement)); i++) {
+      await page.keyboard.press('Tab');
+    }
+    await expect(primary).toBeFocused();
+    const indicator = await primary.evaluate((el) => {
+      const style = getComputedStyle(el);
+      const rect = el.getBoundingClientRect();
+      const width = parseFloat(style.outlineWidth);
+      const outset = width + parseFloat(style.outlineOffset);
+      const bounds = { left: rect.left - outset, right: rect.right + outset, top: rect.top - outset, bottom: rect.bottom + outset };
+      const clipping = [];
+      for (let ancestor = el; ancestor; ancestor = ancestor.parentElement) {
+        const css = getComputedStyle(ancestor);
+        if (css.clipPath !== 'none' || css.visibility !== 'visible' || Number(css.opacity) === 0) clipping.push(ancestor.className || ancestor.tagName);
+        if (ancestor === el) continue;
+        const box = ancestor.getBoundingClientRect();
+        if (['hidden', 'clip', 'auto', 'scroll'].includes(css.overflowX) && (bounds.left < box.left - 1 || bounds.right > box.right + 1)) clipping.push(ancestor.className || ancestor.tagName);
+        if (['hidden', 'clip', 'auto', 'scroll'].includes(css.overflowY) && (bounds.top < box.top - 1 || bounds.bottom > box.bottom + 1)) clipping.push(ancestor.className || ancestor.tagName);
+      }
+      return { width, outset, style: style.outlineStyle, color: style.outlineColor, clipping, inViewport: bounds.top >= 0 && bounds.bottom <= innerHeight && bounds.left >= 0 && bounds.right <= innerWidth };
+    });
+    expect(indicator.width).toBeGreaterThanOrEqual(2);
+    expect(indicator.outset).toBeGreaterThan(0);
+    expect(indicator.style).not.toBe('none');
+    expect(indicator.color).not.toMatch(/transparent|rgba\([^)]*,\s*0\)/);
+    expect(indicator.clipping, 'element albo przodek przycina rzeczywisty obrys focusu').toEqual([]);
+    expect(indicator.inViewport, 'obrys focusu mieści się w widoku').toBe(true);
+  });
+
   test('skip link jest pierwszym elementem w kolejności focusu i działa', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === 'webkit' || testInfo.project.name === 'mobile-safari', 'WebKit domyślnie nie fokusuje linków Tabem');
     await page.goto('/');

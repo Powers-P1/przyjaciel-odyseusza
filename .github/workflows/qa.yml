@@ -1,72 +1,151 @@
-# QA przed wydaniem i publikacja wersji testowych (GitHub Pages).
-#  1) qa            – build, kontrola public/, walidacja HTML, testy Playwright (emulacja Cloudflare Pages: nagłówki,
-#                     funkcja /api/contact, 404), Lighthouse z progami wydania. Każdy błąd zatrzymuje pipeline.
-#  2) staging       – po zielonym QA (push do main albo wersja-*): buduje trzy warianty strony z trzech gałęzi
-#                     (main → /, wersja-b → /wersja-b/, wersja-c → /wersja-c/, spis → /wersje/) i publikuje je
-#                     razem na GitHub Pages (podścieżka, noindex, bez backendu formularza).
-#  3) staging-smoke – smoke, SEO, dostępność, linki i sprawdzenia podkatalogu na każdym opublikowanym wariancie,
-#                     testami z jego gałęzi, po potwierdzeniu, że CDN podaje bieżący commit.
-# Produkcja (Cloudflare Pages) jest wdrażana osobno – patrz README.md.
+# Każdy wariant jest przypięty do SHA przed QA. Publikujemy wyłącznie artefakty
+# z zielonej macierzy; późniejszy ruch gałęzi nie zmienia publikowanego zestawu.
 name: QA i publikacja testowa
 
 on:
   push:
     branches: [main, 'wersja-*']
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
   WRANGLER_SEND_METRICS: "false"
 
+# Cały przebieg Pages (rozwiązanie SHA → QA → deploy → smoke) jest serializowany,
+# także przy równoczesnym pushu na różne gałęzie. PR-y mają osobne grupy.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.event_name == 'pull_request' && format('qa-pr-{0}', github.event.pull_request.number) || 'github-pages-release' }}
   cancel-in-progress: false
 
 jobs:
-  qa:
+  snapshots:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pages: read
+    outputs:
+      matrix: ${{ steps.refs.outputs.matrix }}
+      publish: ${{ steps.refs.outputs.publish }}
+      base-url: ${{ steps.refs.outputs.base-url }}
     steps:
       - uses: actions/checkout@v7
+      - id: pages
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/wersja-b' || github.ref == 'refs/heads/wersja-c')
+        uses: actions/configure-pages@v6
+      - name: Ustal niezmienny zestaw trzech commitów
+        id: refs
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_REF: ${{ github.ref_name }}
+          BASE_REF: ${{ github.base_ref }}
+          EVENT_SHA: ${{ github.sha }}
+          PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: |
+          git fetch --no-tags origin \
+            +refs/heads/main:refs/remotes/origin/main \
+            +refs/heads/wersja-b:refs/remotes/origin/wersja-b \
+            +refs/heads/wersja-c:refs/remotes/origin/wersja-c
+          node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { appendFileSync } from 'node:fs';
+          const variants = [
+            { variant: 'A', branch: 'main', path: '' },
+            { variant: 'B', branch: 'wersja-b', path: 'wersja-b/' },
+            { variant: 'C', branch: 'wersja-c', path: 'wersja-c/' },
+          ];
+          const eventBranch = process.env.EVENT_NAME === 'pull_request' ? process.env.BASE_REF : process.env.EVENT_REF;
+          for (const variant of variants) {
+            variant.sha = variant.branch === eventBranch
+              ? process.env.EVENT_SHA
+              : execFileSync('git', ['rev-parse', 'refs/remotes/origin/' + variant.branch], { encoding: 'utf8' }).trim();
+            if (!/^[0-9a-f]{40}$/.test(variant.sha)) throw new Error('Nieprawidłowy SHA: ' + variant.variant);
+          }
+          const publish = process.env.EVENT_NAME !== 'pull_request' && variants.some(v => v.branch === process.env.EVENT_REF);
+          const baseUrl = (process.env.PAGES_BASE_URL || 'https://powers-p1.github.io/przyjaciel-odyseusza').replace(/\/+$/, '');
+          if (!new URL(baseUrl).hostname.endsWith('.github.io')) throw new Error('Pipeline demonstracyjny publikuje wyłącznie na github.io.');
+          appendFileSync(process.env.GITHUB_OUTPUT, [
+            'matrix=' + JSON.stringify({ include: variants }),
+            'publish=' + publish,
+            'base-url=' + baseUrl,
+            '',
+          ].join('\n'));
+          NODE
+
+  qa:
+    needs: snapshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.snapshots.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ matrix.sha }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Build (minifikacja) i kontrola, czy public/ jest aktualne
+      - name: Build i zgodność wygenerowanych plików
         run: |
           npm run build
-          git diff --exit-code -- public || (echo "public/ nie jest zbudowane (npm run build: minifikacja, inline CSS, hash CSP, twarde spacje). Uruchom npm run build i zacommituj." && exit 1)
-      - name: Walidacja HTML i kontrola nieużywanych klas CSS
+          git diff --exit-code -- public || (echo "Uruchom npm run build i dołącz aktualne public/ do commitu." && exit 1)
+      - name: Walidacja HTML, CSS, CSP i typografii
         run: npm run validate
-      - name: Wariant testowy buduje się (podścieżka, noindex, bez adresów produkcyjnych)
-        run: npm run build:staging
+      - name: Testy funkcji formularza z atrapami dostawców
+        run: npm run test:backend
       - run: npx playwright install --with-deps chromium firefox webkit
-      - name: Testy (Playwright + axe, emulacja Cloudflare Pages)
+      - name: Testy przeglądarek i dostępności
         run: npm test
-      - name: Lighthouse (progi wydania, mediana z 3 przebiegów na współdzielonym runnerze)
+      - name: Lighthouse (mediana z trzech przebiegów)
         env:
           LH_RUNS: 3
         run: |
+          set -euo pipefail
           npx wrangler pages dev --port 8788 --ip 127.0.0.1 --log-level warn &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true; wait "$server_pid" 2>/dev/null || true' EXIT
           npx wait-on http://127.0.0.1:8788/ --timeout 120000
           npm run lighthouse
+      - name: Przygotuj wariant demonstracyjny z przetestowanych plików
+        env:
+          STAGING_URL: ${{ needs.snapshots.outputs.base-url }}/${{ matrix.path }}
+          BUILD_ID: ${{ matrix.sha }}
+        run: |
+          npm run build:staging
+          test -f dist-gh/.nojekyll
+          test -f dist-gh/.well-known/security.txt
+      - name: Dołącz wspólny spis wersji
+        if: matrix.variant == 'A'
+        run: |
+          mkdir -p dist-gh/wersje
+          cp tools/wersje.html dist-gh/wersje/index.html
+      - uses: actions/upload-artifact@v7
+        with:
+          name: staging-${{ matrix.variant }}-${{ matrix.sha }}
+          path: dist-gh
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: raporty-qa
+          name: raporty-qa-${{ matrix.variant }}-${{ matrix.sha }}
           path: |
             playwright-report
             docs/lighthouse
           retention-days: 14
 
   staging:
-    needs: qa
-    if: github.event_name == 'push'
+    needs: [snapshots, qa]
+    if: needs.snapshots.outputs.publish == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    concurrency:
-      group: github-pages
-      cancel-in-progress: false
     permissions:
       contents: read
       pages: write
@@ -76,100 +155,71 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     outputs:
       url: ${{ steps.deploy.outputs.page_url }}
-      sha-a: ${{ steps.main.outputs.commit }}
-      sha-b: ${{ steps.b.outputs.commit }}
-      sha-c: ${{ steps.c.outputs.commit }}
     steps:
-      - id: main
-        uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
-          ref: main
-      - id: b
-        uses: actions/checkout@v7
+          name: staging-A-${{ fromJSON(needs.snapshots.outputs.matrix).include[0].sha }}
+          path: dist-gh
+      - uses: actions/download-artifact@v8
         with:
-          ref: wersja-b
-          path: wersja-b
-      - id: c
-        uses: actions/checkout@v7
+          name: staging-B-${{ fromJSON(needs.snapshots.outputs.matrix).include[1].sha }}
+          path: dist-gh/wersja-b
+      - uses: actions/download-artifact@v8
         with:
-          ref: wersja-c
-          path: wersja-c
-      - id: pages
-        uses: actions/configure-pages@v6
-      - name: Wersja A (main) → dist-gh/
+          name: staging-C-${{ fromJSON(needs.snapshots.outputs.matrix).include[2].sha }}
+          path: dist-gh/wersja-c
+      - name: Sprawdź pełny zestaw artefaktów
         run: |
-          node tools/staging.mjs
-          test -f dist-gh/.nojekyll && test -f dist-gh/.well-known/security.txt
-        env:
-          STAGING_URL: ${{ steps.pages.outputs.base_url }}/
-          BUILD_ID: ${{ steps.main.outputs.commit }}
-      - name: Wersja B (wersja-b) → dist-gh/wersja-b/
-        working-directory: wersja-b
-        run: node tools/staging.mjs --out ../dist-gh/wersja-b
-        env:
-          STAGING_URL: ${{ steps.pages.outputs.base_url }}/wersja-b/
-          BUILD_ID: ${{ steps.b.outputs.commit }}
-      - name: Wersja C (wersja-c) → dist-gh/wersja-c/
-        working-directory: wersja-c
-        run: node tools/staging.mjs --out ../dist-gh/wersja-c
-        env:
-          STAGING_URL: ${{ steps.pages.outputs.base_url }}/wersja-c/
-          BUILD_ID: ${{ steps.c.outputs.commit }}
-      - name: Spis wersji → dist-gh/wersje/
-        run: |
-          mkdir -p dist-gh/wersje
-          cp tools/wersje.html dist-gh/wersje/index.html
+          test -f dist-gh/index.html
+          test -f dist-gh/wersja-b/index.html
+          test -f dist-gh/wersja-c/index.html
+          test -f dist-gh/wersje/index.html
+          test -f dist-gh/.nojekyll
+          test -f dist-gh/.well-known/security.txt
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist-gh
-          include-hidden-files: true # od v4 pliki z kropką (.nojekyll, .well-known/) są domyślnie pomijane
+          include-hidden-files: true
       - id: deploy
         uses: actions/deploy-pages@v5
 
   staging-smoke:
-    needs: staging
+    needs: [snapshots, staging]
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - wersja: A
-            ref: main
-            path: ""
-            sha: ${{ needs.staging.outputs.sha-a }}
-          - wersja: B
-            ref: wersja-b
-            path: wersja-b/
-            sha: ${{ needs.staging.outputs.sha-b }}
-          - wersja: C
-            ref: wersja-c
-            path: wersja-c/
-            sha: ${{ needs.staging.outputs.sha-c }}
+      matrix: ${{ fromJSON(needs.snapshots.outputs.matrix) }}
     env:
       STAGING_URL: ${{ needs.staging.outputs.url }}${{ matrix.path }}
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ matrix.ref }}
+          ref: ${{ matrix.sha }}
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Czekaj, aż CDN poda właśnie wdrożoną wersję (stempel builda w HTML, max 5 min)
+      - name: Czekaj na wdrożony commit w CDN (maksymalnie pięć minut)
+        env:
+          EXPECTED_SHA: ${{ matrix.sha }}
         run: |
           for i in $(seq 1 60); do
-            if curl -fsS "$STAGING_URL" | grep -q "build ${{ matrix.sha }}"; then echo "Wersja ${{ matrix.wersja }} (${{ matrix.sha }}) jest na żywo."; exit 0; fi
+            if curl -fsS "$STAGING_URL" | grep -Fq "build $EXPECTED_SHA"; then
+              echo "CDN podaje oczekiwany commit $EXPECTED_SHA."
+              exit 0
+            fi
             sleep 5
           done
-          echo "Adres $STAGING_URL nie podaje wersji ${{ matrix.sha }} po 5 minutach."; exit 1
-      - name: Testy na opublikowanym adresie testowym (wersja ${{ matrix.wersja }})
+          echo "CDN nie podaje oczekiwanego commitu $EXPECTED_SHA."
+          exit 1
+      - name: Sprawdź opublikowany wariant testami z tego samego SHA
         run: npm run test:staging -- --project=chromium --project=mobile-chrome
       - uses: actions/upload-artifact@v7
         if: always()
         with:
-          name: raporty-staging-${{ matrix.wersja }}
+          name: raporty-staging-${{ matrix.variant }}-${{ matrix.sha }}
           path: playwright-report
           retention-days: 14

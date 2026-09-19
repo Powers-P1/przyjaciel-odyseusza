@@ -69,19 +69,16 @@ test.describe('Linki i zasoby', () => {
       .not.toMatch(/miejsce na opinię|do uzupełnienia|imię i nazwisko,\s*stanowisko|lorem ipsum/i);
   });
 
-  test('przykładowe opinie są oznaczone atrybutem, który blokuje publikację', async ({ page }) => {
-    // Sekcja „Opinie” pokazuje na razie przykładowe wypowiedzi, żeby klient zobaczył docelowy układ.
-    // Znacznik data-przyklad jest jedynym śladem, po którym widać, że to nie są prawdziwe
-    // rekomendacje – nie wolno go usunąć razem z przykładową treścią (CHECKLISTA.md, blokery).
+  test('przykładowe opinie mają widoczne oznaczenie, nie udają rekomendacji', async ({ page }) => {
     await page.goto('/');
     const opinie = page.locator('#opinie');
-    if (await opinie.count() === 0) return; // wersja bez sekcji opinii
-    const podpisy = tekstWidoczny(await opinie.innerText());
-    const przykladowe = /imię i nazwisko/i.test(podpisy);
-    const oznaczone = await opinie.getAttribute('data-przyklad') !== null;
-    expect(przykladowe === oznaczone,
-      przykladowe
-        ? 'przykładowe opinie bez atrybutu data-przyklad – publikacja przepuściłaby zmyśloną treść'
-        : 'atrybut data-przyklad przy prawdziwych rekomendacjach – usuń go').toBeTruthy();
+    if (await opinie.count() === 0) return;
+    if (await opinie.getAttribute('data-przyklad') !== null) {
+      const label = opinie.locator('.sample-note');
+      await expect(label).toBeVisible();
+      expect(tekstWidoczny(await label.innerText())).toMatch(/Przykładowy układ opinii.*treść do zatwierdzenia/i);
+    } else {
+      expect(tekstWidoczny(await opinie.innerText())).not.toMatch(/przykładowy|imię i nazwisko|do zatwierdzenia/i);
+    }
   });
 });

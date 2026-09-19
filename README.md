@@ -2,7 +2,12 @@
 
 Statyczny landing page dla Bartłomieja Przytuły (mentoring i coaching dla menedżerów), przygotowany pod
 darmowy plan **Cloudflare Pages**. Czysty HTML, CSS i odrobina JavaScriptu, bez frameworków. Formularz
-kontaktowy działa przez darmową funkcję Pages (`functions/api/contact.js`) i wysyła e-mail przez Resend.
+kontaktowy jest przygotowany do działania przez Pages Function (`functions/api/contact.js`) i Resend po konfiguracji kont oraz sprawdzeniu dostarczenia wiadomości.
+
+Stan prac 19.09.2026: trzy warianty przeszły lokalne QA i są przygotowane do przeglądu klienta.
+Bieżące wyniki znajdują się w sekcji 15 CHECKLISTA.md. CI testuje cały przypięty zestaw przed publikacją;
+aktualny status i opublikowane SHA można sprawdzić w GitHub Actions oraz stemplu build w HTML podglądu.
+Podgląd klienta pozwala porównać treść i układ; gotowość do produkcji wymaga osobno zamknięcia listy na końcu tego pliku.
 
 Dokumenty towarzyszące:
 
@@ -24,18 +29,17 @@ Dokumenty towarzyszące:
 │   ├── robots.txt, sitemap.xml, llms.txt, site.webmanifest, favicon.ico
 │   ├── .well-known/security.txt    # kanał zgłaszania podatności
 │   └── assets/
-│       ├── css/style.css           # ZMINIFIKOWANE (nie edytować ręcznie – patrz src/)
 │       ├── js/main.js              # ZMINIFIKOWANE (nie edytować ręcznie – patrz src/)
 │       ├── fonts/                  # Source Serif 4 + Inter (woff2, latin + latin-ext, self-hosting)
 │       ├── img/                    # zdjęcia (webp + jpg), logo, obraz OG
 │       └── icons/                  # favicony i ikony
 ├── src/
 │   ├── css/style.css               # źródło stylów (czytelne, z komentarzami)
-│   └── js/main.js                  # źródło skryptu (menu, reveal, formularz, zdarzenia analityczne)
+│   ├── js/init.js                  # mały inicjalizator inline przed CSS, dopuszczony hashem CSP
+│   └── js/main.js                  # odroczony skrypt (menu, reveal, formularz, zdarzenia analityczne)
 ├── functions/api/contact.js        # Cloudflare Pages Function: POST /api/contact
 ├── tools/build.mjs                 # minifikacja src/ → public/assets/ + twarde spacje w HTML
-├── tools/typografia.mjs            # polski skład: twarde spacje i wiązanie wdów (bez dzielenia wyrazów)
-├── tools/pomiar-skladu.mjs         # pomiar odstępów i wypełnienia wierszy (liczby do REVIEW.md 4e)
+├── tools/typografia.mjs            # NBSP po jednoliterowych wyrazach w blokach tekstu; naturalne łamanie w CSS
 ├── tools/lighthouse.mjs            # Lighthouse mobile + desktop z progami wydania (w CI mediana z 3 przebiegów)
 ├── tools/staging.mjs               # wariant testowy: public/ → dist-gh/ (podścieżka, noindex, adres testowy)
 ├── tools/psi.mjs                   # PageSpeed Insights dla adresu testowego (wymaga PSI_API_KEY przy limicie)
@@ -70,27 +74,32 @@ npm run deploy              # build + wrangler pages deploy (produkcja, Cloudfla
 
 Windows z długą ścieżką projektu: jeśli `wrangler pages dev` kończy się błędem `SQLITE_CANTOPEN`, ustaw
 `WRANGLER_PERSIST_TO=C:\Temp\wrangler-state` (Playwright dopisze `--persist-to` automatycznie).
+Dla niezależnego serwera QA ustaw `QA_PORT` na wolny port (domyślnie 8788).
 
 ## Edycja treści
 
 1. Copy: `public/index.html` (sekcje opisane komentarzami `HERO`, `OFERTA`, `DLA KOGO`, `SYTUACJE`,
    `WSPÓŁPRACA`, `O MNIE`, `OPINIE`, `KONTAKT`). Pisz zwykłe spacje i zwykłe wyrazy – `npm run build`
-   doda twarde spacje i miejsca podziału wyrazów (`tools/typografia.mjs`). Nie wpisuj ich ręcznie:
-   narzędzie i tak zaczyna od czystego tekstu, więc nadpisze wszystko, co dodasz.
+   doda twarde spacje po jednoliterowych polskich wyrazach w blokach tekstu (`tools/typografia.mjs`).
+   Przeglądarka łamie tekst naturalnie; żaden skrypt nie przebudowuje akapitów ani linków przy zmianie szerokości.
 2. Po zmianie treści podnieś `<lastmod>` w `public/sitemap.xml`. Nie jest to zautomatyzowane
    świadomie: CI sprawdza, czy `npm run build` niczego nie zmienia w `public/`, a data brana
    z zegara psułaby tę gwarancję przy każdym przebiegu w kolejnym dniu.
-3. Style i skrypt: edytuj **`src/`**, następnie `npm run build`. Pliki w `public/assets/css` i `js` są
+3. Style i skrypt: edytuj **`src/`**, następnie `npm run build`. Plik `public/assets/js/main.js` oraz CSS inline w HTML są
    generowane; CI odrzuci commit, w którym `public/` nie zgadza się ze `src/`. Build dodatkowo wstawia
    zminifikowany CSS bezpośrednio do HTML (`<style data-inline="style.css">`, szybsze pierwsze malowanie na
    mobile) i wpisuje jego hash SHA-256 do `Content-Security-Policy` w `public/_headers`. Nie edytuj tego
    bloku ręcznie, build go podmienia.
+   Mały synchroniczny `src/js/init.js` jest wstawiany przed CSS, żeby menu mobilne miało docelowy układ
+   od pierwszego malowania. Build oblicza jego osobny hash w `script-src`; CSP nie używa `unsafe-inline`.
+   Bez JavaScriptu klasa `js` nie powstaje i linki nawigacji pozostają widoczne.
 3. Fonty: odchudzone pliki self-hosted zbudowane skryptem `tools/fonts-build.py` (fontTools) z pełnych fontów
    Google (Source Serif 4 jako font zmienny 400–600, Inter 400/500/600), zestaw znaków: łacina + polskie znaki
    + typografia. Bez preloadu, `font-display: swap`. Nowa grubość lub znaki spoza zestawu (np. cyrylica) wymagają
    ponownego uruchomienia skryptu (instrukcja w jego nagłówku).
-4. Opinie klientów: sekcja `#opinie` jest gotowa, ale ukryta atrybutem `hidden`. Po otrzymaniu rekomendacji
-   uzupełnij cytaty i usuń `hidden` z `<section id="opinie">`.
+4. Opinie klientów: sekcja `#opinie` pokazuje układ demonstracyjny z widoczną etykietą przykładu
+   i `data-przyklad="tak"`. Przed produkcją wstaw zatwierdzone, prawdziwe opinie i usuń etykietę oraz
+   atrybut albo ukryj całą sekcję. Brak opinii nie blokuje przeglądu wariantów.
 5. Polityka prywatności: uzupełnij dane administratora w sekcji 1 i usuń ramkę „Do uzupełnienia”.
 6. Zdjęcia: zachowaj nazwy plików lub popraw `src`/`srcset`. Zalecane rozmiary: portret hero 960×1403 px
    (wycinek na tle `#12343e`), portret „O mnie” 900×1103 px. WebP (jakość ~80) plus JPG jako zapas.
@@ -130,17 +139,20 @@ Stan strefy odczytany 18.09.2026 (`nslookup -type=NS|A|MX|TXT przyjacielodyseusz
 
 Kolejność migracji:
 
-1. **Przed zmianą NS** ustal u klienta nazwę hosta lub adres IP serwera pocztowego w home.pl
-   (panel home.pl → poczta). Rekord MX musi wskazywać ten host, a nie apex.
-2. W Cloudflare (strefa dodana, ale NS jeszcze niezmienione) odtwórz: `MX` na host pocztowy,
-   `A`/`CNAME` dla tego hosta, `TXT` ze SPF wskazującym host pocztowy, nie apex –
-   np. `v=spf1 mx include:_spf.resend.com ~all` już z Resendem.
+1. **Przed zmianą NS** potwierdź z dotychczasowym operatorem nazwę hosta pocztowego i jego rekordy A/AAAA.
+   Rekord MX wskazuje hostname, nigdy bezpośrednio adres IP. Zachowaj obecną usługę pocztową klienta.
+2. W Cloudflare (strefa dodana, ale NS jeszcze niezmienione) odtwórz `MX` na zweryfikowany host;
+   rekordy A/AAAA tego hosta muszą działać jako DNS-only, bez proxy HTTP. Odtwórz również SPF:
+   Wartości pobierz z aktualnej konfiguracji operatora poczty i panelu Resend; zachowaj wszystkich uprawnionych nadawców.
 3. Dodaj **jawne** rekordy `_dmarc` (`v=DMARC1; p=none; rua=mailto:…` na start) oraz
    `<selektor>._domainkey` z panelu Resend. Wildcard w starej strefie powodował, że błędnie wpisana
    nazwa też się rozwiązywała – jawny rekord wygrywa z wildcardem, więc weryfikacja przestaje kłamać.
 4. Dopiero teraz zmień NS na Cloudflare i dodaj domenę w Pages (**Custom domains** poniżej).
 5. Po migracji sprawdź: `nslookup -type=MX`, `-type=TXT` i wysyłkę testową na adres klienta,
    oraz `-type=TXT _dmarc` – ma zwrócić Twój rekord, nie wildcard.
+
+Instrukcje dostawców: [Cloudflare – rekordy i hosty pocztowe](https://developers.cloudflare.com/dns/troubleshooting/email-issues/)
+oraz [Resend – weryfikacja domeny](https://resend.com/changelog/domain-verification-events).
 
 ### Domena i kanoniczny host
 
@@ -160,15 +172,17 @@ kilkanaście sekund i nie wymaga ponownego builda. Przy wariancie Git alternatyw
 
 ## Formularz kontaktowy
 
-Frontend wysyła `POST /api/contact` (JSON); bez JavaScriptu działa klasyczny POST z przekierowaniem
-i komunikatem. Walidacja jest po obu stronach, antyspam: honeypot + minimalny czas wypełnienia (+ opcjonalnie
-Turnstile). Stan sukcesu pokazuje się dopiero po potwierdzeniu przez backend. Endpoint wysyła wyłącznie na
+Frontend wysyła `POST /api/contact` (JSON); bez JavaScriptu klasyczny POST zwraca samodzielną
+stronę HTML z wynikiem i kontaktem bezpośrednim. Turnstile wymaga JavaScriptu, dlatego przy wyłączonym JS
+użytkownik otrzymuje jasną informację i może skorzystać z e-maila lub telefonu. Walidacja jest po obu stronach,
+a ochrona przed spamem obejmuje honeypot i Turnstile wymagany przy skonfigurowanej wysyłce. Szybkie wypełnienie
+lub autouzupełnianie nie są powodem odrzucenia zgłoszenia. Stan sukcesu pokazuje się dopiero po potwierdzeniu przez backend. Endpoint wysyła wyłącznie na
 stały adres z konfiguracji, więc nie da się go użyć jako otwartego przekaźnika.
 
-### Wysyłka e-mail (Resend, plan darmowy – 3000 wiadomości/mies.)
+### Wysyłka e-mail (Resend; limity zgodnie z wybranym planem)
 
 1. Konto na <https://resend.com>, dodaj i zweryfikuj domenę `przyjacielodyseusza.pl` (rekordy SPF/DKIM –
-   Resend pokaże gotowe wartości; DMARC dodaj ręcznie: `v=DMARC1; p=quarantine; rua=mailto:bartek@przyjacielodyseusza.pl`).
+   Resend pokaże wartości dla danej domeny; politykę DMARC uzgodnij z administratorem poczty i sprawdź przed zmianą DNS).
 2. Klucz API z uprawnieniem *Sending access*.
 3. Pages → projekt → **Settings → Environment variables** (Production):
 
@@ -183,8 +197,7 @@ stały adres z konfiguracji, więc nie da się go użyć jako otwartego przekaź
 
 ### Turnstile (wymagany przed publikacją, darmowy antyspam bez CAPTCHA)
 
-Bez niego formularz chroni tylko honeypot i próg czasu wypełniania – obie pułapki omija się jednym
-`curl`em. Dlatego funkcja jest **fail-closed**: jeśli `RESEND_API_KEY` jest ustawiony (czyli wdrożenie
+Bez niego formularz chroniłby tylko honeypot, który nie wystarcza do ochrony publicznej wysyłki. Dlatego funkcja jest **fail-closed**: jeśli `RESEND_API_KEY` jest ustawiony (czyli wdrożenie
 działa), a `TURNSTILE_SECRET` nie, `/api/contact` zwraca 500, a strona pokazuje kontakt awaryjny.
 Literówka w nazwie zmiennej nie wyłączy captchy po cichu.
 
@@ -196,33 +209,39 @@ Literówka w nazwie zmiennej nie wyłączy captchy po cichu.
 
 ## Analityka
 
-Strona nie ustawia cookies i nie ładuje trackerów, dlatego nie potrzebuje banera zgód. Rekomendacja i plan
+W bazowej konfiguracji strona nie ustawia cookies i nie ładuje trackerów. Docelowy zakres analityki,
+mechanizm zgód i informację dla użytkownika trzeba uzgodnić z klientem przed produkcją. Plan
 zdarzeń: `docs/plan-pomiarowy.md` (Cloudflare Web Analytics, bez cookies). Skrypt strony emituje zdarzenia
 `po:event` i `dataLayer.push`, które dowolne narzędzie może podchwycić bez zmian w kodzie.
 
 ## Wersja testowa na GitHub Pages
 
 Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Każdy push do `main` albo gałęzi `wersja-*`
-przechodzi przez QA (`.github/workflows/qa.yml`), a po zielonym QA workflow publikuje razem trzy warianty strony
-do porównania przez klienta i uruchamia na każdym smoke testy z jego gałęzi:
+uruchamia workflow (`.github/workflows/qa.yml`). Ręczny `workflow_dispatch` jest również dostępny.
+Publikacja jest dozwolona tylko dla `main`, `wersja-b` i `wersja-c`; lokalne gałęzie `codex/*` nie uruchamiają
+publikacji. Najpierw workflow przypina cały zestaw A/B/C do SHA, a następnie wykonuje QA każdego z tych commitów.
+Dopiero zielona macierz pozwala opublikować wspólny podgląd:
 
 | Wersja | Gałąź      | Adres testowy                                                | Zawartość |
 |--------|------------|--------------------------------------------------------------|-----------|
-| A      | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/>          | pełne copy zoptymalizowane pod SEO – 917 słów |
-| B      | `wersja-b` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-b/> | ten sam układ, tekst odchudzony na podstawie badań czytelnictwa (`docs/wersja-b-zalozenia.md`) – 630 słów |
-| C      | `wersja-c` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-c/> | układ i treść według uwag klienta z pliku „pełne morze uwagi” – 313 słów |
+| A      | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/>          | szerszy kontekst oferty i współpracy |
+| B      | `wersja-b` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-b/> | zwięzłe przedstawienie oferty i doświadczenia |
+| C      | `wersja-c` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-c/> | krótsza ścieżka od oferty i sytuacji zawodowych do kontaktu |
 | spis   | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/wersje/>   | strona z linkami do wszystkich wersji (`tools/wersje.html`) |
 
-Job `staging` buduje każdą wersję z jej gałęzi (`tools/staging.mjs --out …`) w jeden artefakt Pages, więc adresy są
-zawsze spójne; po wyborze wersji przez klienta wystarczy scalić wybraną gałąź do `main` i usunąć pozostałe wpisy
-z workflow oraz z `tools/wersje.html`.
+Job `qa` buduje i weryfikuje każdy przypięty commit, a potem zapisuje jego gotowy wariant demonstracyjny
+jako artefakt oznaczony SHA. Job `staging` składa te konkretne artefakty w jedną witrynę bez ponownego
+pobierania ruchomych gałęzi. Job `staging-smoke` pobiera testy z tych samych SHA. Cały przebieg publikacji
+jest serializowany między gałęziami, a adres docelowy musi należeć do `github.io`. Po wyborze wariantu
+trzeba świadomie uporządkować gałęzie, workflow i spis wersji.
 
 - `npm run build:staging` (`tools/staging.mjs`) przepisuje gotowe `public/` do `dist-gh/`: podścieżka `/przyjaciel-odyseusza/`
   we wszystkich adresach, adres testowy zamiast produkcyjnego w canonical/OG/JSON-LD/`llms.txt`/`security.txt`,
   `noindex, nofollow` na każdej stronie, `robots.txt` bez sitemapy (roboty mogą wejść i zobaczyć noindex), `.nojekyll`.
 - Ograniczenia GitHub Pages: brak `_headers` (nagłówki bezpieczeństwa i CSP działają tylko na Cloudflare), brak funkcji
-  `/api/contact` (formularz kończy się błędem HTTP, interfejs pokazuje kontakt awaryjny: e-mail i telefon), brak
-  autoryzacji dostępu (stąd noindex). Wszystko, co zależy od nagłówków i backendu, testujemy na emulacji Cloudflare (`npm test`).
+  `/api/contact`. Formularz ma widoczną informację o trybie demo oraz przycisk „Sprawdź formularz”:
+  sprawdza pola lokalnie, zachowuje dane, nie wysyła żądania i nie rejestruje udanej wysyłki. Bez JS przycisk
+  jest wyłączony. Noindex ogranicza indeksowanie, ale nie jest kontrolą dostępu. Wszystko, co zależy od nagłówków i backendu, testujemy na emulacji Cloudflare (`npm test`).
   Witryna GitHub Pages ma jeden `404.html` (z wersji A), więc wersje w podkatalogach dzielą z nią stronę błędu;
   testy tych wersji pomijają sprawdzanie treści 404 (`SHARED_404` w `tests/_fixtures.js`).
 - `npm run test:staging` uruchamia te same testy na opublikowanym adresie (z podścieżką; testy nagłówków i backendu są
@@ -243,7 +262,10 @@ z workflow oraz z `tools/wersje.html`.
   wariant bez JS, podwójne kliknięcie, komunikaty), linki i zasoby.
 - `npm run lighthouse` – progi: Performance ≥ 90, Accessibility/Best practices/SEO ≥ 95, LCP ≤ 2,5 s,
   CLS ≤ 0,1, TBT ≤ 200 ms. Raporty w `docs/lighthouse/`.
-- CI (`.github/workflows/qa.yml`) uruchamia build, testy i Lighthouse; błąd zatrzymuje pipeline.
+- Typografia: testy mierzą przepełnienia i jednoliterowe wyrazy na końcu wiersza w szerokościach 320–1600 px,
+  także z odstępami użytkownika WCAG 1.4.12; sprawdzają utrzymanie focusu podczas zmiany szerokości.
+- CI (`.github/workflows/qa.yml`) uruchamia build, testy i Lighthouse dla całej przypiętej macierzy A/B/C;
+  błąd dowolnego wariantu zatrzymuje publikację zestawu. Historyczne raporty nie potwierdzają bieżących zmian.
 
 ## Operacje (do uzupełnienia przez agencję/klienta)
 
@@ -258,11 +280,14 @@ z workflow oraz z `tools/wersje.html`.
 
 ## Lista kontrolna przed publikacją
 
-Pełna lista ze statusami: `CHECKLISTA.md`. Minimum:
+Pełna lista ze statusami: `CHECKLISTA.md`. To warunki przed uruchomieniem ruchu produkcyjnego,
+a nie powody do wstrzymania przeglądu trzech wariantów przez klienta. Minimum:
 
-- [ ] Klucz Resend i zmienne środowiskowe ustawione, testowy formularz dotarł na skrzynkę
+- [ ] Plan migracji DNS/MX/SPF potwierdzony z operatorem poczty; zachowana ciągłość wysyłki i odbioru
+- [ ] Klucz Resend, Turnstile i zmienne środowiskowe ustawione, testowy formularz dotarł na właściwą skrzynkę
 - [ ] Dane administratora w polityce prywatności uzupełnione
-- [ ] Fakty do potwierdzenia z klientem zatwierdzone (`REVIEW.md`, sekcja „Do potwierdzenia”)
+- [ ] Fakty do potwierdzenia z klientem i zakres analityki/zgód zatwierdzone (`REVIEW.md`)
+- [ ] Finalne zdjęcia wybrane; prawdziwe opinie zatwierdzone albo sekcja ukryta
 - [ ] Domena podpięta, Redirect Rule `www` → apex działa, `*.pages.dev` za Access policy
 - [ ] Podgląd udostępniania sprawdzony (LinkedIn Post Inspector)
 - [ ] Google Search Console: domena dodana, `sitemap.xml` zgłoszona

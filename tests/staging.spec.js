@@ -1,8 +1,20 @@
 import { test, expect, STAGING, ORIGIN, BASE_PATH, SITE, SHARED_404 } from './_fixtures.js';
+import AxeBuilder from '@axe-core/playwright';
 
 // Sprawdzenia specyficzne dla hostingu testowego w podkatalogu (GitHub Pages). Na emulacji Cloudflare są pomijane.
 test.describe('Hosting testowy (podkatalog, noindex)', () => {
   test.skip(!STAGING, 'tylko z STAGING_URL');
+
+  test('wybór wariantu jest dostępny i prowadzi do trzech właściwych adresów', async ({ page }) => {
+    test.skip(SHARED_404, 'wspólny spis jest sprawdzany z wariantu A');
+    await page.goto('/wersje/');
+    await expect(page.locator('main h1')).toHaveText('Przyjaciel Odyseusza – wersje testowe strony');
+    const links = page.locator('main ol a');
+    await expect(links).toHaveCount(3);
+    const urls = await links.evaluateAll(elements => elements.map(element => element.href));
+    expect(urls).toEqual([`${SITE}/`, `${SITE}/wersja-b/`, `${SITE}/wersja-c/`]);
+    expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([]);
+  });
 
   test('każda strona ma noindex, a robots.txt nie blokuje robotów (żeby noindex był widoczny)', async ({ request }) => {
     for (const path of ['/', '/polityka-prywatnosci', ...(SHARED_404 ? [] : ['/nie-ma-takiej-strony-staging'])]) {
@@ -68,11 +80,51 @@ test.describe('Hosting testowy (podkatalog, noindex)', () => {
     expect(r.headers()['location']).toMatch(/^https:\/\//);
   });
 
-  test('zasoby mają Cache-Control, a formularz bez backendu kończy się błędem HTTP (interfejs pokazuje kontakt awaryjny)', async ({ request }) => {
-    const css = await request.get('/assets/js/main.js');
-    expect(css.status()).toBe(200);
-    expect(css.headers()['cache-control']).toMatch(/max-age=\d+/);
-    const post = await request.post('/api/contact', { form: { name: 'x' }, maxRedirects: 0 });
-    expect(post.status()).toBeGreaterThanOrEqual(400);
+  test('zasoby mają Cache-Control', async ({ request }) => {
+    const script = await request.get('/assets/js/main.js');
+    expect(script.status()).toBe(200);
+    expect(script.headers()['cache-control']).toMatch(/max-age=\d+/);
+  });
+
+  test('formularz ujawnia tryb demo przed użyciem, zachowuje dane i nie wysyła żądania', async ({ page }) => {
+    const posts = [];
+    page.on('request', (request) => { if (request.method() === 'POST') posts.push(request.url()); });
+    await page.addInitScript(() => {
+      window.formEvents = [];
+      window.addEventListener('po:event', (event) => window.formEvents.push(event.detail.event));
+    });
+    await page.goto('/');
+    const form = page.locator('#formularz');
+    const note = page.locator('#form-demo-note');
+    await expect(form).toHaveAttribute('data-demo', 'true');
+    await expect(form).toHaveAttribute('aria-describedby', /\bform-demo-note\b/);
+    await expect(note).toBeVisible();
+    await expect(note).toContainText('wiadomość nie zostanie wysłana');
+    expect(await note.evaluate((element) => Boolean(element.compareDocumentPosition(document.querySelector('.form__submit')) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+    await page.fill('#f-name', 'Jan Testowy');
+    await page.fill('#f-email', 'jan@example.com');
+    await page.fill('#f-message', 'Chcę sprawdzić formularz demonstracyjny.');
+    const submit = form.locator('.form__submit');
+    await expect(submit).toHaveText('Sprawdź formularz');
+    await submit.click();
+    await expect(page.locator('#form-status')).toContainText('formularz nie wysyła wiadomości');
+    await expect(page.locator('#f-name')).toHaveValue('Jan Testowy');
+    await expect(page.locator('#f-email')).toHaveValue('jan@example.com');
+    await expect(page.locator('#f-message')).toHaveValue('Chcę sprawdzić formularz demonstracyjny.');
+    expect(posts).toEqual([]);
+    expect(await page.evaluate(() => window.formEvents)).not.toContain('form_submit_success');
+    await expect(page.locator('script[src*="challenges.cloudflare.com"]')).toHaveCount(0);
+  });
+
+  test('formularz demonstracyjny bez JavaScriptu nadal informuje o ograniczeniu i nie pozwala wysłać danych', async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    try {
+      const page = await context.newPage();
+      await page.goto(`${SITE}/`);
+      await expect(page.locator('#form-demo-note')).toBeVisible();
+      await expect(page.locator('#formularz .form__submit')).toBeDisabled();
+    } finally {
+      await context.close();
+    }
   });
 });

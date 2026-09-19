@@ -2,9 +2,6 @@
 (function () {
   'use strict';
 
-  // klasa .js włącza animacje pojawiania (.js .reveal) – bez skryptu treść jest widoczna od razu
-  document.documentElement.classList.add('js');
-
   /* ---------- aliasy kotwic z poprzedniej strony (WordPress one-pager) ---------- */
   var LEGACY_HASHES = { '#dla-ciebie': '#dla-kogo', '#dla-biznesu': '#dla-kogo' };
   function fixLegacyHash() {
@@ -122,17 +119,11 @@
 
   var status = document.getElementById('form-status');
   var submitBtn = form.querySelector('.form__submit');
-  // Czas wypełniania formularza mierzy przeglądarka (od wczytania strony), a nie różnica zegarów
-  // dwóch maszyn. Zegar urządzenia potrafi spieszyć się o minuty i wtedy serwer uznawał prawdziwe
-  // zgłoszenie za bota, pokazując użytkownikowi potwierdzenie wysyłki i porzucając wiadomość.
-  var elapsedField = document.getElementById('f-elapsed');
-  var teraz = (window.performance && performance.now)
-    ? function () { return performance.now(); }
-    : function () { return Date.now(); };
-  var poczatek = teraz();
-  function zapiszCzas() {
-    if (elapsedField) elapsedField.value = String(Math.round(teraz() - poczatek));
-  }
+  var isDemo = form.getAttribute('data-demo') === 'true';
+  var sending = false;
+  var REQUEST_TIMEOUT_MS = 25000;
+  // Demo ma zablokowany przycisk w HTML, aby nie wysyłało danych również bez JavaScriptu.
+  if (isDemo && submitBtn) submitBtn.disabled = false;
 
   var fields = {
     name: form.elements.namedItem('name'),
@@ -142,18 +133,35 @@
 
   /* Cloudflare Turnstile – ładowany tylko, gdy ustawiono klucz w data-turnstile-sitekey */
   var sitekey = form.getAttribute('data-turnstile-sitekey');
-  if (sitekey) {
-    var slot = document.getElementById('turnstile-slot');
-    if (slot) {
-      slot.className = 'cf-turnstile turnstile';
-      slot.setAttribute('data-sitekey', sitekey);
-      slot.setAttribute('data-theme', 'dark');
-      slot.setAttribute('data-language', 'pl');
-      slot.setAttribute('data-appearance', 'interaction-only');
+  var turnstileWidget = null;
+  var turnstileToken = '';
+
+  function resetTurnstile() {
+    turnstileToken = '';
+    var tokenField = form.elements.namedItem('cf-turnstile-response');
+    if (tokenField) tokenField.value = '';
+    if (turnstileWidget !== null && window.turnstile && typeof window.turnstile.reset === 'function') {
+      try { window.turnstile.reset(turnstileWidget); } catch (err) { /* pozwól użyć kontaktu bezpośredniego */ }
     }
+  }
+
+  if (sitekey && !isDemo) {
+    var slot = document.getElementById('turnstile-slot');
+    if (slot) slot.className = 'turnstile';
     var s = document.createElement('script');
-    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
     s.async = true; s.defer = true;
+    s.addEventListener('load', function () {
+      if (!slot || !window.turnstile) return;
+      window.turnstile.ready(function () {
+        turnstileWidget = window.turnstile.render(slot, {
+          sitekey: sitekey, theme: 'dark', language: 'pl', appearance: 'interaction-only',
+          callback: function (token) { turnstileToken = token; },
+          'expired-callback': resetTurnstile,
+          'error-callback': function () { turnstileToken = ''; }
+        });
+      });
+    });
     document.head.appendChild(s);
   }
 
@@ -164,11 +172,19 @@
     status.focus({ preventScroll: false });
   }
 
-  function fallbackHtml() {
+  function fallbackHtml(error) {
     var subject = encodeURIComponent('Zapytanie ze strony przyjacielodyseusza.pl');
     var body = encodeURIComponent((fields.message && fields.message.value) || '');
     var mailto = 'mailto:' + EMAIL + '?subject=' + subject + '&body=' + body;
-    return 'Nie udało się wysłać wiadomości. Napisz bezpośrednio na <a href="' + mailto + '">' + EMAIL +
+    var messages = {
+      turnstile: 'Nie udało się zakończyć weryfikacji antyspamowej. Poczekaj na jej odświeżenie i spróbuj ponownie.',
+      turnstile_unavailable: 'Weryfikacja antyspamowa jest chwilowo niedostępna. Spróbuj ponownie za chwilę.',
+      validation: 'Sprawdź zaznaczone pola i spróbuj ponownie.',
+      timeout: 'Nie udało się potwierdzić wysyłki w wyznaczonym czasie. Wiadomość mogła już dotrzeć.',
+      mail_timeout: 'Nie udało się potwierdzić wysyłki w wyznaczonym czasie. Wiadomość mogła już dotrzeć.'
+    };
+    var message = messages[error] || 'Nie udało się wysłać wiadomości. Spróbuj ponownie za chwilę.';
+    return message + ' Wpisane dane pozostały w formularzu. Napisz bezpośrednio na <a href="' + mailto + '">' + EMAIL +
       '</a> lub zadzwoń: <a href="' + PHONE_HREF + '">' + PHONE_TEXT + '</a>.';
   }
 
@@ -218,59 +234,81 @@
     track('form_start');
   });
 
-  /* status po przekierowaniu (wariant bez JS po stronie funkcji) */
-  var params = new URLSearchParams(window.location.search);
-  if (params.has('wyslano')) {
-    showStatus('ok', SUCCESS_HTML);
-  } else if (params.has('blad')) {
-    showStatus('error', fallbackHtml());
-  }
-
   form.addEventListener('submit', function (e) {
     e.preventDefault();
+    if (sending) return;
     if (!validateAll()) {
       var first = form.querySelector('.is-invalid');
       if (first) first.focus();
       return;
     }
-    zapiszCzas();
-    if (!window.fetch) { form.submit(); return; }
+    if (isDemo) {
+      showStatus('info', 'Wersja demonstracyjna — formularz nie wysyła wiadomości.');
+      return;
+    }
+    if (sitekey && !turnstileToken) {
+      showStatus('error', fallbackHtml('turnstile'));
+      return;
+    }
+    if (!window.fetch) { showStatus('error', fallbackHtml('network')); return; }
 
     var originalLabel = submitBtn ? submitBtn.textContent : '';
+    sending = true;
+    form.setAttribute('aria-busy', 'true');
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Wysyłanie…'; }
 
     var payload = {};
     Array.prototype.forEach.call(form.elements, function (el) {
-      if (!el.name) return;
-      if (el.type === 'radio' && !el.checked) return;
+      if (!el.name || el.disabled) return;
+      if ((el.type === 'radio' || el.type === 'checkbox') && !el.checked) return;
       payload[el.name] = el.value;
     });
+    if (sitekey) payload['cf-turnstile-response'] = turnstileToken;
 
-    fetch(form.getAttribute('action'), {
+    var controller = window.AbortController ? new AbortController() : null;
+    var timer;
+    var deadline = new Promise(function (resolve, reject) {
+      timer = window.setTimeout(function () {
+        reject(new Error('timeout'));
+        if (controller) controller.abort();
+      }, REQUEST_TIMEOUT_MS);
+    });
+    var request = fetch(form.getAttribute('action'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller ? controller.signal : undefined
     })
       .then(function (res) {
-        return res.json().catch(function () { return {}; }).then(function (json) {
-          if (res.ok && json.ok) {
-            showStatus('ok', SUCCESS_HTML);
-            track('form_submit_success', { subject_for: payload.subject_for || 'brak' });
-            formStarted = false;
-            form.reset();
-            poczatek = teraz();
-            if (elapsedField) elapsedField.value = '';
-            if (window.turnstile && typeof window.turnstile.reset === 'function') window.turnstile.reset();
-          } else {
-            throw new Error(json.error || ('http_' + res.status));
+        return res.json().catch(function () { throw new Error('bad_response'); }).then(function (json) {
+          if (json && res.ok && json.ok === true) return;
+          if (json && json.error === 'validation' && Array.isArray(json.fields)) {
+            json.fields.forEach(function (key) { if (fields[key]) setError(fields[key], true); });
           }
+          var knownErrors = ['validation', 'turnstile', 'turnstile_unavailable', 'not_configured', 'mail_failed', 'mail_timeout'];
+          throw new Error(json && knownErrors.indexOf(json.error) !== -1 ? json.error : 'bad_response');
         });
+      });
+
+    Promise.race([request, deadline])
+      .then(function () {
+        showStatus('ok', SUCCESS_HTML);
+        track('form_submit_success', { subject_for: payload.subject_for || 'brak' });
+        formStarted = false;
+        form.reset();
       })
       .catch(function (err) {
-        showStatus('error', fallbackHtml());
-        track('form_submit_error', { error: (err && err.message) || 'unknown' });
+        var knownErrors = ['validation', 'turnstile', 'turnstile_unavailable', 'not_configured', 'mail_failed', 'mail_timeout', 'timeout', 'bad_response'];
+        var error = err && knownErrors.indexOf(err.message) !== -1 ? err.message : 'network';
+        showStatus('error', fallbackHtml(error));
+        track('form_submit_error', { error: error });
       })
       .then(function () {
+        window.clearTimeout(timer);
+        // Każda próba może zużyć token, również gdy dostawca poczty odrzucił wiadomość.
+        resetTurnstile();
+        sending = false;
+        form.removeAttribute('aria-busy');
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalLabel; }
       });
   });

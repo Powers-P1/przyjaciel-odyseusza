@@ -202,47 +202,41 @@ button { font: inherit; color: inherit; }
 }
 
 /* ---------- hero ---------- */
-/* Scena hero (tekst, portret, pasek faktów) wypełnia pierwszy ekran pod nagłówkiem: siatka rośnie,
-   portret skaluje się do jej wysokości, pasek faktów zostaje przy dolnej krawędzi. */
+/* Duży portret z kadrem od góry; wysokość sekcji może rosnąć wraz z treścią. */
 .hero {
   display: flex; flex-direction: column; padding-block: 0;
   min-height: calc(100vh - var(--header-h));
   min-height: calc(100svh - var(--header-h));
-  /* Pion hero (stopień pisma tytułu, odstępy, pasek faktów) liczony z jednej miary, żeby dało się go
-     skalować w jednym miejscu. Na wąskich ekranach hero jest ułożone w pionie i wysokość okna go nie ogranicza. */
-  --hero-pad: clamp(2.5rem, 5vw, 4rem);
-  --hero-rytm: 1rem;
-  --hero-title: clamp(2.4rem, 1.5rem + 2.9vw, 4.25rem);
+  --hero-pad: clamp(1.5rem, 3vw, 3rem);
+  --hero-rytm: clamp(.65rem, 1vw, 1rem);
+  --hero-title: clamp(2.35rem, 1rem + 3.8vw, 5rem);
 }
 .hero__grid {
   flex: 1;
-  display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
-  gap: 2rem 3rem; align-items: end;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem; align-items: end;
+  min-height: clamp(30rem, 65svh, 46rem);
   padding-top: var(--hero-pad);
 }
 .hero__copy { max-width: 40rem; align-self: center; padding-bottom: var(--hero-pad); }
-.hero .eyebrow { margin-bottom: calc(1.1 * var(--hero-rytm)); }
 .hero__title {
   font-size: var(--hero-title); line-height: 1.06;
-  letter-spacing: -.014em; color: var(--paper); margin: 0 0 calc(1.5 * var(--hero-rytm));
+  letter-spacing: -.025em; color: var(--paper); margin: 0 0 1.75rem;
   text-wrap: balance;
 }
 .hero__byline {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem 1rem;
-  margin: 0 0 calc(1.5 * var(--hero-rytm));
+  display: grid; gap: .65rem;
+  margin: 0 0 2rem;
 }
-.hero__name { font: 400 1.35rem/1.2 var(--serif); color: var(--gold); }
-.hero__role { font-size: .9rem; color: var(--mist-soft); letter-spacing: .01em; }
-.hero__lead { font-size: 1.0625rem; max-width: 36rem; margin-bottom: calc(2 * var(--hero-rytm)); }
+.hero__name { font: 400 clamp(1.5rem, 1.2rem + .7vw, 1.875rem)/1.2 var(--serif); color: var(--gold); }
+.hero__role { font-size: 1rem; color: var(--mist-soft); letter-spacing: .01em; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: .85rem; }
-.hero__individual { margin: 1rem 0 0; font-size: .9rem; color: var(--mist-soft); max-width: 36rem; }
-.hero__note { margin: var(--hero-rytm) 0 0; font-size: .85rem; color: var(--mist-soft); }
 
 .hero__figure { position: relative; margin: 0; min-height: 0; align-self: stretch; }
 .hero__portrait {
   position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto;
-  height: 100%; width: auto; max-width: 100%;
-  object-fit: contain; object-position: bottom center;
+  height: 100%; width: 100%; max-width: 100%;
+  object-fit: cover; object-position: top center;
 }
 
 .proof {
@@ -262,21 +256,14 @@ button { font: inherit; color: inherit; }
 @media (max-width: 64em) {
   .hero__grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); }
 }
-/* Hero jako scena: na ekranach poziomych pion skaluje się również wysokością okna, więc tytuł, opis,
-   przyciski i pasek faktów mieszczą się w pierwszym ekranie tak samo na 1366×768, jak na 1920×1080.
-   `min()` wybiera mniejszą z miar szerokości i wysokości, `clamp()` trzyma wynik w granicach czytelności. */
 @media (min-width: 48em) {
-  .hero {
-    --hero-pad: clamp(1.25rem, min(5vw, 4vh), 4rem);
-    --hero-rytm: clamp(.5rem, min(1.4vw, 1.15vh), 1rem);
-    --hero-title: clamp(2.2rem, min(1.5rem + 2.9vw, .2rem + 4.9vh), 4.25rem);
-  }
+  .hero { --hero-title: clamp(2.35rem, min(1rem + 3.8vw, 8svh), 5rem); }
 }
 @media (max-width: 47.99em) {
-  .hero__grid { grid-template-columns: 1fr; gap: 1.5rem; padding-top: 2.25rem; }
+  .hero__grid { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.25rem; min-height: 0; }
   .hero__copy { padding-bottom: 0; }
   .hero__figure { position: static; align-self: auto; }
-  .hero__portrait { position: static; height: auto; width: min(82vw, 22rem); margin: 0 auto; }
+  .hero__portrait { position: static; height: auto; width: min(82vw, 24rem); margin: 0 auto; object-fit: contain; }
   .proof { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.75rem 0 2.25rem; }
 }
 

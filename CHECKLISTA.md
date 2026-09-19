@@ -1127,12 +1127,11 @@ Wpisz wszystko, co uniemożliwia release:
 Każdy wyjątek musi mieć powód i właściciela/decyzję.
 
 1. Brak analityki i CMP na start (privacy-first, brak banera cookies) – właściciel: agencja; rewizja po decyzji klienta o kampaniach (`docs/plan-pomiarowy.md`).
-2. Brak hashy w nazwach plików CSS/JS (krótszy cache 1 dzień zamiast immutable) – uproszczenie wdrożenia bez builda na hostingu; właściciel: agencja.
-3. Przekierowanie `www` → apex realizowane regułą w dashboardzie Cloudflare, nie w kodzie (ograniczenie `_redirects` w Pages) – właściciel: agencja przy podpinaniu domeny.
-4. Test czytnikiem ekranu i na fizycznych urządzeniach mobilnych do wykonania ręcznie przed publikacją – właściciel: agencja.
-5. Sekcja „Opinie” pokazuje przykładowe wypowiedzi do czasu otrzymania rekomendacji od klienta; oznaczona `data-przyklad`, wymieniona wśród blokerów – właściciel: klient.
-6. Wersja testowa na GitHub Pages jest publicznie dostępna bez autoryzacji (GitHub Pages jej nie oferuje) i leży w publicznym repozytorium (plan GitHub Free nie daje Pages dla repozytoriów prywatnych). Ochrona przed indeksowaniem: `noindex, nofollow` na każdej stronie, bez sitemapy. W repozytorium nie ma sekretów ani danych innych niż te, które klient publikuje na swojej obecnej stronie. Po starcie produkcji wersję testową wyłączyć (Settings → Pages → Unpublish) – właściciel: agencja.
-7. GitHub Pages nie obsługuje `_headers` (brak CSP/HSTS własnych) ani funkcji `/api/contact` – na domenie testowej formularz kończy się błędem HTTP 405, a interfejs pokazuje kontakt awaryjny (e-mail, telefon). Nagłówki i backend są weryfikowane na emulacji Cloudflare (`npm test`) i będą działać na produkcji – właściciel: agencja.
+2. Przekierowanie `www` → apex realizowane regułą w dashboardzie Cloudflare, nie w kodzie (ograniczenie `_redirects` w Pages) – właściciel: agencja przy podpinaniu domeny.
+3. Test czytnikiem ekranu i na fizycznych urządzeniach mobilnych do wykonania ręcznie przed publikacją – właściciel: agencja.
+4. Sekcja „Opinie” pokazuje przykładowe wypowiedzi do czasu otrzymania rekomendacji od klienta; oznaczona `data-przyklad`, wymieniona wśród blokerów – właściciel: klient.
+5. Wersja testowa na GitHub Pages jest publicznie dostępna bez autoryzacji (GitHub Pages jej nie oferuje) i leży w publicznym repozytorium (plan GitHub Free nie daje Pages dla repozytoriów prywatnych). Ochrona przed indeksowaniem: `noindex, nofollow` na każdej stronie, bez sitemapy. W repozytorium nie ma sekretów ani danych innych niż te, które klient publikuje na swojej obecnej stronie. Po starcie produkcji wersję testową wyłączyć (Settings → Pages → Unpublish) – właściciel: agencja.
+6. GitHub Pages nie obsługuje `_headers` (brak CSP/HSTS własnych) ani funkcji `/api/contact` – na domenie testowej formularz kończy się błędem HTTP 405, a interfejs pokazuje kontakt awaryjny (e-mail, telefon). Nagłówki i backend są weryfikowane na emulacji Cloudflare (`npm test`) i będą działać na produkcji – właściciel: agencja.
 
 ## Status końcowy
 

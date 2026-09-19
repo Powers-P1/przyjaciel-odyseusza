@@ -2,7 +2,7 @@ import { test, expect } from './_fixtures.js';
 
 const WIDTHS = [320, 390, 834, 1280, 1600];
 const PAGES = ['/', '/polityka-prywatnosci'];
-const BLOCKS = 'main p, main li, main dt, main dd, main h1, main h2, main h3, main h4, footer p';
+const BLOCKS = 'main p, main li, main dt, main dd, main h1, main h2, main h3, main h4, footer p, .testimonial footer';
 
 // Mierzymy zwykłe słowa także po obu stronach NBSP. Sama obecność twardej spacji
 // w HTML nie dowodzi, że użytkownik widzi prawidłowo złamany, nieprzepełniony tekst.
@@ -13,6 +13,21 @@ function inspectText(selector) {
     if (element.querySelector('p, li, ul, ol, dl, div, h1, h2, h3, h4')) continue;
     if (element.closest('nav, .btn, [hidden], [aria-hidden="true"]')) continue;
     if (!element.getBoundingClientRect().height) continue;
+    let bounds = { left: 0, right: document.documentElement.clientWidth };
+    const track = element.closest('.testimonials--slider');
+    const card = track && element.closest('.testimonial');
+    if (card) {
+      // Karty poza widokiem są celowo w poziomym obszarze przewijania.
+      // Każde słowo nadal musi mieścić się w swojej karcie i w treści tracka.
+      const cardRect = card.getBoundingClientRect();
+      const trackRect = track.getBoundingClientRect();
+      const style = getComputedStyle(card);
+      const contentLeft = trackRect.left + track.clientLeft - track.scrollLeft;
+      bounds = {
+        left: Math.max(contentLeft, cardRect.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft)),
+        right: Math.min(contentLeft + track.scrollWidth, cardRect.right - parseFloat(style.borderRightWidth) - parseFloat(style.paddingRight)),
+      };
+    }
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
     const lines = [];
     let node;
@@ -23,7 +38,7 @@ function inspectText(selector) {
         range.setEnd(node, match.index + match[0].length);
         for (const rect of range.getClientRects()) {
           if (!rect.width || !rect.height) continue;
-          if (rect.left < -1 || rect.right > document.documentElement.clientWidth + 1) {
+          if (rect.left < bounds.left - 1 || rect.right > bounds.right + 1) {
             overflow.push(`${element.tagName}.${element.className}: ${match[0]}`);
           }
           const previous = lines.at(-1);
@@ -58,7 +73,7 @@ test.describe('Czytelny skład i swobodne przełamywanie tekstu', () => {
           }
           const result = await page.evaluate(inspectText, BLOCKS);
           expect(result.pageOverflow, 'poziome przewijanie strony').toBeLessThanOrEqual(1);
-          expect(result.overflow, 'tekst wychodzący poza ekran').toEqual([]);
+          expect(result.overflow, 'tekst wychodzący poza ekran lub kartę slidera').toEqual([]);
           expect(result.orphans, 'jednoliterowy wyraz na końcu wiersza').toEqual([]);
         });
       }

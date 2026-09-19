@@ -78,7 +78,7 @@ Stosuj następujące oznaczenia:
 - [x] Przekierowania ze starych lub zmienionych adresów URL są skonfigurowane.
   - Dla zasobów przeniesionych na stałe używaj przekierowań stałych.
   - Unikaj łańcuchów przekierowań.
-  - Dowód: obecna strona to one-pager z kotwicami (`/#o-mnie`, `/#dla-ciebie`, `/#dla-biznesu`, `/#cennik`, `/#kontakt`); `#o-mnie`, `#cennik`, `#kontakt` istnieją na nowej stronie, a `#dla-ciebie` i `#dla-biznesu` są mapowane na `#dla-kogo` w `src/js/main.js` (LEGACY_HASHES). Test `tests/smoke.spec.js` „stare kotwice z poprzedniej strony trafiają do właściwych sekcji”. Innych adresów stara strona nie miała (jedna strona WordPress).
+  - Dowód: poprzednia strona to one-pager z kotwicami (`/#o-mnie`, `/#dla-ciebie`, `/#dla-biznesu`, `/#cennik`, `/#kontakt`). W B `#o-mnie` i `#kontakt` pozostają, `#dla-ciebie` i `#dla-biznesu` prowadzą do `#dla-kogo`, a usunięty `#cennik` do `#kontakt` przez `LEGACY_HASHES` w `src/js/main.js`. Test istniejących kotwic rozszerzono o `#cennik`; ponowne uruchomienie po zmianie pozostaje częścią QA. Innych adresów stara strona nie miała (jedna strona WordPress).
 
 - [x] Linki wewnętrzne nie prowadzą niepotrzebnie przez przekierowania.
   - Jeśli znany jest docelowy URL, link powinien prowadzić bezpośrednio do niego.
@@ -155,7 +155,7 @@ Stosuj następujące oznaczenia:
 
 - [x] Struktura URL jest czytelna, stabilna i przemyślana.
   - Unikaj zbędnych identyfikatorów, parametrów i przypadkowych duplikatów ścieżek.
-  - Dowód: `/`, `/polityka-prywatnosci`, kotwice sekcji (`#oferta`, `#dla-kogo`, `#wspolpraca`, `#cennik`, `#o-mnie`, `#kontakt`).
+  - Dowód: `/`, `/polityka-prywatnosci`, kotwice sekcji (`#oferta`, `#dla-kogo`, `#wspolpraca`, `#o-mnie`, `#kontakt`). Cennik usunięto z wersji B po uwagach z 19.09.2026.
 
 ## 2.3 Narzędzia dla wyszukiwarek
 
@@ -210,11 +210,11 @@ Stosuj następujące oznaczenia:
 - [x] Wybrano typy Schema.org faktycznie pasujące do strony.
   - Przykłady: `Organization`, `LocalBusiness`, `ProfessionalService`, `WebSite`, `BreadcrumbList`, `Article`, `Product`.
   - Nie dodawaj typów tylko po to, aby "coś było".
-  - Dowód: `Organization` (firma) + `Service` (usługa mentoringu, z ceną w wersjach z cennikiem) + `Person` (Bartłomiej Przytuła) w `@graph`; bez `LocalBusiness` (brak publicznego adresu), bez `FAQ`/ocen.
+  - Dowód: `Organization` (firma) + `Service` (mentoring i coaching, bez ceny w wersji B) + `Person` (Bartłomiej Przytuła) w `@graph`; bez `LocalBusiness` (brak publicznego adresu), bez `FAQ`/ocen.
 
 - [x] Dane strukturalne odpowiadają treści faktycznie widocznej na stronie.
   - Nie publikuj fałszywych ocen, cen, adresów, FAQ ani innych danych tylko dla wyszukiwarki.
-  - Dowód: `priceRange` odpowiada widocznemu blokowi `#cennik`; `jobTitle`, `hasCredential`, `alumniOf` odpowiadają sekcji „O mnie”; test sprawdza obecność nazwiska i telefonu w treści. Weryfikacja faktów ze źródłem (obecna strona klienta) w `REVIEW.md` sekcja 4a.
+  - Dowód: po usunięciu cennika w B usunięto także `Service.offers` z `minPrice`; `jobTitle`, `hasCredential`, `alumniOf` odpowiadają sekcji „O mnie”; test sprawdza obecność nazwiska i telefonu w treści. Weryfikacja faktów ze źródłem (obecna strona klienta) w `REVIEW.md` sekcja 4a.
 
 - [x] Dane strukturalne używają produkcyjnych kanonicznych URL-i.
   - Dowód: `@id`, `url`, `image`, `logo` zaczynają się od `https://przyjacielodyseusza.pl/`; test „JSON-LD…” to weryfikuje.
@@ -237,7 +237,7 @@ Stosuj następujące oznaczenia:
 
 - [x] `llms.txt` opisuje stronę i wskazuje najważniejsze zasoby.
   - Nie wrzucaj tam bezmyślnie listy wszystkich URL-i.
-  - Dowód: opis oferty, odbiorców, zasad, cennika, kontaktu + 2 strony i sitemap.
+  - Dowód: opis oferty, odbiorców, zasad i kontaktu + 2 strony i sitemap. B nie publikuje cennika.
 
 - [x] Najważniejsze treści publiczne są zrozumiałe z wygenerowanego HTML.
   - Dowód: statyczny HTML, semantyczne nagłówki i listy; `docs/zrodla/` zawiera źródło faktów.
@@ -890,6 +890,30 @@ Stosuj następujące oznaczenia:
 # 15. Automatyczny QA i blokady przed releasem
 
 > To, co da się wiarygodnie sprawdzić automatycznie, nie powinno zależeć od pamięci developera lub agenta.
+
+**Uwagi accounta — 19.09.2026, kolejna iteracja:**
+
+- A/B/C: powiększony portret i H1, osobne wiersze nazwiska i roli, dwa CTA i trzy fakty.
+  Usunięto wskazane dopiski hero; informacja B2B-first z możliwością współpracy prywatnej jest na początku oferty.
+- B/C: symbole mentoringu i coachingu, szersze wprowadzenie oferty, ręczny slider sześciu jawnie oznaczonych
+  przykładów (bez autoplay, z klawiaturą, natywnym przewijaniem i pełną treścią bez JS).
+- B: usunięty cennik, odpowiadające mu linki i dane ceny; mniejszy odstęp po sekcji „O mnie”.
+  C: krótszy układ „O mnie”, osobne akapity rozpoczynające się od „Łączę” i „Odpowiem”.
+- B/C: wymagane potwierdzenie informacji o danych, zatwierdzone przez zlecającego, oraz przycisk
+  „Wyślij formularz”. Walidacja HTML/JS i backendu; to potwierdzenie informacji, nie zgoda marketingowa.
+  Wymagalność pola nie oznacza zatwierdzenia całej dokumentacji prawnej.
+- Podgląd pozostaje demonstratorem: widoczny komunikat przed przyciskiem, brak POST, zachowane pola;
+  nie uruchamiano rzeczywistej wysyłki ani zmian DNS.
+- Porównanie z uwagami i zrzutami: sprawdzono copy, hierarchię, kadr portretu, kolory, ikony, odstępy
+  i układy 390/834/1440 px; hero dodatkowo 320/1366/1920/2560 px. Treści nie są wymuszane w jednym
+  wierszu na małych ekranach. Browser plugin niedostępny; użyto repozytoryjnego Playwright.
+- Wyniki poniższego starszego przeglądu dotyczą poprzedniej iteracji. Nową publikację zatwierdza pełny CI
+  przypięty do SHA, łącznie z WebKit i kontrolą podglądu po wdrożeniu.
+- Zweryfikowane lokalnie po tych zmianach: A 268, B 292, C 292 testy przeszły; po 8 pominięć
+  wynikających z warunków testów, bez błędów i niestabilnych powtórek w końcowym przebiegu.
+  Chromium, Firefox i Pixel 7; build, HTML/CSS/CSP i typografia poprawne.
+  Backend: A 11/11, B i C po 13/13. Dodatkowa kontrola wygenerowanego demo B/C:
+  wymagany checkbox, brak POST i brak czyszczenia danych po kliknięciu przycisku.
 
 - [x] Build produkcyjny uruchamia się w CI.
   - Dowód: krok `npm run build` + `git diff --exit-code -- public` w `.github/workflows/qa.yml` przechodzi na `ubuntu-latest` (17.09.2026) – build jest powtarzalny między Windows a Linuksem (LF wymuszone w `.gitattributes`, esbuild z lockfile).

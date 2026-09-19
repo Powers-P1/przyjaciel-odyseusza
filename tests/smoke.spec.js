@@ -71,7 +71,7 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
   });
 
   test('stare kotwice z poprzedniej strony trafiają do istniejących sekcji', async ({ page }) => {
-    for (const legacy of ['#dla-biznesu', '#dla-ciebie']) {
+    for (const legacy of ['#dla-biznesu', '#dla-ciebie', '#cennik']) {
       await page.goto(`/${legacy}`);
       await expect(page).not.toHaveURL(new RegExp(`${legacy}$`));
       const hash = new URL(page.url()).hash;

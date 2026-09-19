@@ -104,13 +104,15 @@ test.describe('Hosting testowy (podkatalog, noindex)', () => {
     await page.fill('#f-name', 'Jan Testowy');
     await page.fill('#f-email', 'jan@example.com');
     await page.fill('#f-message', 'Chcę sprawdzić formularz demonstracyjny.');
+    await page.check('#f-privacy');
     const submit = form.locator('.form__submit');
-    await expect(submit).toHaveText('Sprawdź formularz');
+    await expect(submit).toHaveText('Wyślij formularz');
     await submit.click();
     await expect(page.locator('#form-status')).toContainText('formularz nie wysyła wiadomości');
     await expect(page.locator('#f-name')).toHaveValue('Jan Testowy');
     await expect(page.locator('#f-email')).toHaveValue('jan@example.com');
     await expect(page.locator('#f-message')).toHaveValue('Chcę sprawdzić formularz demonstracyjny.');
+    await expect(page.locator('#f-privacy')).toBeChecked();
     expect(posts).toEqual([]);
     expect(await page.evaluate(() => window.formEvents)).not.toContain('form_submit_success');
     await expect(page.locator('script[src*="challenges.cloudflare.com"]')).toHaveCount(0);

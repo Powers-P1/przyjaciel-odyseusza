@@ -1,8 +1,8 @@
 # Wersja B („lekka”) – założenia redakcyjne i źródła
 
-Wersja B to ta sama strona co wersja A: ten sam układ sekcji, ta sama warstwa techniczna, te same
-testy. Różni się wyłącznie ilością i formą tekstu. Powstała po to, żeby klient mógł porównać dwa
-sposoby mówienia o tej samej ofercie: pełny (A) i skanowalny (B).
+Wersja B powstała jako krótsza redakcyjnie odmiana wersji A, z tą samą warstwą techniczną.
+Po uwagach accounta z 19.09.2026 usunięto z B cennik, jego pozycję w nawigacji i cenę w danych
+strukturalnych oraz skrócono odstęp po sekcji „O mnie”. Sekcja „Dla kogo” pozostaje.
 
 ## 1. Co mówią badania o czytaniu stron
 
@@ -25,7 +25,7 @@ sposoby mówienia o tej samej ofercie: pełny (A) i skanowalny (B).
 
 1. **Budżet 450–550 słów** treści merytorycznej (wersja A ma ok. 1100), twardy limit 600.
    Rozkład: hero 30–40 · pasek faktów 3 × 6–10 · oferta 80–100 · dla kogo 55–70 · sytuacje 55–70 ·
-   współpraca z zasadami i cennikiem 110–140 · o mnie 65–85 · kontakt 35–50.
+   współpraca z zasadami 110–140 · o mnie 65–85 · kontakt 35–50.
 2. **Najpierw prostsze słowo, potem cięcie.** Żargon („transformacja”, „kompetencje”, „przestrzeń”)
    zamieniony na słowa codzienne; wyrazy trzysylabowe i dłuższe poniżej 15%.
 3. **Zdania 12–16 wyrazów, żadne powyżej 20.** Jedna myśl na zdanie, strona czynna, formy osobowe.
@@ -34,13 +34,14 @@ sposoby mówienia o tej samej ofercie: pełny (A) i skanowalny (B).
    wyrazach – bo tyle widzi oko podczas skanowania.
 6. **Listy zamiast akapitów** tam, gdzie treść jest wyliczeniem: 3–6 punktów po 5–12 słów,
    z równoległą składnią.
-7. **Jedno wezwanie do działania** o tej samej treści w trzech miejscach: hero, po cenniku, kontakt.
-8. **Cennik zostaje jawny** – to najczęściej poszukiwana informacja.
+7. **Spójna ścieżka kontaktu** prowadzi z hero i oferty do formularza; przycisk formularza opisuje jego działanie.
+8. **Cennik usunięty po uwagach accounta.** W B nie publikujemy stawki w treści, nawigacji,
+   danych strukturalnych ani `llms.txt`. Dawna kotwica `#cennik` prowadzi do kontaktu.
 
 ## 3. Czego świadomie nie zrobiono
 
-- **Nie usunięto żadnej sekcji.** Wersja B ma pokazać wpływ samego tekstu; różnica w układzie
-  zaciemniłaby porównanie. Wariant z mniejszą liczbą sekcji to wersja C.
+- **Zachowano sekcję „Dla kogo”.** Usunięcie cennika nie zmienia prezentacji firm jako głównych
+  odbiorców i osób prywatnych jako drugiej grupy.
 - **Nie dodano nowych treści.** Każdy fakt, liczba i nazwa pochodzi z wersji A; korekta odrzuca
   wszystko, czego nie ma w źródle.
 - **Nie skracano poniżej 450 słów.** Poniżej tego progu strona przestaje odpowiadać na pytania

@@ -4,7 +4,7 @@ import { onRequestPost, onRequest } from '../../functions/api/contact.js';
 
 const VALID = {
   name: 'Test Testowy', email: 'test@example.com', phone: '', subject_for: 'firma',
-  message: 'Wiadomość testowa bez prawdziwej wysyłki.', website: '',
+  message: 'Wiadomość testowa bez prawdziwej wysyłki.', website: '', privacy_acknowledged: 'yes',
   'cf-turnstile-response': 'test-token',
 };
 const ENV = { RESEND_API_KEY: 'unit-test-only', TURNSTILE_SECRET: 'unit-test-only' };
@@ -34,8 +34,38 @@ test('niepoprawny JSON i brak wymaganych pól nie uruchamiają wysyłki', async 
   assert.equal((await onRequestPost({ request: malformed, env: ENV })).status, 400);
   const response = await call({});
   assert.equal(response.status, 422);
-  assert.deepEqual((await response.json()).fields, ['name', 'email', 'message']);
+  assert.deepEqual((await response.json()).fields, ['name', 'email', 'message', 'privacy_acknowledged']);
   assert.equal(fetchMock.mock.callCount(), 0);
+});
+
+test('brak lub niepoprawne potwierdzenie informacji o danych daje 422 bez połączeń zewnętrznych', async (t) => {
+  const fetchMock = rejectNetwork(t);
+  for (const privacy_acknowledged of [undefined, null, '', 'no', false, true, 1, 'true', ['yes'], { value: 'yes' }]) {
+    const response = await call({ ...VALID, privacy_acknowledged });
+    assert.equal(response.status, 422);
+    assert.deepEqual(await response.json(), { ok: false, error: 'validation', fields: ['privacy_acknowledged'] });
+  }
+  assert.equal(fetchMock.mock.callCount(), 0);
+});
+
+test('formularz URL-encoded wymaga tego samego potwierdzenia co JSON', async (t) => {
+  const fetchMock = t.mock.method(globalThis, 'fetch', async (url) =>
+    Response.json(url.includes('siteverify') ? { success: true } : { id: 'test-only' }));
+  for (const acknowledged of [false, true]) {
+    const data = { ...VALID };
+    if (!acknowledged) delete data.privacy_acknowledged;
+    const response = await onRequestPost({
+      request: new Request('https://example.test/api/contact', {
+        method: 'POST', headers: { Accept: 'application/json' }, body: new URLSearchParams(data),
+      }), env: ENV,
+    });
+    assert.equal(response.status, acknowledged ? 200 : 422);
+    if (!acknowledged) {
+      assert.deepEqual((await response.json()).fields, ['privacy_acknowledged']);
+      assert.equal(fetchMock.mock.callCount(), 0);
+    }
+  }
+  assert.equal(fetchMock.mock.callCount(), 2);
 });
 
 test('honeypot nie kontaktuje się z dostawcami', async (t) => {

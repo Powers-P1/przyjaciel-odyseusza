@@ -5,6 +5,7 @@ async function fillValid(page) {
   await page.fill('#f-name', 'Jan Kowalski');
   await page.fill('#f-email', 'jan@example.com');
   await page.fill('#f-message', MESSAGE);
+  await page.check('#f-privacy');
 }
 
 test.describe('Formularz kontaktowy: bezpieczna walidacja serwera', () => {
@@ -13,7 +14,7 @@ test.describe('Formularz kontaktowy: bezpieczna walidacja serwera', () => {
   test('puste dane → 422 z listą pól', async ({ request }) => {
     const response = await request.post('/api/contact', { data: {} });
     expect(response.status()).toBe(422);
-    expect((await response.json()).fields.sort()).toEqual(['email', 'message', 'name']);
+    expect((await response.json()).fields.sort()).toEqual(['email', 'message', 'name', 'privacy_acknowledged']);
   });
 
   test('nieprawidłowe kształty JSON → 400', async ({ request }) => {
@@ -45,9 +46,31 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
     await expect(page.locator('#f-name-error')).toHaveText('Podaj imię i nazwisko.');
     await expect(page.locator('#f-email-error')).toContainText('poprawny adres e-mail');
     await expect(page.locator('#f-message-error')).toBeVisible();
+    await expect(page.locator('#f-privacy-error')).toBeVisible();
     await page.fill('#f-name', 'Jan Kowalski');
     await expect(page.locator('#f-name-error')).toBeHidden();
     await expect(page.locator('#f-name')).toHaveAttribute('aria-invalid', 'false');
+  });
+
+  test('brak potwierdzenia informacji o danych blokuje wysyłkę i kieruje fokus na checkbox', async ({ page }) => {
+    let posts = 0;
+    page.on('request', (request) => { if (request.method() === 'POST') posts++; });
+    await page.goto('/');
+    await fillValid(page);
+    const acknowledgment = page.getByRole('checkbox', { name: /Dane z formularza wykorzystam/ });
+    await acknowledgment.uncheck();
+    await page.getByRole('button', { name: 'Wyślij formularz', exact: true }).click();
+    await expect(acknowledgment).toBeFocused();
+    await expect(acknowledgment).toHaveAttribute('aria-invalid', 'true');
+    await expect(acknowledgment).toHaveAttribute('aria-describedby', 'f-privacy-error');
+    await expect(page.locator('#f-privacy-error')).toContainText('Potwierdź zapoznanie się');
+    await expect(page.locator('#form-status')).toBeEmpty();
+    expect(posts).toBe(0);
+    await acknowledgment.press('Space');
+    await expect(acknowledgment).toBeChecked();
+    await expect(acknowledgment).toHaveAttribute('aria-invalid', 'false');
+    await expect(page.locator('#f-privacy-error')).toBeHidden();
+    await expect(page.locator('#f-message')).toHaveValue(MESSAGE);
   });
 
   test('demo informuje o braku wysyłki i zachowuje dane', async ({ page }) => {
@@ -61,6 +84,7 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
     await expect(page.locator('#form-status')).toContainText('Wersja demonstracyjna — formularz nie wysyła wiadomości.');
     await expect(page.locator('#f-message')).toHaveValue(MESSAGE);
     expect(posts).toBe(0);
+    await expect(page.locator('#f-privacy')).toBeChecked();
     expect(await page.evaluate(() => window.dataLayer.some((event) => event.event === 'form_submit_success'))).toBe(false);
   });
 
@@ -84,6 +108,7 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
     let posts = 0;
     await page.route('**/api/contact', async (route) => {
       posts++;
+      expect(route.request().postDataJSON().privacy_acknowledged).toBe('yes');
       await route.fulfill({ json: { ok: true } });
     });
     await page.goto('/');
@@ -92,6 +117,7 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
     await expect(page.locator('#form-status')).toContainText('Dziękuję');
     expect(posts).toBe(1);
     await expect(page.locator('#f-message')).toHaveValue('');
+    await expect(page.locator('#f-privacy')).not.toBeChecked();
   });
 
   test('brak odpowiedzi kończy oczekiwanie i zachowuje dane', async ({ page }) => {

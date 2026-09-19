@@ -4,6 +4,10 @@ Dokument wewnętrzny (agencja). Sekcje 1–4b zachowują historyczny zapis anali
 nie stanowią potwierdzenia akceptacji całego obecnego tekstu. Aktualny zakres wariantów i implementacji
 opisują sekcje 4c–7, zaktualizowane 19.09.2026. Wyniki dawnych pomiarów nie są wynikami bieżącego kodu.
 
+Aktualizacja wersji B po uwagach accounta z 19.09.2026: cennik usunięto z treści, nawigacji,
+danych strukturalnych i `llms.txt`; `#cennik` prowadzi do kontaktu. Historyczne uwagi poniżej
+o zachowaniu cennika nie opisują obecnej wersji B. Sekcja „Dla kogo” pozostaje.
+
 Najnowsza instrukcja daje swobodę redakcji i układu w kierunku „Pełne morze”. Narracja ma prowadzić
 odbiorcę B2B (około 70% nacisku), zachowując ofertę indywidualną u góry (około 30%). Mentoring i coaching
 pozostają równorzędne. Nie ma obowiązku pełnego justowania, minimalnej liczby słów ani publikacji całego CV.

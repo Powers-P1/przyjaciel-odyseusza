@@ -891,6 +891,30 @@ Stosuj następujące oznaczenia:
 
 > To, co da się wiarygodnie sprawdzić automatycznie, nie powinno zależeć od pamięci developera lub agenta.
 
+**Uwagi accounta — 19.09.2026, kolejna iteracja:**
+
+- A/B/C: powiększony portret i H1, osobne wiersze nazwiska i roli, dwa CTA i trzy fakty.
+  Usunięto wskazane dopiski hero; informacja B2B-first z możliwością współpracy prywatnej jest na początku oferty.
+- B/C: symbole mentoringu i coachingu, szersze wprowadzenie oferty, ręczny slider sześciu jawnie oznaczonych
+  przykładów (bez autoplay, z klawiaturą, natywnym przewijaniem i pełną treścią bez JS).
+- B: usunięty cennik, odpowiadające mu linki i dane ceny; mniejszy odstęp po sekcji „O mnie”.
+  C: krótszy układ „O mnie”, osobne akapity rozpoczynające się od „Łączę” i „Odpowiem”.
+- B/C: wymagane potwierdzenie informacji o danych, zatwierdzone przez zlecającego, oraz przycisk
+  „Wyślij formularz”. Walidacja HTML/JS i backendu; to potwierdzenie informacji, nie zgoda marketingowa.
+  Wymagalność pola nie oznacza zatwierdzenia całej dokumentacji prawnej.
+- Podgląd pozostaje demonstratorem: widoczny komunikat przed przyciskiem, brak POST, zachowane pola;
+  nie uruchamiano rzeczywistej wysyłki ani zmian DNS.
+- Porównanie z uwagami i zrzutami: sprawdzono copy, hierarchię, kadr portretu, kolory, ikony, odstępy
+  i układy 390/834/1440 px; hero dodatkowo 320/1366/1920/2560 px. Treści nie są wymuszane w jednym
+  wierszu na małych ekranach. Browser plugin niedostępny; użyto repozytoryjnego Playwright.
+- Wyniki poniższego starszego przeglądu dotyczą poprzedniej iteracji. Nową publikację zatwierdza pełny CI
+  przypięty do SHA, łącznie z WebKit i kontrolą podglądu po wdrożeniu.
+- Zweryfikowane lokalnie po tych zmianach: A 268, B 292, C 292 testy przeszły; po 8 pominięć
+  wynikających z warunków testów, bez błędów i niestabilnych powtórek w końcowym przebiegu.
+  Chromium, Firefox i Pixel 7; build, HTML/CSS/CSP i typografia poprawne.
+  Backend: A 11/11, B i C po 13/13. Dodatkowa kontrola wygenerowanego demo B/C:
+  wymagany checkbox, brak POST i brak czyszczenia danych po kliknięciu przycisku.
+
 - [x] Build produkcyjny uruchamia się w CI.
   - Dowód: krok `npm run build` + `git diff --exit-code -- public` w `.github/workflows/qa.yml` przechodzi na `ubuntu-latest` (17.09.2026) – build jest powtarzalny między Windows a Linuksem (LF wymuszone w `.gitattributes`, esbuild z lockfile).
 

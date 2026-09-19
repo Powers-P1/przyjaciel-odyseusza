@@ -85,6 +85,72 @@
     reveals.forEach(function (el) { el.classList.add('is-visible'); });
   }
 
+  /* ---------- ręcznie przewijane przykłady opinii ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('[data-testimonial-slider]'), function (slider) {
+    var track = slider.querySelector('.testimonials');
+    var cards = track ? track.querySelectorAll('.testimonial') : [];
+    var controls = slider.querySelector('.testimonial-slider__controls');
+    var previous = slider.querySelector('[data-testimonial-prev]');
+    var next = slider.querySelector('[data-testimonial-next]');
+    var counter = slider.querySelector('.testimonial-slider__status');
+    if (cards.length < 2 || !controls || !previous || !next || !counter) return;
+
+    // Bez uruchomienia skryptu wszystkie karty pozostają w zwykłej siatce.
+    track.classList.add('testimonials--slider');
+    track.setAttribute('tabindex', '0');
+    track.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight Home End');
+    controls.hidden = false;
+    var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var frame = 0;
+
+    function view() {
+      var gap = parseFloat(window.getComputedStyle(track).columnGap) || 0;
+      var step = cards[0].getBoundingClientRect().width + gap;
+      var visible = Math.max(1, Math.min(cards.length, Math.round((track.clientWidth + gap) / step)));
+      var first = Math.max(0, Math.min(cards.length - visible, Math.round(track.scrollLeft / step)));
+      return { step: step, visible: visible, first: first };
+    }
+    function sync() {
+      frame = 0;
+      var state = view();
+      previous.disabled = track.scrollLeft <= 1;
+      next.disabled = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1;
+      var range = state.visible === 1 ? String(state.first + 1) : (state.first + 1) + '–' + (state.first + state.visible);
+      var label = (state.visible === 1 ? 'Przykład ' : 'Przykłady ') + range + ' z\u00a0' + cards.length;
+      if (counter.textContent !== label) counter.textContent = label;
+    }
+    function scheduleSync() {
+      if (!frame) frame = window.requestAnimationFrame(sync);
+    }
+    function move(index) {
+      var state = view();
+      var target = Math.max(0, Math.min(cards.length - state.visible, index));
+      track.scrollTo({ left: target * state.step, behavior: motion.matches ? 'auto' : 'smooth' });
+    }
+    previous.addEventListener('click', function () {
+      var state = view();
+      move(state.first - state.visible);
+    });
+    next.addEventListener('click', function () {
+      var state = view();
+      move(state.first + state.visible);
+    });
+    track.addEventListener('keydown', function (event) {
+      if (event.target !== track || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      var state = view();
+      if (event.key === 'ArrowLeft') move(state.first - state.visible);
+      else if (event.key === 'ArrowRight') move(state.first + state.visible);
+      else if (event.key === 'Home') move(0);
+      else if (event.key === 'End') move(cards.length);
+      else return;
+      event.preventDefault();
+    });
+    track.addEventListener('scroll', scheduleSync, { passive: true });
+    if ('ResizeObserver' in window) new ResizeObserver(scheduleSync).observe(track);
+    else window.addEventListener('resize', scheduleSync);
+    sync();
+  });
+
   /* ---------- rok w stopce ---------- */
   var rok = document.getElementById('rok');
   if (rok) rok.textContent = String(new Date().getFullYear());
@@ -128,7 +194,8 @@
   var fields = {
     name: form.elements.namedItem('name'),
     email: form.elements.namedItem('email'),
-    message: form.elements.namedItem('message')
+    message: form.elements.namedItem('message'),
+    privacy_acknowledged: form.elements.namedItem('privacy_acknowledged')
   };
 
   /* Cloudflare Turnstile – ładowany tylko, gdy ustawiono klucz w data-turnstile-sitekey */
@@ -210,21 +277,23 @@
     if (key === 'name') ok = v.length >= 2;
     if (key === 'email') ok = EMAIL_RE.test(v);
     if (key === 'message') ok = v.length >= 10;
+    if (key === 'privacy_acknowledged') ok = el.checked;
     setError(el, !ok);
     return ok;
   }
 
   function validateAll() {
     var ok = true;
-    ['name', 'email', 'message'].forEach(function (k) { if (!validateField(k)) ok = false; });
+    Object.keys(fields).forEach(function (k) { if (!validateField(k)) ok = false; });
     return ok;
   }
 
   Object.keys(fields).forEach(function (k) {
     var el = fields[k];
     if (!el) return;
-    el.addEventListener('blur', function () { if (el.value.trim()) validateField(k); });
+    el.addEventListener('blur', function () { if (el.type === 'checkbox' ? el.checked : el.value.trim()) validateField(k); });
     el.addEventListener('input', function () { if (el.classList.contains('is-invalid')) validateField(k); });
+    if (el.type === 'checkbox') el.addEventListener('change', function () { validateField(k); });
   });
 
   var formStarted = false;

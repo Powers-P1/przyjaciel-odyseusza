@@ -127,13 +127,13 @@ test.describe('Klawiatura i focus', () => {
 
   test('formularz: wymagane pola, błędy powiązane programowo, status aria-live', async ({ page }) => {
     await page.goto('/');
-    for (const id of ['f-name', 'f-email', 'f-message']) {
+    for (const id of ['f-name', 'f-email', 'f-message', 'f-privacy']) {
       const input = page.locator(`#${id}`);
       await expect(input).toHaveAttribute('required', '');
       await expect(page.locator(`label[for="${id}"]`)).toHaveCount(1);
     }
     await page.locator('#formularz .form__submit').click();
-    for (const id of ['f-name', 'f-email', 'f-message']) {
+    for (const id of ['f-name', 'f-email', 'f-message', 'f-privacy']) {
       const input = page.locator(`#${id}`);
       await expect(input).toHaveAttribute('aria-invalid', 'true');
       await expect(input).toHaveAttribute('aria-describedby', `${id}-error`);

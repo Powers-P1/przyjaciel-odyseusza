@@ -61,12 +61,25 @@ test.describe('Linki i zasoby', () => {
     expect(sitemap).not.toMatch(/localhost|pages\.dev/);
   });
 
-  test('widoczna treść strony głównej nie zawiera atrap', async ({ page }) => {
+  test('widoczna treść strony głównej nie zawiera nieoznaczonych atrap', async ({ page }) => {
     // Sprawdzamy tekst wyrenderowany (innerText pomija elementy ukryte), a nie źródło HTML.
     await page.goto('/');
     const widoczny = tekstWidoczny(await page.locator('body').innerText());
     expect(widoczny, 'atrapa w widocznej treści')
-      .not.toMatch(/miejsce na opinię|do uzupełnienia|imię i nazwisko,\s*stanowisko|lorem ipsum/i);
+      .not.toMatch(/do uzupełnienia|imię i nazwisko,\s*stanowisko|lorem ipsum/i);
+    // Wyłącznie zatwierdzony podgląd slidera może zawierać jawne miejsca na przyszłe opinie.
+    // Nadal sprawdzamy te karty powyżej pod kątem pozostałych atrap, a poniżej ich oznaczenia.
+    const unmarked = await page.locator('body').evaluate((body) => {
+      const matches = (element) => /miejsce na opinię/i.test(
+        (element.innerText || '').replace(/\u00a0/g, ' ').replace(/\u00ad/g, ''),
+      );
+      return [...body.querySelectorAll('*')]
+        .filter((element) => element.getClientRects().length && matches(element))
+        .filter((element) => ![...element.children].some(matches))
+        .filter((element) => !element.closest('#opinie[data-przyklad="tak"] [data-testimonial-slider] .testimonial'))
+        .map((element) => element.innerText);
+    });
+    expect(unmarked, 'miejsce na opinię poza oznaczonym podglądem').toEqual([]);
   });
 
   test('przykładowe opinie mają widoczne oznaczenie, nie udają rekomendacji', async ({ page }) => {
@@ -76,7 +89,20 @@ test.describe('Linki i zasoby', () => {
     if (await opinie.getAttribute('data-przyklad') !== null) {
       const label = opinie.locator('.sample-note');
       await expect(label).toBeVisible();
-      expect(tekstWidoczny(await label.innerText())).toMatch(/Przykładowy układ opinii.*treść do zatwierdzenia/i);
+      const text = tekstWidoczny(await label.innerText());
+      if (await opinie.locator('[data-testimonial-slider]').count()) {
+        expect(text).toMatch(/Sześć przykładów układu/i);
+        expect(text).toMatch(/to nie są opinie klientów/i);
+        expect(text).toMatch(/Treści i podpisy wymagają zatwierdzenia przed publikacją/i);
+        const cards = opinie.locator('.testimonial');
+        await expect(cards).toHaveCount(6);
+        for (let index = 0; index < 6; index++) {
+          expect(tekstWidoczny(await cards.nth(index).locator('cite').innerText()))
+            .toBe(`Przykład układu 0${index + 1} / 06`);
+        }
+      } else {
+        expect(text).toMatch(/Przykładowy układ opinii.*treść do zatwierdzenia/i);
+      }
     } else {
       expect(tekstWidoczny(await opinie.innerText())).not.toMatch(/przykładowy|imię i nazwisko|do zatwierdzenia/i);
     }

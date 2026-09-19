@@ -49,7 +49,7 @@ function respond(status, body, wantsJson) {
   // Wynik musi być czytelny także bez JS — parametr w URL sam nie pokaże komunikatu.
   const title = body.ok ? 'Dziękuję za wiadomość.' : 'Nie udało się wysłać wiadomości.';
   const descriptions = {
-    validation: 'Sprawdź imię i nazwisko, adres e-mail oraz treść wiadomości (co najmniej 10 znaków).',
+    validation: 'Sprawdź imię i nazwisko, adres e-mail oraz treść wiadomości (co najmniej 10 znaków). Potwierdź też zapoznanie się z informacją o wykorzystaniu danych.',
     turnstile: 'Weryfikacja antyspamowa wymaga JavaScriptu. Włącz go lub skorzystaj z kontaktu poniżej.',
     turnstile_unavailable: 'Weryfikacja antyspamowa jest chwilowo niedostępna. Spróbuj ponownie później.',
     mail_timeout: 'Nie udało się potwierdzić wysyłki w wyznaczonym czasie. Wiadomość mogła już dotrzeć.',
@@ -97,6 +97,7 @@ export async function onRequestPost({ request, env }) {
   if (name.length < 2) invalid.push('name');
   if (!EMAIL_RE.test(email)) invalid.push('email');
   if (message.length < 10) invalid.push('message');
+  if (data.privacy_acknowledged !== 'yes') invalid.push('privacy_acknowledged');
   if (invalid.length) return respond(422, { ok: false, error: 'validation', fields: invalid }, wantsJson);
 
   // Fail-closed. Weryfikacja Turnstile jest warunkowa, żeby formularz działał na emulacji lokalnej

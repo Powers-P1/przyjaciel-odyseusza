@@ -22,11 +22,19 @@ test.describe('O mnie: biografia, portret i czytelne kwalifikacje', () => {
       const [layout, intro, portrait, qualifications] = await Promise.all(
         [about, copy, figure, credentials].map((element) => element.boundingBox()),
       );
-      expect(Math.abs(qualifications.width - layout.width)).toBeLessThanOrEqual(1);
-      expect(qualifications.y).toBeGreaterThanOrEqual(
-        Math.max(intro.y + intro.height, portrait.y + portrait.height),
-      );
-      if (width < 896) expect(portrait.y).toBeGreaterThanOrEqual(intro.y + intro.height);
+      await expect(copy.locator('p').filter({ hasText: /^Łączę/ })).toHaveCount(1);
+      if (width < 896) {
+        expect(Math.abs(qualifications.width - layout.width)).toBeLessThanOrEqual(1);
+        expect(portrait.y).toBeGreaterThanOrEqual(intro.y + intro.height);
+        expect(qualifications.y).toBeGreaterThanOrEqual(portrait.y + portrait.height);
+      } else {
+        expect(Math.abs(qualifications.x - intro.x)).toBeLessThanOrEqual(1);
+        expect(Math.abs(qualifications.width - intro.width)).toBeLessThanOrEqual(1);
+        expect(qualifications.y).toBeGreaterThanOrEqual(intro.y + intro.height);
+        expect(portrait.x).toBeGreaterThan(intro.x + intro.width);
+        expect(portrait.y).toBeLessThan(qualifications.y + qualifications.height);
+        expect(portrait.y + portrait.height).toBeGreaterThan(qualifications.y);
+      }
 
       const groups = credentials.locator(':scope > div');
       const first = await groups.nth(0).boundingBox();

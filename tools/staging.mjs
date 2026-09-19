@@ -69,7 +69,7 @@ function demoForm(html) {
     const note = '<p class="form__privacy" id="form-demo-note">To formularz demonstracyjny. Możesz sprawdzić poprawność pól, ale wiadomość nie zostanie wysłana. Wpisane dane pozostaną w&nbsp;formularzu. Aby porozmawiać, skorzystaj z&nbsp;podanego adresu e-mail lub telefonu.</p>';
     return form.replace(/<button\b([^>]*\bclass="[^"]*\bform__submit\b[^"]*"[^>]*)>[\s\S]*?<\/button>/, (_, attrs) => {
       attrs = attrs.replace(/\sdisabled(?:="[^"]*")?/g, '');
-      return `${note}\n        <button${attrs} disabled data-demo-submit="true">Sprawdź formularz</button>`;
+      return `${note}\n        <button${attrs} disabled data-demo-submit="true">Wyślij formularz</button>`;
     });
   });
 }

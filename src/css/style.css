@@ -393,8 +393,9 @@ button { font: inherit; color: inherit; }
   background: transparent; color: var(--ink); cursor: pointer;
   transition: background-color .25s var(--ease), color .25s var(--ease);
 }
-.testimonial-slider__button:hover:not(:disabled) { background: var(--teal); color: var(--paper); }
-.testimonial-slider__button:disabled { opacity: .4; cursor: default; }
+.testimonial-slider__button:hover:not([aria-disabled="true"]) { background: var(--teal); color: var(--paper); }
+.testimonial-slider__button[aria-disabled="true"] { cursor: default; }
+.testimonial-slider__button[aria-disabled="true"] svg { opacity: .4; }
 @media (max-width: 47.99em) { .testimonials { grid-template-columns: 1fr; } }
 @media (max-width: 47.99em) { .testimonials--slider { grid-template-columns: none; grid-auto-columns: 100%; } }
 @media (prefers-reduced-motion: reduce) { .testimonials--slider { scroll-behavior: auto; } }

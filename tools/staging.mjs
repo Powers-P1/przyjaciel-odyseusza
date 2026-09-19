@@ -5,6 +5,7 @@
 //  - meta robots „noindex, nofollow” na każdej stronie; robots.txt bez sitemapy; sitemap.xml pominięta,
 //  - .nojekyll (GitHub Pages nie uruchamia Jekylla i serwuje .well-known/),
 //  - bez _headers i _redirects (GitHub Pages ich nie obsługuje: brak nagłówków bezpieczeństwa i funkcji /api/contact).
+//  - formularz jawnie demonstracyjny: walidacja bez wysyłki; bez JS przycisk pozostaje wyłączony.
 // Użycie: STAGING_URL=https://powers-p1.github.io/przyjaciel-odyseusza/ node tools/staging.mjs [--out dist-gh]
 // Domyślny adres (bez STAGING_URL): https://powers-p1.github.io/przyjaciel-odyseusza/
 import fs from 'node:fs';
@@ -55,6 +56,24 @@ function robotsMeta(html) {
   return html.replace('</head>', `  <!-- wersja testowa, build ${process.env.BUILD_ID || 'lokalny'} -->\n</head>`);
 }
 
+function demoForm(html) {
+  return html.replace(/<form\b[^>]*\bid="formularz"[^>]*>[\s\S]*?<\/form>/, (form) => {
+    form = form.replace(/<form\b([^>]*)>/, (_, attrs) => {
+      attrs = attrs.replace(/\sdata-demo="[^"]*"/g, '').replace(/\sdata-turnstile-sitekey="[^"]*"/g, '');
+      const describedBy = attrs.match(/\saria-describedby="([^"]*)"/);
+      const ids = new Set((describedBy?.[1] || '').split(/\s+/).filter(Boolean));
+      ids.add('form-demo-note');
+      attrs = attrs.replace(/\saria-describedby="[^"]*"/, '');
+      return `<form${attrs} data-demo="true" aria-describedby="${[...ids].join(' ')}">`;
+    });
+    const note = '<p class="form__privacy" id="form-demo-note">To formularz demonstracyjny. Możesz sprawdzić poprawność pól, ale wiadomość nie zostanie wysłana. Wpisane dane pozostaną w&nbsp;formularzu. Aby porozmawiać, skorzystaj z&nbsp;podanego adresu e-mail lub telefonu.</p>';
+    return form.replace(/<button\b([^>]*\bclass="[^"]*\bform__submit\b[^"]*"[^>]*)>[\s\S]*?<\/button>/, (_, attrs) => {
+      attrs = attrs.replace(/\sdisabled(?:="[^"]*")?/g, '');
+      return `${note}\n        <button${attrs} disabled data-demo-submit="true">Sprawdź formularz</button>`;
+    });
+  });
+}
+
 function check(html, file) {
   const problems = [];
   if (base) {
@@ -68,10 +87,25 @@ function check(html, file) {
   }
   for (const prod of PROD) if (html.includes(prod)) problems.push(`został adres produkcyjny ${prod}`);
   if (!html.includes(ROBOTS_META)) problems.push('brak meta robots noindex');
+  if (html.includes('id="formularz"')) {
+    if (!html.includes('data-demo="true"') || !html.includes('id="form-demo-note"')
+      || !html.includes('disabled data-demo-submit="true"')) problems.push('formularz nie ma kompletnego oznaczenia i zabezpieczenia trybu demo');
+  }
   if (problems.length) throw new Error(`${file}:\n  ${problems.join('\n  ')}`);
 }
 
-fs.rmSync(out, { recursive: true, force: true });
+// Skrypt usuwa wyłącznie własny katalog wynikowy, nigdy public/, repo ani jego przodka.
+const destination = path.resolve(out);
+const source = path.resolve(SRC);
+const workspace = path.resolve('.');
+if (!destination.startsWith(workspace + path.sep)
+  || ['.git', 'src', 'tools', 'tests', 'functions', 'docs', 'node_modules'].includes(path.relative(workspace, destination).split(path.sep)[0])
+  || destination === workspace || workspace.startsWith(destination + path.sep)
+  || destination === source || source.startsWith(destination + path.sep)
+  || destination.startsWith(source + path.sep)) {
+  throw new Error(`Niebezpieczny katalog wynikowy: ${destination}`);
+}
+fs.rmSync(destination, { recursive: true, force: true });
 let files = 0;
 let changed = 0;
 (function walk(dir) {
@@ -89,7 +123,7 @@ let changed = 0;
     else if (entry.name === 'llms.txt') after = rewrite(before, entry.name).replace(/\n## Opcjonalnie\n[\s\S]*?(?=\n## |\s*$)/, '').trimEnd() + '\n'; // sekcja z sitemapą, której na hostingu testowym nie ma
     else {
       after = rewrite(before, entry.name);
-      if (/\.html$/i.test(entry.name)) { after = robotsMeta(after); check(after, to); }
+      if (/\.html$/i.test(entry.name)) { after = demoForm(robotsMeta(after)); check(after, to); }
     }
     if (after !== before) changed++;
     fs.writeFileSync(to, after);

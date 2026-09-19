@@ -39,15 +39,11 @@
      szerokości (--miara), więc wiersze i tak się nie wydłużą. */
   --container: 74rem;
   --miara: 58ch; /* zmierzone: ok. 70 znaków w wierszu przy kroju Inter */
-  /* Najwęższa kolumna, w której justowanie ma jeszcze z czego rozkładać luz: ok. 52 znaki.
-     Poniżej tej szerokości siatki (oferta, dla kogo, współpraca, zasady) schodzą do jednej
-     kolumny – zmierzone: przy kolumnie 360 px pojedyncze wiersze rozjeżdżały się do 9,8
-     zwykłej spacji, przy 440 px najgorszy schodzi poniżej 3. Sam tekst i tak ogranicza --miara. */
-  --min-kolumna: 26rem;
+  --min-kolumna: 22rem;
   --gutter: clamp(1rem, 4vw, 3rem);
   --chamfer: 18px;
   /* pełna wysokość przyklejonego nagłówka razem z kreską pod nim; hero odejmuje dokładnie tyle */
-  --header-h: 5.25rem;
+  --header-h: 6rem;
   --header-line: 1px;
   --ease: cubic-bezier(.2, .7, .2, 1);
 }
@@ -68,47 +64,8 @@ img { height: auto; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .18em; }
 p { margin: 0 0 1em; }
 /* bez pojedynczych słów w ostatniej linii akapitu (przeglądarki bez text-wrap: pretty ignorują regułę) */
-p, li, dd { text-wrap: pretty; }
+p, li, dt, dd { text-wrap: pretty; }
 
-/* Justowanie tekstu ciągłego. Bez JavaScriptu zostaje chorągiewka: zachłanne justowanie
-   przeglądarki wygląda gorzej niż wyrównanie do lewej – zmierzone na tej stronie odstępy między
-   wyrazami sięgały mediany 2,4 zwykłej spacji i 9,0 w skrajnym wierszu, co daje widoczne „rzeki”.
-   `text-wrap: pretty` i `balance` tego nie naprawiają (2,8 i 4,4 mediany) – optymalizują
-   chorągiewkę, nie wypełnienie wiersza.
-   src/js/justowanie.js liczy podział na wiersze dla całego akapitu naraz (algorytm Knutha–Plassa,
-   ten sam co w TeX-u) i opakowuje każdy wiersz w blok; ostateczne rozciągnięcie odstępów robi
-   przeglądarka, co do piksela. Wyrazów nie dzielimy. Pomiary: REVIEW.md, sekcja 4e. */
-.jest-justowany .wiersz { display: block; text-align: justify; text-align-last: justify; }
-.jest-justowany .wiersz--ostatni { text-align: left; text-align-last: left; }
-/* Mikrotypografia. Luz wiersza chowamy najpierw w świetle między literami, zamiast oddawać go
-   w całości odstępom; w drugą stronę wolno wiersz ścisnąć, żeby ściągnąć wyraz, któremu zabrakło
-   kilku pikseli – taki wiersz ma odstępy naturalne, więc wychodzi najrówniejszy. Budżet to
-   +2,5% w górę i -3% w dół, w krokach po 0,0025 em: niewidoczne, podczas gdy odstęp rozciągnięty
-   o 200% widać z drugiego końca pokoju. Stopień wybiera src/js/justowanie.js osobno dla każdego
-   wiersza (klasy muszą być wypisane wprost, bo arkusz i skrypt trzyma w zgodzie
-   tools/css-unused.mjs). Pomiary i uzasadnienie progu: REVIEW.md, sekcja 4e. */
-.wiersz.trak-1 { letter-spacing: .0025em; }
-.wiersz.trak-2 { letter-spacing: .005em; }
-.wiersz.trak-3 { letter-spacing: .0075em; }
-.wiersz.trak-4 { letter-spacing: .01em; }
-.wiersz.trak-5 { letter-spacing: .0125em; }
-.wiersz.trak-6 { letter-spacing: .015em; }
-.wiersz.trak-7 { letter-spacing: .0175em; }
-.wiersz.trak-8 { letter-spacing: .02em; }
-.wiersz.trak-9 { letter-spacing: .0225em; }
-.wiersz.trak-10 { letter-spacing: .025em; }
-.wiersz.zwez-1 { letter-spacing: -.0025em; }
-.wiersz.zwez-2 { letter-spacing: -.005em; }
-.wiersz.zwez-3 { letter-spacing: -.0075em; }
-.wiersz.zwez-4 { letter-spacing: -.01em; }
-.wiersz.zwez-5 { letter-spacing: -.0125em; }
-.wiersz.zwez-6 { letter-spacing: -.015em; }
-.wiersz.zwez-7 { letter-spacing: -.0175em; }
-.wiersz.zwez-8 { letter-spacing: -.02em; }
-.wiersz.zwez-9 { letter-spacing: -.0225em; }
-.wiersz.zwez-10 { letter-spacing: -.025em; }
-.wiersz.zwez-11 { letter-spacing: -.0275em; }
-.wiersz.zwez-12 { letter-spacing: -.03em; }
 ul, ol { margin: 0; padding: 0; }
 h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; line-height: 1.15; letter-spacing: -.008em; }
 button { font: inherit; color: inherit; }
@@ -176,7 +133,6 @@ button { font: inherit; color: inherit; }
 .btn:active { transform: translateY(1px); }
 .btn--primary {
   background: var(--gold); color: var(--teal); border-color: var(--gold);
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
 }
 .btn--primary:hover { background: var(--gold-hover); border-color: var(--gold-hover); }
 .btn--outline { background: transparent; border-color: var(--gold); color: var(--paper); }
@@ -200,7 +156,7 @@ button { font: inherit; color: inherit; }
   min-height: calc(var(--header-h) - var(--header-line));
 }
 .brand { display: inline-flex; align-items: center; }
-.brand__logo { width: auto; height: 3.5rem; }
+.brand__logo { width: auto; height: 4.75rem; }
 
 .site-nav__list { display: flex; align-items: center; gap: clamp(1.25rem, 2.5vw, 2.25rem); list-style: none; }
 .site-nav__list a:not(.btn) {
@@ -226,16 +182,18 @@ button { font: inherit; color: inherit; }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::after { transform: translateY(-5px) rotate(-45deg); }
 
 @media (max-width: 47.99em) {
-  :root { --header-h: 4.25rem; }
-  .brand__logo { height: 2.75rem; }
-  .nav-toggle { display: inline-flex; }
-  .site-nav {
+  :root { --header-h: 5rem; }
+  .brand__logo { height: 3.75rem; }
+  .js .nav-toggle { display: inline-flex; }
+  html:not(.js) .site-header__inner { flex-wrap: wrap; padding-block: .5rem; }
+  html:not(.js) .site-nav { width: 100%; }
+  .js .site-nav {
     position: absolute; left: 0; right: 0; top: 100%;
     background: var(--teal-deep); border-bottom: 1px solid var(--teal-line);
     padding: .5rem var(--gutter) 1.5rem;
     display: none;
   }
-  .site-nav.is-open { display: block; }
+  .js .site-nav.is-open { display: block; }
   .site-nav__list { flex-direction: column; align-items: stretch; gap: 0; }
   .site-nav__list li { border-bottom: 1px solid var(--teal-line); }
   .site-nav__list li:last-child { border-bottom: 0; padding-top: 1rem; }
@@ -277,6 +235,7 @@ button { font: inherit; color: inherit; }
 .hero__role { font-size: .9rem; color: var(--mist-soft); letter-spacing: .01em; }
 .hero__lead { font-size: 1.0625rem; max-width: 36rem; margin-bottom: calc(2 * var(--hero-rytm)); }
 .hero__actions { display: flex; flex-wrap: wrap; gap: .85rem; }
+.hero__individual { margin: 1rem 0 0; font-size: .9rem; color: var(--mist-soft); max-width: 36rem; }
 .hero__note { margin: var(--hero-rytm) 0 0; font-size: .85rem; color: var(--mist-soft); }
 
 .hero__figure { position: relative; margin: 0; min-height: 0; align-self: stretch; }
@@ -331,17 +290,17 @@ button { font: inherit; color: inherit; }
 .ticks li { position: relative; padding-left: 1.35rem; }
 .ticks li::before { content: ""; position: absolute; left: 0; top: .82em; width: .7rem; height: 1px; background: var(--gold-ink); }
 .band--teal .ticks li::before { background: var(--gold); }
-/* Próg wyższy niż w pozostałych sekcjach, bo kreska między formami zabiera 8 rem: dopiero
-   od 70 em kolumna tekstu ma tu tyle, ile justowanie potrzebuje (--min-kolumna). */
-@media (max-width: 69.99em) {
+@media (max-width: 55.99em) {
   .modes { grid-template-columns: 1fr; }
   .mode + .mode { border-left: 0; border-top: 1px solid var(--cream-line); padding-left: 0; padding-top: 2rem; margin-top: 2rem; }
 }
 
 /* ---------- dla kogo ---------- */
-/* Kolumna szersza o padding karty (2 × 2,25 rem), bo --min-kolumna dotyczy samego tekstu. */
-.audience { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(calc(var(--min-kolumna) + 4.5rem), 100%), 1fr)); gap: 1.5rem; }
+.audience { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+@media (max-width: 55.99em) { .audience { grid-template-columns: 1fr; } }
 .card { background: var(--cream-2); padding: clamp(1.5rem, 3vw, 2.25rem); border-top: 2px solid var(--gold); }
+.card--business { border-top-color: var(--gold-ink); }
+.card--individual { background: transparent; border: 1px solid var(--cream-line); }
 .card--chamfer { clip-path: polygon(0 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer), 100% 100%, 0 100%); }
 .card__label { margin: 0 0 .75rem; font: 600 .75rem/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-ink); }
 .card__title { font-size: 1.4rem; margin-bottom: .85rem; }
@@ -359,8 +318,6 @@ button { font: inherit; color: inherit; }
 .situation__icon { color: var(--ink-soft); }
 .situation__title { font-size: 1.3rem; }
 .situation__desc { margin: 0; max-width: var(--miara); }
-/* Próg 58 em, nie 48: przy czterech kolumnach opis dostaje 1,6fr z reszty wiersza, więc poniżej
-   tej szerokości spadał do ok. 340 px – zmierzone 14,3 zwykłej spacji w najgorszym wierszu. */
 @media (max-width: 57.99em) {
   .situation { grid-template-columns: 2.5rem minmax(0, 1fr); gap: .5rem 1rem; padding: 1.4rem 0; }
   .situation__num { display: none; }
@@ -372,7 +329,8 @@ button { font: inherit; color: inherit; }
 .section-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-top: 2.5rem; }
 
 /* ---------- współpraca ---------- */
-.steps { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--min-kolumna), 100%), 1fr)); gap: 2.5rem 3rem; }
+.steps { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem 3rem; }
+@media (max-width: 47.99em) { .steps { grid-template-columns: 1fr; } }
 .step { position: relative; padding-top: 1.5rem; border-top: 1px solid var(--teal-line); }
 .step::before { content: ""; position: absolute; top: -4px; left: 0; width: 7px; height: 7px; background: var(--gold); transform: rotate(45deg); }
 .step__num { display: block; font: 400 1.6rem/1 var(--serif); color: var(--gold); margin-bottom: .9rem; }
@@ -410,18 +368,11 @@ button { font: inherit; color: inherit; }
   pointer-events: none;
 }
 
-.origin {
-  grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2rem; align-items: center;
-  margin-top: 1rem; padding: clamp(1.5rem, 3vw, 2.5rem); background: var(--cream-2);
-  clip-path: polygon(0 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer), 100% 100%, 0 100%);
-}
-.origin__mark { width: 3.75rem; filter: brightness(.6) saturate(.9); }
-.origin__title { font-size: 1.35rem; margin-bottom: .6rem; }
-.origin p { margin: 0; max-width: var(--miara); }
 @media (max-width: 64em) { .about { grid-template-columns: 1fr; } .about__figure { max-width: 30rem; } }
-@media (max-width: 40em) { .origin { grid-template-columns: 1fr; gap: 1.25rem; } }
 
 /* ---------- opinie ---------- */
+.sample-note { max-width: var(--miara); margin: 0 0 1.5rem; padding: .75rem 1rem; border-left: 2px solid var(--gold-ink); font-size: .9rem; }
+
 .testimonials { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
 .testimonial { margin: 0; padding: 2rem; background: var(--cream-2); border-left: 2px solid var(--gold); }
 .testimonial p { font: 400 1.15rem/1.5 var(--serif); color: var(--ink); }
@@ -430,6 +381,8 @@ button { font: inherit; color: inherit; }
 @media (max-width: 47.99em) { .testimonials { grid-template-columns: 1fr; } }
 
 /* ---------- kontakt ---------- */
+#form-demo-note, .form__noscript { padding: 1rem; border: 1px solid var(--gold); color: var(--paper); font-size: .9rem; }
+
 .contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 3rem 4.5rem; align-items: start; }
 .contact__copy .section-title { margin-bottom: 1.25rem; }
 .contact__copy p { max-width: var(--miara); }
@@ -509,13 +462,11 @@ button { font: inherit; color: inherit; }
 @media (prefers-reduced-motion: reduce) { .js .reveal { opacity: 1; transform: none; transition: none; } }
 
 /* ---------- uzupełnienia treści (wersja 05) ---------- */
-.situations__outro { margin-top: 2rem; }
 .principles__intro { max-width: var(--miara); color: var(--mist); margin: .5rem 0 1.5rem; }
 .pricing { margin-top: 3rem; }
 .pricing__list { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1.25rem 2rem; margin: 1.25rem 0 1.5rem; }
 .pricing__row dt { font-family: var(--serif); font-size: 1.125rem; color: var(--gold); }
 .pricing__row dd { margin: .25rem 0 0; color: var(--mist); }
-.about__private { margin-top: 1.5rem; max-width: var(--miara); }
 @media (max-width: 47.99em) {
   .pricing { margin-top: 2.5rem; }
   .pricing__list { grid-template-columns: 1fr; gap: 1rem; }

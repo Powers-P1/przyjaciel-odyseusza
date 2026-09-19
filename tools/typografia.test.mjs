@@ -9,6 +9,12 @@ import { execFileSync } from 'node:child_process';
 
 const przypadki = [
   {
+    nazwa: 'dłuższe spójniki nie tworzą nierozrywalnych łańcuchów',
+    wejscie: '<p>Rozmowa oraz praca nad decyzją i wyborem kierunku daje przestrzeń.</p>',
+    zawiera: ['oraz praca nad decyzją i&nbsp;wyborem'],
+    niezawiera: ['oraz&nbsp;', 'nad&nbsp;'],
+  },
+  {
     nazwa: 'encja w atrybucie zostaje nietknięta',
     wejscie: '<p>Zobacz <a href="/x?a=1&amp;b=2">ofertę</a> oraz opis.</p>',
     zawiera: ['href="/x?a=1&amp;b=2"'],
@@ -16,8 +22,8 @@ const przypadki = [
   },
   {
     nazwa: 'twarda spacja przechodzi przez znacznik inline',
-    wejscie: '<p>Napisz na <a href="mailto:a@b.pl">adres</a> albo zadzwoń.</p>',
-    zawiera: ['na&nbsp;<a'],
+    wejscie: '<p>Rozmawiamy o <a href="/oferta">współpracy</a> także online.</p>',
+    zawiera: ['o&nbsp;<a'],
   },
   {
     nazwa: 'treść pola formularza i kodu zostaje bez zmian',

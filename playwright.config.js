@@ -3,7 +3,8 @@
 // (nagłówki z _headers, przekierowania z _redirects, funkcja /api/contact, strona 404 ze statusem 404).
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = 8788;
+const PORT = Number(process.env.QA_PORT || 8788);
+if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) throw new Error('QA_PORT musi być numerem portu od 1 do 65535.');
 export const BASE_URL = `http://127.0.0.1:${PORT}`;
 // Windows: przy długiej ścieżce projektu workerd nie otwiera bazy stanu (SQLITE_CANTOPEN).
 // Ustaw WRANGLER_PERSIST_TO na krótką ścieżkę, np. C:\Temp\wrangler-state.

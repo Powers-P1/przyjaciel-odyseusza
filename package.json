@@ -10,10 +10,10 @@
     "build:staging": "node tools/staging.mjs",
     "validate": "html-validate public/index.html public/polityka-prywatnosci.html public/404.html && node tools/css-unused.mjs && node tools/csp-hash.mjs && node tools/typografia.test.mjs",
     "test": "playwright test",
+    "test:backend": "node --test tests/backend/contact-handler.node.js",
     "test:quick": "playwright test --project=chromium --project=mobile-chrome",
     "test:staging": "playwright test --config playwright.staging.config.js",
     "lighthouse": "node tools/lighthouse.mjs",
-    "pomiar:sklad": "node tools/pomiar-skladu.mjs",
     "lighthouse:staging": "node tools/lighthouse.mjs https://powers-p1.github.io/przyjaciel-odyseusza/ docs/lighthouse/staging --allow-noindex",
     "psi:staging": "node tools/psi.mjs https://powers-p1.github.io/przyjaciel-odyseusza/ docs/lighthouse/staging",
     "deploy": "npm run build && wrangler pages deploy"

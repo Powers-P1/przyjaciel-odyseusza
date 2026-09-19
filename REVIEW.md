@@ -1,7 +1,12 @@
 # Review wersji 05 „Pełne morze” – UI/UX, copy, user story
 
-Dokument wewnętrzny (agencja). Podsumowuje analizę korespondencji z klientem, ocenę zaakceptowanej
-makiety z fazy 01 oraz zmiany naniesione w kodzie. Wszystkie poprawki są już wdrożone w `index.html`.
+Dokument wewnętrzny (agencja). Sekcje 1–4b zachowują historyczny zapis analizy z 16–18.09.2026,
+nie stanowią potwierdzenia akceptacji całego obecnego tekstu. Aktualny zakres wariantów i implementacji
+opisują sekcje 4c–7, zaktualizowane 19.09.2026. Wyniki dawnych pomiarów nie są wynikami bieżącego kodu.
+
+Najnowsza instrukcja daje swobodę redakcji i układu w kierunku „Pełne morze”. Narracja ma prowadzić
+odbiorcę B2B (około 70% nacisku), zachowując ofertę indywidualną u góry (około 30%). Mentoring i coaching
+pozostają równorzędne. Nie ma obowiązku pełnego justowania, minimalnej liczby słów ani publikacji całego CV.
 
 ---
 
@@ -178,277 +183,90 @@ o mentoringu („Dzielę się tym, czego nauczyła mnie praktyka zarządzania”
 przeanalizować”) – to zdania, które klient sam przepisał w uwagach jako docelowe, więc zostają w jego brzmieniu.
 Do rozważenia przez klienta przy wyborze wersji.
 
-## 4c. Trzy wersje do wyboru przez klienta (17.09.2026)
+## 4c. Trzy warianty do przeglądu klienta (19.09.2026)
 
-Każda wersja ma osobny adres testowy (spis: <https://powers-p1.github.io/przyjaciel-odyseusza/wersje/>) i osobną
-gałąź w repozytorium. Wspólne dla wszystkich: hero wypełnia pierwszy ekran, typografia bez sierot, ta sama
-warstwa techniczna, testy i CI.
+Wspólne założenia: B2B prowadzi otwarcie, osoba zgłaszająca się samodzielnie jest uwzględniona od razu,
+mentoring i coaching mają równą rangę w pierwszej sekcji po hero. Każdy wariant ma widoczne logo z dopiskiem
+„poznaj siebie”, autentyczne fakty o doświadczeniu menedżerskim i wykształceniu psychologicznym oraz kontakt.
 
-**Wersja A – pełna** (`main`): copy z sekcji 4/4a/4b. Dla klienta, który chce, żeby strona odpowiadała na wszystkie
-pytania bez kontaktu: oferta, dla kogo, sytuacje, przebieg, zasady, cennik, pełne CV, historia nazwy.
-
-**Wersja B – lekka** (`wersja-b`): ten sam układ, tekst skrócony na podstawie badań czytelnictwa
-(założenia i źródła: `docs/wersja-b-zalozenia.md`). Dla czytelnika, który skanuje: nagłówki niosą ofertę same,
-akapit najwyżej trzy zdania, jedno wezwanie do działania w jednym brzmieniu („Umów bezpłatną rozmowę”).
-Hero ma jeden akapit opisu zamiast dwóch. Zachowane wbrew skrótowi: podpis w hero, tytuły kart w „Dla kogo”
-i tabele CV – to najbardziej skanowalne elementy i dowody kompetencji, a ich wycięcie osłabiłoby wiarygodność
-(wariant bez nich to wersja C).
-
-Objętość tekstu w sekcji `main`, bez nawigacji, stopki, formularza i ukrytych opinii:
-
-| Wersja | Słowa | Udział wobec A |
+| Wariant | Charakter | Docelowa gałąź i podgląd |
 | --- | --- | --- |
-| A – pełna | 917 | 100% |
-| B – lekka | 630 | 69% |
-| C – według uwag | 313 | 34% |
+| A | Szerszy kontekst oferty, odbiorców, współpracy i doświadczenia | `main`, katalog główny |
+| B | Zwięzłe przedstawienie tych obszarów | `wersja-b`, `/wersja-b/` |
+| C | Krótsza ścieżka: oferta, sytuacje zawodowe, doświadczenie, kontakt | `wersja-c`, `/wersja-c/` |
 
-Sama proza wersji B (bez tabel CV, które są danymi do skanowania, nie do czytania) to ok. 555 słów, czyli
-w budżecie 450–550 z założeń. Treść powstała z trzech niezależnych szkiców ocenionych przez panel
-(skanowalność, SEO, polszczyzna) i przeszła korektę faktograficzną: usunięto cztery sformułowania bez pokrycia
-w wersji A („nawyki” zamiast „sposoby działania”, „budujesz zespół” zamiast „budujesz strukturę i procesy”,
-„talenty przed awansem” zamiast „talenty wskazane do awansu”, skrócone nazwy grup kapitałowych) oraz rodzajową
-formę „Zgłoś się sam”. Listy zostawiono w konwencji wersji A (małą literą, z przecinkami), żeby porównanie
-dotyczyło treści, a nie interpunkcji.
+Spis w `tools/wersje.html` przedstawia warianty neutralnie. Dawne liczby 917/630/313 słów i rekomendacja B
+opisywały poprzednie wersje; nie są kryterium wyboru klienta ani obietnicą SEO. Oryginału „pełne morze uwagi”
+nie odnaleziono w materiałach review, dlatego szczegółów starej interpretacji C nie przedstawiamy jako
+niezależnie potwierdzonych wymagań.
 
-**Wersja C – według uwag** (`wersja-c`): układ i treść z pliku „pełne morze uwagi” (uwagi klienta do kierunku
-technicznego, przeniesione na styl „Pełne morze”). Decyzje, które wymagały interpretacji:
+## 4d. Typografia i dostępność (19.09.2026)
 
-- Struktura jak w recenzowanej makiecie: hero → mentoring i coaching → kiedy warto porozmawiać (3 sytuacje z ikonami)
-  → doświadczenie → opinie → kontakt. Sekcji „Dla kogo”, przebiegu współpracy, zasad, cennika i historii nazwy
-  w makiecie nie było, więc ich nie ma; jeśli klient chce cennik lub zasady, przenosimy je z wersji A.
-- Hero: nadtytuł „Mentoring dla menedżerów i liderów”, jeden akapit opisu w brzmieniu klienta, przyciski jak
-  w makiecie („Porozmawiajmy”, „Poznaj ofertę”), bez tekstu pod przyciskami. Portret sięga linii paska faktów
-  (uwaga „nogi ucina za wcześnie”). Pasek faktów jak w makiecie: doświadczenie i wykształcenie.
-- Wprowadzenie do oferty w wersji klienta było gramatycznie niedomknięte („…dobierając odpowiednią formę wsparcia
-  ustalamy na podstawie…”); poprawione na: „Nie podejmuję decyzji za Ciebie. Pomagam Ci je przemyśleć, dobierając
-  odpowiednią formę wsparcia. Ustalamy ją na podstawie Twojej sytuacji i potrzeb.” – do akceptacji.
-- „O mnie”: nagłówek, opis i lista stanowisk dokładnie z uwag (CEDC, Eurocash, Herbapol, magister psychologii SWPS),
-  bez zdania „W moim doświadczeniu zawodowym:”. Pozostałe fakty z CV (Premium Cigars, SGH, Kellogg) są w wersjach A i B.
-- Sekcja „Opinie” dodana między doświadczeniem a formularzem jako widoczne miejsce na dwie rekomendacje
-  (treść do uzupełnienia przez klienta).
-- Uwaga o „zgięciu” linii dotyczyła motywu graficznego kierunku technicznego; w „Pełnym morzu” takiej linii nie ma.
-- Uwaga o zdjęciu: portret w hero jest wycinkiem z makiety; przed publikacją do podmiany na oryginał z sesji
-  (dotyczy wszystkich wersji).
+Tekst łamie przeglądarka w zwykłych akapitach. `tools/typografia.mjs` dodaje NBSP po polskich wyrazach
+jednoliterowych w blokach tekstu, zachowując strukturę inline i granice akapitów. Usunięto skrypt
+`src/js/justowanie.js`, ręczne dzielenie akapitów na wiersze, ściskanie liter i `tools/pomiar-skladu.mjs`.
+Dawne pomiary odstępów i porównania algorytmów nie opisują bieżącej implementacji.
 
-## 4d. Hero na jeden ekran i polski skład tekstu (18.09.2026)
+`tests/typografia.spec.js` sprawdza przepełnienia oraz jednoliterowe wyrazy na końcu realnych wierszy
+przy 320, 390, 834, 1280 i 1600 px, także po zwiększeniu odstępów zgodnie z WCAG 1.4.12. Sprawdza też,
+czy zmiana szerokości nie zastępuje linku w akapicie i nie odbiera mu focusu. Nie narzuca justowania
+ani łączenia wszystkich krótkich słów. Główne przyciski nie mają przycinającego focus `clip-path`;
+osobny test kontroluje widoczność obrysu wraz z przycinaniem przez przodków.
 
-Dwie uwagi z przeglądu strony testowej: hero nie wypełniało całego widoku i w tekście zostawały
-„sieroty”. Obie dotyczyły wszystkich trzech wersji, więc naprawa siedzi we wspólnej warstwie.
+Wykrycie JavaScriptu wykonuje mały synchroniczny inicjalizator inline przed CSS. Dzięki temu nawigacja
+mobilna nie przechodzi po pierwszym malowaniu z rozwiniętego układu bez JS do zwiniętego menu.
+Dokładny hash inicjalizatora trafia do `script-src`, a `tools/csp-hash.mjs` sprawdza osobno oba hashe
+inline i kolejność init/CSS na wszystkich stronach. Główny skrypt nadal ma `defer`; bez JS nawigacja
+pozostaje widoczna. Regresja przeglądarkowa sprawdza stan menu przy niedostępnym głównym skrypcie.
 
-**Hero jako scena.** Sekcja miała `min-height: 100svh`, ale jej treść była wyższa od okna: przy
-1440×900 hero mierzyło 1115 px przy 815 px dostępnych, czyli pasek faktów wypadał poniżej krawędzi.
-Wariant kompaktowy włączał się dopiero poniżej 896 px wysokości okna, więc typowe laptopy trafiały
-w lukę. Zamiast kolejnego progu wysokość okna weszła na stałe do skali pionu: `--hero-rytm`,
-`--hero-pad` i `--hero-title` liczone są przez `min()` z miary szerokości i wysokości, a wszystkie
-odstępy hero i paska faktów są ich wielokrotnościami. Przy okazji `--header-h` oznacza teraz pełną
-wysokość przyklejonego nagłówka razem z kreską pod nim – bez tego hero wystawało o 1 px.
-Pilnuje tego test smoke na pięciu rozdzielczościach (1366×768 … 2560×1440).
+## 4e. Formularz i publikacja demonstracyjna (19.09.2026)
 
-**Sieroty.** Narzędzie `tools/nbsp.mjs` wiązało tylko wyrazy jednoliterowe, więc „Na”, „do”, „za”
-nadal kończyły wiersze. Teraz wiąże wszystkie wyrazy jedno- i dwuliterowe oraz przyimki i spójniki
-z listy (bez, dla, nad, pod, oraz, przy, przed, według…), liczby z jednostkami, skróty, inicjały,
-numer telefonu i półpauzę. Encje i znaczniki są maskowane, dzięki czemu wiązanie przechodzi przez
-elementy inline („napisz na&nbsp;<a>adres</a>”), ale nigdy przez granicę akapitu ani `<br>`.
-Na stronie głównej dało to 247 twardych spacji zamiast 138.
+GitHub Pages nie uruchamia backendu formularza. Podgląd pokazuje informację o tym przed przyciskiem
+„Sprawdź formularz”. Tryb `data-demo="true"` sprawdza pola lokalnie, zachowuje wpisane dane,
+nie wysyła żądania sieciowego i nie zgłasza sukcesu w analityce. Bez JS przycisk pozostaje wyłączony;
+e-mail i telefon są nadal dostępne.
 
-**Kontrola zamiast deklaracji.** `tests/typografia.spec.js` nie sprawdza źródła HTML, tylko mierzy
-w przeglądarce, gdzie faktycznie kończy się każdy wiersz, przy czterech szerokościach okna
-(390, 834, 1280, 1600 px) i na obu podstronach.
+Na Cloudflare formularz ma walidację, honeypot i Turnstile wymagany przy skonfigurowanej wysyłce.
+Szybkość pisania/autouzupełniania nie świadczy o spamie. Odpowiedź na POST bez JS jest czytelną stroną HTML;
+Turnstile wymaga JS, więc w tej sytuacji podany jest kontakt bezpośredni. Testy automatyczne używają atrap
+odpowiedzi dostawców; nie zastępują sprawdzenia rzeczywistego dostarczenia wiadomości przed produkcją.
 
-> Uzupełnienie z 18.09.2026: w tej sekcji stało wcześniej, że tekstu nie justujemy. Klient
-> zdecydował inaczej i tekst jest dziś justowany – bez dzielenia wyrazów. Jak to zrobiono
-> i co kosztowało: sekcja 4e.
+Workflow najpierw przypina SHA A/B/C, następnie wykonuje build, walidację, testy i Lighthouse każdego wariantu.
+Publikuje jeden zestaw z artefaktów tych przebiegów, bez ponownego pobierania gałęzi. Testy po wdrożeniu
+pochodzą z tych samych SHA i czekają na stempel commitu w CDN. Cały przebieg Pages jest serializowany.
+Gałęzie `codex/*` nie uruchamiają publikacji; pipeline demonstracyjny dopuszcza wyłącznie domenę `github.io`.
 
----
+## 4f. Podgląd klienta a produkcja (19.09.2026)
 
-## 4e. Justowanie, mikrotypografia i szerokość kolumn (18.09.2026)
+Podgląd służy porównaniu treści i układu oraz zebraniu uwag. Sekcja opinii pokazuje jawnie oznaczony przykład
+układu, a formularz jasno opisuje brak wysyłki. Taki podgląd nie jest odbiorem produkcyjnym.
 
-Decyzja klienta: tekst ma być justowany na całej stronie i ma być równy, ale bez dzielenia wyrazów.
-To trudniejszy wariant niż jedno i drugie osobno, bo dzielenie wyrazów jest w składzie głównym
-narzędziem do wyrównywania odstępów. Poniżej: co zbudowano zamiast niego i ile to kosztuje.
+Przed produkcją trzeba wybrać wariant, zatwierdzić copy i fotografie, zastąpić przykłady prawdziwymi opiniami
+albo ukryć sekcję, zaakceptować politykę prywatności i zakres analityki/zgód, skonfigurować wysyłkę
+i sprawdzić wiadomość na właściwej skrzynce. Migrację DNS należy poprzedzić planem zachowania poczty:
+historyczny odczyt z 18.09 wskazywał MX na apex; stan trzeba odczytać ponownie przed zmianą.
+Uruchomienie strony wymaga zachowania ciągłości poczty oraz sprawdzenia domeny, HTTPS i przekierowań.
 
-**Dlaczego samo `text-align: justify` nie wystarcza.** Przeglądarka łamie wiersze zachłannie: bierze
-tyle wyrazów, ile wejdzie, a dopiero potem rozciąga odstępy do prawego marginesu. Przy polskich
-wyrazach (długich i odmienionych) daje to pojedyncze wiersze rozstrzelone kilkakrotnie ponad normę
-i widoczne „rzeki” bieli. `text-wrap: pretty` i `balance` tego nie naprawiają – optymalizują
-chorągiewkę, nie wypełnienie wiersza, więc przy justowaniu wypadają jeszcze gorzej (zmierzone
-mediany 2,8 i 4,4 wobec 2,4 dla zwykłego justowania).
-
-**Cztery warstwy rozwiązania** (`src/js/justowanie.js`, `src/css/style.css`):
-
-1. **Łamanie całego akapitu naraz** – algorytm Knutha–Plassa, ten sam co w TeX-u i InDesignie.
-   Kara za wiersz rośnie z trzecią potęgą rozciągnięcia, więc jeden fatalny wiersz kosztuje więcej
-   niż kilka lekko gorszych. Rozciąganie odstępów zostaje po stronie przeglądarki (każdy wiersz to
-   osobny blok z `text-align-last: justify`), my decydujemy wyłącznie o tym, gdzie złamać.
-2. **Drabinka progów** – kolejne przebiegi z coraz luźniejszym dopuszczalnym rozciągnięciem; bierzemy
-   pierwszy, który się uda. To daje podział o najmniejszym możliwym *najgorszym* wierszu, a nie
-   tylko o dobrej sumie. Ostatni przebieg idzie z progiem swobody, żeby kary (wdowa, krótki wyraz
-   na końcu wiersza) miały czym zapłacić.
-3. **Mikrotypografia** – resztkę luzu chowamy w świetle między literami zamiast oddawać ją odstępom,
-   a wiersz, któremu do następnego wyrazu zabrakło kilku pikseli, wolno odrobinę ścisnąć. Budżet to
-   +2,5% w górę i -3% w dół, w krokach po 0,0025 em (klasy `trak-*` i `zwez-*`). Tyle trackingu jest
-   dla oka niewidoczne, odstęp rozciągnięty o 200% – aż nadto. Na tym samym stoi program `hz`
-   Hermanna Zapfa i skalowanie glifów w InDesignie. Skąd te liczby: każdy stopień w dół zbijał
-   najgorszy wiersz na telefonie (2% → 5,5 zwykłej spacji, 2,5% → 5,4, 3% → 4,4), bo akapity
-   rozbijały się kolejno o 3 i o pół piksela; powyżej 3% nic już się nie zmienia. W górę mniej,
-   bo rozstrzelone światło między literami widać wcześniej niż ściśnięte.
-4. **Szerokość kolumn** – justowanie potrzebuje miary. Kolumna poniżej ok. 52 znaków nie ma w wierszu
-   dość odstępów, żeby rozłożyć luz. Siatki (oferta, dla kogo, współpraca, zasady) schodzą więc do
-   jednej kolumny poniżej `--min-kolumna` (26 rem) zamiast na sztywnych progach okna, a na telefonie
-   opis sytuacji idzie na pełną szerokość zamiast w kolumnie obok ikony (302 → 358 px).
-
-**Twarde spacje są materiałem, nie wyrokiem.** `tools/typografia.mjs` wstawia je jak dawniej (to
-działa też bez JavaScriptu), ale algorytm łamania traktuje je różnie. Wyrazu jednoliterowego, skrótu,
-liczby z jednostką i kreski rozdzielającej nie rozerwie nigdy. Pozostałe wiązania wolno mu złamać za
-cenę, która mówi wprost, ile jest dla nas warte uniknięcie danej wady – kary są w tej samej skali,
-co kara za rozciągnięty wiersz:
-
-| Wada | Kara | Odpowiada wierszowi o odstępie |
-| --- | --- | --- |
-| wdowa (ostatni wiersz krótszy niż 20% kolumny) | 6·10⁷ | ok. 3,5 zwykłej spacji |
-| wyraz dwuliterowy na końcu wiersza | 3·10⁵ | ok. 2,1 zwykłej spacji |
-| dłuższy przyimek na końcu wiersza | 3·10⁴ | ok. 1,8 zwykłej spacji |
-
-Kolejność zgadza się z polską normą składu: jednoliterowy spójnik na końcu wiersza to błąd, dłuższy
-przyimek – zalecenie. Wcześniej wszystkie wiązania były nierozerwalne i to właśnie one wymuszały
-najgorsze wiersze: akapit „Proces możesz zakończyć…” miał wiersz rozstrzelony 9,8 raza, bo ciąg
-„i bez zobowiązań.” był dla algorytmu jednym wyrazem.
-
-**Wynik.** Odstępy między wyrazami w krotnościach zwykłej spacji, mierzone na realnie złożonej
-stronie (`npm run pomiar:sklad`, Chromium):
-
-| Wariant | 390 px | 834 px | 1280 px | 2560 px | wypełnienie wiersza |
-| --- | --- | --- | --- | --- | --- |
-| chorągiewka (bez JavaScriptu) | 1,00 | 1,00 | 1,00 | 1,00 | 86–90% |
-| zachłanne justowanie przeglądarki | 2,95 | 2,02 | 2,56 | 2,27 | 100% |
-| **wdrożone** | **1,23** | **1,16** | **1,13** | **1,13** | **100%** |
-
-Wiersze skrajne (maksimum na całej stronie): zachłanne justowanie 9,8–14,5 zwykłej spacji,
-wdrożone 3,5–5,3. Norma składu (InDesign, ustawienia domyślne) dopuszcza 1,33 – wdrożona mediana
-mieści się w niej na każdej szerokości, czego zachłanne justowanie nie osiąga nigdzie.
-
-**Czego nie da się osiągnąć i dlaczego.** Luzu w akapicie nie da się zmniejszyć łamaniem: to różnica
-między sumą długości wyrazów a szerokością kolumny. Można go rozłożyć równo (warstwa 1 i 2) i w części
-schować (warstwa 3) – i tyle. Bez dzielenia wyrazów zostają trzy ustępstwa, wszystkie świadome:
-
-- **Telefon.** Przy kolumnie ok. 40 znaków pojedyncze wiersze wciąż dochodzą do 5,4 zwykłej spacji,
-  a ostatni wiersz akapitu bywa krótszy niż piąta część kolumny. Alternatywą jest rozstrzelenie
-  wiersza wcześniejszego – gorsze. Test sprawdza regułę ostatniego wiersza od szerokości laptopa.
-- **Krótkie wyrazy na końcu wiersza.** W akapitach justowanych algorytm zostawia ich 5–8 na stronę,
-  gdy ratuje to wiersz przed rozjazdem. Poza akapitami justowanymi nie ma ich wcale, a wyrazu
-  jednoliterowego nie ma nigdzie – i tego pilnuje test przy czterech szerokościach.
-- **WCAG 2.2, kryterium 1.4.8 (poziom AAA)** zaleca tekst niejustowany właśnie z powodu „rzek”.
-  Strona celuje w poziom AA (AAA nie jest tu deklarowany), a wdrożony skład zbija medianę odstępu
-  do 1,13–1,25 zwykłej spacji, czyli najbliżej chorągiewki, jak justowanie pozwala. To decyzja
-  klienta, podjęta świadomie i z policzonym kosztem.
-
-**Błędy złapane po drodze.** Każdy z nich dawał efekt odwrotny do zamierzonego, a widać je było
-dopiero z pomiaru:
-
-Jeden akapit („Łączę praktykę biznesową z wiedzą psychologa.” w wersji B) mieści się w jednym
-wierszu dopiero po ściśnięciu o 0,5% – i tak jest składany, bo jedna linijka z naturalnymi odstępami
-bije dwie, z których pierwsza byłaby rozstrzelona 7,3 raza.
-
-| Problem | Skutek | Test, który go dziś nie przepuści |
-| --- | --- | --- |
-| Wiersz dopychany trackingiem dokładnie do krawędzi kolumny | Przeglądarka łamała go po raz drugi i na końcu lądował wyraz jednoliterowy, wbrew regułom polskiego składu | „wierszy złożonych przez skrypt przeglądarka nie łamie po raz drugi” |
-| Szerokość liczona z ramki, nie z pola tekstu | To samo w akapicie z paddingiem (ramka „note” w polityce prywatności) | jw. |
-| Zapas dobrany pod jeden silnik | WebKit zaokrągla inaczej i rozbijał 6 wierszy na telefonie; dziś skrypt sprawdza wynik w układzie i powtarza z większym zapasem | jw., uruchamiany w 5 przeglądarkach |
-| Wiersze sklejane bez odstępu | Kopiowany tekst dawał „zrozumieszsiebie.” | – (naprawione znakiem nowego wiersza między blokami) |
-
-**Szerokość treści na dużych monitorach.** Ograniczenie szerokości to decyzja, nie błąd: wiersz
-dłuższy niż ok. 75 znaków gubi początek następnego. Na monitorze 2560 px kontener zajmował jednak
-tylko 46% ekranu, co wyglądało na ściśnięte. Od 1800 px kontener rośnie z 74rem do 86rem (54% ekranu),
-a o długość wiersza dba osobny token `--miara` (58ch) nałożony na wszystkie bloki tekstu ciągłego.
-Zmierzone po zmianie: najdłuższy wiersz na stronie 79 znaków, typowy 62–75.
-
----
-
-## 4f. Audyt końcowy i rekomendacja wersji (18.09.2026)
-
-Przegląd siedmiu obszarów (checklista w dwóch ujęciach, kod, dostępność, SEO, bezpieczeństwo,
-treść) z adversarialną weryfikacją każdego ustalenia. Poniżej to, co przetrwało próbę obalenia.
-
-### Naprawione w trakcie audytu
-
-| Waga | Problem | Skutek |
-| --- | --- | --- |
-| blokująca | Pułapka antybotowa porównywała zegar serwera ze znacznikiem czasu z przeglądarki | Telefon ze spieszącym się zegarem dostawał „Dziękuję za wiadomość”, a zgłoszenie przepadało. Jedyna ścieżka konwersji strony. |
-| istotna | Menu mobilne nie zamykało się przy wyjściu fokusem | Przy powiększeniu 200% otwarty panel zakrywał sfokusowany przycisk w całości (WCAG 2.4.11) |
-| istotna | Wersja C publikowała widoczne atrapy opinii z pozycją w menu | Pusta sekcja opinii na stronie usług czyta się jako brak klientów |
-| istotna | Narzędzie typograficzne psuło encje w atrybutach | `href="…?a=1&amp;b=2"` wychodziło jako `…?a=10b=2`. Dziś bez skutku, ale pierwszy link z UTM rozbiłby adres po cichu |
-| drobna | Adres e-mail wychodził poza ekran przy powiększeniu samego tekstu do 200% | WCAG 1.4.4 |
-| drobna | Miękkie łączniki trafiały do nagłówków, przycisków i etykiet | 341 z 809 łączników w miejscach, gdzie CSS i tak zabrania dzielenia; 34 nazwy dostępne z łącznikiem |
-| drobna | Martwy kod: klasa `.no-js`, zmienne `--teal-soft` i `--ink-mute`, powtórzona reguła `.about__figure` | – |
-| drobna | Martwe pliki w katalogu publikowanym (121 kB) i martwa reguła `/api/*` w `_headers` | Cloudflare nie stosuje `_headers` do Pages Functions – nagłówki ustawia teraz sama funkcja |
-| drobna | `security.txt` wskazywał politykę prywatności w polu `Policy` | RFC 9116 przewiduje tam zasady zgłaszania podatności |
-| drobna | Polityka prywatności nie wymieniała kraju z adresu IP dokładanego do treści maila | – |
-
-Każda poprawka ma test, który nie przepuści jej z powrotem: regresja rozjechanego zegara,
-zamykanie menu fokusem, atrapy w widocznej treści, zgodność hasha CSP, zgodność list dzielenia
-wyrazów, osiem przypadków jednostkowych narzędzia typograficznego, martwe zmienne CSS.
-
-### Nowy bloker publikacji: migracja DNS
-
-Odczyt strefy 18.09.2026: NS `dns*.home.pl`, apex `46.242.239.156`, **MX wskazuje na sam apex**.
-Przepięcie apeksu na Cloudflare Pages zabiera klientowi pocztę przychodzącą. Kolejność migracji
-zapisana w `CHECKLISTA.md` (bloker nr 5).
-
-### Rekomendacja: wersja B
-
-Trzy niezależne rekomendacje – przez konwersję, przez wiarygodność marki i z perspektywy uwag
-klienta – wskazały wersję B.
-
-**Dlaczego nie A.** A nie zawiera niczego, czego nie ma B, poza doprecyzowaniami w CV i historią
-nazwy. Nadwyżka 287 słów to proza perswazyjna, nie dowody („Benefit rozwojowy, nie jednorazowa
-interwencja”, „Nie kolejne szkolenie ani gotowy schemat”). Menedżer, który sam zarządza ludźmi,
-nie potrzebuje zapewnień, że to nie szkolenie. A rozmywa też wezwanie do działania trzema różnymi
-etykietami przycisków; B ma jedno brzmienie w czterech miejscach, z ceną wejścia w etykiecie.
-
-**Dlaczego nie C, mimo że najwierniej oddaje uwagi klienta.** C usuwa dokładnie te informacje,
-na których zapada decyzja o kontakcie: cennik, przebieg współpracy, zasady z poufnością i podział
-„dla firm / dla Ciebie”. Formularz nadal pyta „Dla menedżera w mojej firmie”, a `llms.txt`
-deklaruje współpracę z firmami – strona obiecuje ścieżkę B2B, której nie obsługuje. Skrót nie
-przełożył się przy tym na łatwość czytania: udział wyrazów czterosylabowych i dłuższych to w C
-22,2% wobec 15,7% w B, bo to zdania z wersji A, tylko w mniejszej liczbie.
-
-**Kluczowe rozróżnienie.** Uwagi klienta dotyczyły układu i kadru: hero na jeden ekran, portret
-ucinany za wysoko, jeden akapit zamiast dwóch, własne brzmienie zdań. Nie dotyczyły usunięcia
-cennika, zasad i przebiegu – tych sekcji po prostu nie było w recenzowanej makiecie (sekcja 4c
-odnotowuje to wprost). Właściwy ruch to wzięcie z C układu, a nie cięć.
-
-**Co dołożyć do B przed wysłaniem klientowi:**
-
-1. Zdanie w drugiej osobie z wersji A jako pierwsze zdanie leadu: „Zarządzasz ludźmi i wynikami.
-   Zadbaj też o wsparcie dla siebie.” H1 zostaje z B – to jedyna wersja, w której fraza kategorii
-   stoi w nagłówku, a nie w nadtytule bez wagi semantycznej.
-2. Rozbicie łańcucha „dla menedżerów –” w H1: przy 320 px jest szerszy od kolumny (298 px / 288 px).
-3. Doprecyzowania z CV, które są realnym dowodem skali: „Premium Cigars (Vistula Retail Group)”,
-   „Herbapol Lublin S.A. (Grupa Polpharma)”, „promotor prof. Jerzy Bralczyk”.
-4. Sprostowanie zapisu o wykształceniu: B ma „absolwent coachingu na Uniwersytecie SWPS”, a źródłem
-   jest program „Psychologia i Coaching od podstaw” (tak jak w A i w JSON-LD `hasCredential`).
-5. Opis meta wersji B zgubił nazwisko z kwalifikacjami i frazę „mentoring biznesowy”.
-6. Z wersji C: kadr portretu sięgający linii paska faktów oraz brzmienie wstępu do oferty
-   i sekcji „O mnie” w wersji klienta.
-
-**Czego nie zamknie ani kod, ani redakcja:** dwie prawdziwe rekomendacje od klienta. Sekcja
-„Opinie” jest ukryta we wszystkich trzech wersjach – słusznie, bo atrapa szkodzi – ale zostawia
-stronę usług profesjonalnych bez dowodu społecznego. To największa pojedyncza luka konwersyjna.
+Raporty i liczby testów z 16–18.09 są historyczne. Bieżące QA lokalne z 19.09 zakończono:
+po 235 testów przeglądarek na A/B/C, build i walidacja, 11 testów backendu na wariant, kontrola wizualna
+desktop/mobile oraz Lighthouse (Performance mobile A 99, B 100, C 100; desktop 100).
+Pełne liczby, ograniczenie lokalnego WebKit i status bramki publikacyjnej: CHECKLISTA.md, sekcja 15.
 
 ---
 
 ## 5. Do potwierdzenia z klientem (przed publikacją)
 
-Strona nie zawiera już twierdzeń bez pokrycia w źródle. Poniższe punkty to decyzje, a nie luki faktograficzne:
+Poniższe decyzje trzeba zamknąć dla wybranego wariantu przed produkcją. Historyczne brzmienia cytatów
+w starszych sekcjach tego dokumentu nie oznaczają, że występują w bieżącym copy:
 
 1. **„Zarządzałem i nadal zarządzam sprzedażą i operacjami w największych firmach FMCG w Polsce”** – czy
    aktualne w dniu publikacji (klient jest aktywnym praktykiem).
-2. **Poufność wobec firmy zlecającej** – na stronie stoi pełna poufność bez wyjątków (jak u klienta). Jeśli
-   przekazuje sponsorowi cokolwiek (frekwencja, cele), trzeba to dopisać.
+2. **Poufność wobec firmy zlecającej** – potwierdzić, co jest uzgadniane z firmą, a co pozostaje poufne
+   między uczestnikiem i prowadzącym; nie dodawać niepotwierdzonych obietnic.
 3. **Krok 04 „Podsumowanie”** – opis procesu („wracamy do celów z kontraktu i razem decydujemy…”) wynika
    z kontraktu i zasady dobrowolności, ale klient nie opisuje takiego spotkania wprost.
-4. **Pierwsze spotkanie**: forma (online / telefon / stacjonarnie) i orientacyjny czas. Strona mówi tylko
-   „trwa tyle, ile potrzeba”.
+4. **Pierwsze spotkanie**: potwierdzić formę (online / telefon / stacjonarnie), ewentualny czas
+   i warunki. Nie dopisywać czasu trwania ani gwarantowanego terminu odpowiedzi bez źródła.
 5. **Miejsce spotkań stacjonarnych** (Warszawa?) – źródło nie podaje, więc strona też nie.
 6. **Cennik**: „300 PLN” czy „300 zł”, netto czy brutto, czy takie same warunki dla firm i osób prywatnych.
 7. **Lata programów** (Kellogg, Lisbon, SGH, program coachingowy SWPS) – nazwy zostawione dokładnie jak u klienta.
@@ -466,20 +284,20 @@ Strona nie zawiera już twierdzeń bez pokrycia w źródle. Poniższe punkty to 
 
 ## 6. Co celowo pominięto
 
-- **Cennik** – w mentoringu executive cena jest ustalana w rozmowie; publikacja obniżyłaby pozycjonowanie
-  i odcięła część leadów B2B.
+- **Cennik** – zakres i miejsce ceny zależą od wybranego wariantu oraz potwierdzenia aktualnych warunków;
+  nie zakładamy, że sama publikacja ceny pomaga albo szkodzi konwersji.
 - **Kalendarz do samodzielnej rezerwacji** (Calendly itp.) – klient nie ma takiego narzędzia; formularz
   i telefon wystarczą przy tej skali. Łatwo dodać później jako link w sekcji kontakt.
 - **Blog / artykuły** – poza zakresem LP. Struktura pozwala dodać podstrony bez przebudowy.
-- **Analityka** – nie dodano, żeby strona nie wymagała banera cookies. Jeśli klient chce statystyk:
-  Cloudflare Web Analytics (bez cookies, darmowe, bez zgody) – jedna linijka skryptu + wpis w CSP.
+- **Analityka** – baza nie ładuje zewnętrznych trackerów. Docelowy pomiar i wymagania dotyczące zgód
+  pozostają decyzją przed produkcją; brak banera nie jest sam w sobie potwierdzeniem zgodności.
 
 ---
 
 ## 7. Warstwa techniczna (skrót)
 
 - **Hosting**: Cloudflare Pages Free; brak builda; `_headers` z CSP, cache i nagłówkami bezpieczeństwa.
-- **Wydajność**: fonty self-hosted (woff2, tylko latin + latin-ext, preload dla kroju nagłówkowego),
+- **Wydajność**: fonty self-hosted (woff2, podzbiór znaków potrzebnych stronie, bez preloadu),
   zdjęcia WebP w 3 rozmiarach + `srcset`/`sizes`, `fetchpriority="high"` dla portretu hero, `loading="lazy"`
   poniżej. Zero zewnętrznych zapytań w podstawowej konfiguracji.
 - **Dostępność**: landmarki, skip link, kontrasty AA, widoczny focus, etykiety pól, `aria-live` dla statusu
@@ -488,5 +306,5 @@ Strona nie zawiera już twierdzeń bez pokrycia w źródle. Poniższe punkty to 
   (`Organization` + `Service` + `Person`), `sitemap.xml`, `robots.txt`, `lang="pl"`.
 - **RODO**: brak cookies i trackerów, fonty lokalnie, informacja przy formularzu + pełna polityka,
   wysyłka przez funkcję (dane nie przechodzą przez zewnętrzny formularz SaaS).
-- **Formularz**: walidacja po stronie klienta i serwera, honeypot, minimalny czas wypełnienia,
-  opcjonalny Turnstile, awaryjny `mailto:` przy błędzie, działanie bez JS.
+- **Formularz**: walidacja po stronie klienta i serwera, honeypot, Turnstile przy rzeczywistej wysyłce,
+  ograniczone czasy oczekiwania, awaryjny e-mail i telefon, czytelna odpowiedź HTML bez JS; osobny tryb demo.

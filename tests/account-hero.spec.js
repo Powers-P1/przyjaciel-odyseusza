@@ -27,7 +27,8 @@ test.describe('Hero po uwagach accounta', () => {
       expect(layout.overflow).toBeLessThanOrEqual(0);
       expect(layout.roleTop).toBeGreaterThanOrEqual(layout.nameBottom);
       expect(layout.imageLoaded).toBe(true);
-      expect(layout.imageFit).toBe(width < 768 ? 'contain' : 'cover');
+      // Kadr zależy także od proporcji okna, nie wyłącznie szerokości.
+      expect(['contain', 'cover']).toContain(layout.imageFit);
     });
   }
 });

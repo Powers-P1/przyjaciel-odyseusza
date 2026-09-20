@@ -157,10 +157,10 @@ button { font: inherit; color: inherit; }
   display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
   min-height: calc(var(--header-h) - var(--header-line));
 }
-.brand { display: inline-flex; align-items: center; }
+.brand { display: inline-flex; align-items: center; flex-shrink: 0; }
 .brand__logo { width: auto; height: 4.75rem; }
 
-.site-nav__list { display: flex; align-items: center; gap: clamp(1.25rem, 2.5vw, 2.25rem); list-style: none; }
+.site-nav__list { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: .4rem clamp(1.25rem, 2.5vw, 2.25rem); list-style: none; }
 .site-nav__list a:not(.btn) {
   display: inline-block; padding: .35rem 0;
   font-weight: 500; font-size: .95rem; text-decoration: none; color: var(--mist);
@@ -171,6 +171,7 @@ button { font: inherit; color: inherit; }
 
 .nav-toggle {
   display: none; align-items: center; gap: .6rem;
+  min-height: 2.75rem;
   background: transparent; border: 1px solid var(--teal-line); border-radius: 2px;
   padding: .55rem .9rem; color: var(--mist); cursor: pointer;
 }
@@ -183,7 +184,7 @@ button { font: inherit; color: inherit; }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::before { transform: translateY(5px) rotate(45deg); }
 .nav-toggle[aria-expanded="true"] .nav-toggle__bars::after { transform: translateY(-5px) rotate(-45deg); }
 
-@media (max-width: 47.99em) {
+@media (max-width: 59.99em) {
   :root { --header-h: 5rem; }
   .brand__logo { height: 3.75rem; }
   .js .nav-toggle { display: inline-flex; }
@@ -193,6 +194,7 @@ button { font: inherit; color: inherit; }
     position: absolute; left: 0; right: 0; top: 100%;
     background: var(--teal-deep); border-bottom: 1px solid var(--teal-line);
     padding: .5rem var(--gutter) 1.5rem;
+    max-height: calc(100svh - var(--header-h)); overflow-y: auto;
     display: none;
   }
   .js .site-nav.is-open { display: block; }
@@ -204,31 +206,33 @@ button { font: inherit; color: inherit; }
 }
 
 /* ---------- hero ---------- */
-/* Duży portret z kadrem od góry; wysokość sekcji może rosnąć wraz z treścią. */
+/* Scena reaguje na szerokość i wysokość okna, nie na model urządzenia.
+   Limit wysokości chroni kadr na ekranach 4K/pionowych. Przy powiększeniu
+   tekstu treść może naturalnie wydłużyć sekcję — niczego nie przycinamy. */
 .hero {
   display: flex; flex-direction: column; padding-block: 0;
-  min-height: calc(100vh - var(--header-h));
-  min-height: calc(100svh - var(--header-h));
-  --hero-pad: clamp(1.5rem, 3vw, 3rem);
-  --hero-rytm: clamp(.65rem, 1vw, 1rem);
-  --hero-title: clamp(2.35rem, 1rem + 3.8vw, 5rem);
+  min-height: min(calc(100vh - var(--header-h)), calc(65vw + 10rem), 64rem);
+  min-height: min(calc(100svh - var(--header-h)), calc(65vw + 10rem), 64rem);
+  --hero-pad: clamp(.75rem, 3svh, 3rem);
+  --hero-gap: clamp(.75rem, 2.5svh, 1.75rem);
+  --hero-title: clamp(2rem, min(1rem + 3.8vw, 8svh), 5rem);
 }
 .hero__grid {
   flex: 1;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 2rem; align-items: end;
-  min-height: clamp(30rem, 65svh, 46rem);
+  min-height: 0;
   padding-top: var(--hero-pad);
 }
 .hero__copy { max-width: 40rem; align-self: center; padding-bottom: var(--hero-pad); }
 .hero__title {
   font-size: var(--hero-title); line-height: 1.06;
-  letter-spacing: -.025em; color: var(--paper); margin: 0 0 1.75rem;
+  letter-spacing: -.025em; color: var(--paper); margin: 0 0 var(--hero-gap);
   text-wrap: balance;
 }
 .hero__byline {
-  display: grid; gap: .65rem;
-  margin: 0 0 2rem;
+  display: grid; gap: .5rem;
+  margin: 0 0 var(--hero-gap);
 }
 .hero__name { font: 400 clamp(1.5rem, 1.2rem + .7vw, 1.875rem)/1.2 var(--serif); color: var(--gold); }
 .hero__role { font-size: 1rem; color: var(--mist-soft); letter-spacing: .01em; }
@@ -244,9 +248,9 @@ button { font: inherit; color: inherit; }
 .proof {
   list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 2rem; border-top: 1px solid var(--teal-line);
-  padding: calc(2.25 * var(--hero-rytm)) 0 calc(2.75 * var(--hero-rytm));
+  padding-block: clamp(.75rem, 2.5svh, 2rem);
 }
-.proof__item { display: grid; gap: .3rem; padding-left: 1.25rem; border-left: 1px solid var(--gold); }
+.proof__item { display: grid; align-content: start; gap: .3rem; padding-left: 1.25rem; border-left: 1px solid var(--gold); }
 .proof__title { font: 400 1.2rem/1.3 var(--serif); color: var(--paper); }
 .proof__sub { font-size: .88rem; color: var(--mist-soft); }
 
@@ -258,15 +262,54 @@ button { font: inherit; color: inherit; }
 @media (max-width: 64em) {
   .hero__grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); }
 }
-@media (min-width: 48em) {
-  .hero { --hero-title: clamp(2.35rem, min(1rem + 3.8vw, 8svh), 5rem); }
-}
 @media (max-width: 47.99em) {
-  .hero__grid { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.25rem; min-height: 0; }
+  .hero {
+    min-height: min(calc(100svh - var(--header-h)), 48rem);
+    --hero-title: clamp(2rem, 7vw, 3rem);
+    --hero-pad: clamp(.75rem, 2svh, 1.5rem);
+    --hero-gap: .75rem;
+  }
+  .hero__grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(9rem, 1fr);
+    gap: .75rem;
+  }
   .hero__copy { padding-bottom: 0; }
-  .hero__figure { position: static; align-self: auto; }
-  .hero__portrait { position: static; height: auto; width: min(82vw, 24rem); margin: 0 auto; object-fit: contain; }
-  .proof { grid-template-columns: 1fr; gap: 1.25rem; padding: 1.75rem 0 2.25rem; }
+  .hero__name { font-size: clamp(1.4rem, 4.8vw, 1.75rem); }
+  .hero__role { font-size: .9375rem; line-height: 1.5; }
+  .hero__actions { display: grid; grid-template-columns: 1.4fr 1fr; gap: .5rem; }
+  .hero__actions .btn { padding: .65rem .5rem; font-size: .875rem; min-height: 2.75rem; }
+  .hero__figure { justify-self: center; width: min(80%, 22rem); height: 100%; max-height: 24rem; }
+  .proof { grid-template-columns: 1fr; gap: .5rem; padding-block: .75rem; }
+  .proof__item { gap: .15rem; padding-left: .75rem; }
+  .proof__title { font-size: 1rem; }
+  .proof__sub { line-height: 1.45; }
+}
+@media (min-width: 48em) and (max-aspect-ratio: 1/1) {
+  .hero__portrait { object-fit: contain; object-position: bottom center; }
+}
+@media (max-width: 47.99em) and (max-height: 45em) {
+  .hero__grid { grid-template-rows: auto minmax(6.5rem, 1fr); }
+  .hero__figure { width: min(65%, 18rem); }
+  .proof { gap: .4rem; padding-block: .5rem; }
+}
+/* Niskie okna, m.in. telefon po obrocie: szerokość przejmie rolę wysokości. */
+@media (min-width: 35em) and (max-height: 35em) {
+  :root { --header-h: 4rem; }
+  .brand__logo { height: 3rem; }
+  .hero { --hero-pad: .5rem; --hero-gap: .4rem; --hero-title: clamp(2rem, 5svh, 2.5rem); }
+  .hero__grid { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); grid-template-rows: auto; gap: 1rem; }
+  .hero__copy { padding-bottom: var(--hero-pad); }
+  .hero__byline { gap: .25rem; }
+  .hero__name { font-size: 1.4rem; }
+  .hero__role { font-size: .9375rem; line-height: 1.4; }
+  .hero__actions { display: flex; gap: .5rem; }
+  .hero__actions .btn { padding: .55rem .5rem; font-size: .875rem; min-height: 2.75rem; }
+  .hero__figure { grid-column: 2; grid-row: 1; width: 100%; max-height: none; }
+  .proof { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding-block: .5rem; }
+  .proof__item { padding-left: .75rem; gap: .15rem; }
+  .proof__title { font-size: 1rem; }
+  .proof__sub { line-height: 1.35; }
 }
 
 /* ---------- oferta: dwie formy ---------- */
@@ -330,8 +373,8 @@ button { font: inherit; color: inherit; }
 .principles { margin-top: clamp(3rem, 6vw, 5rem); padding-top: clamp(2.5rem, 4vw, 3.5rem); border-top: 1px solid var(--teal-line); }
 .principles__title { font-size: clamp(1.4rem, 1.15rem + .8vw, 1.8rem); margin-bottom: 1.75rem; }
 .principles__list { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--min-kolumna), 100%), 1fr)); gap: 2rem 3rem; }
-.principle__icon { color: var(--gold); margin-bottom: .9rem; }
-.principle__title { font-size: 1.2rem; margin-bottom: .5rem; }
+.principle__icon { display: block; color: var(--gold); margin-bottom: .9rem; }
+.principle__title { font-size: 1.2rem; margin-bottom: .7rem; }
 .principle p { margin: 0; color: var(--mist-soft); font-size: .97rem; max-width: var(--miara); }
 
 /* ---------- o mnie ---------- */

@@ -913,20 +913,29 @@ Stosuj następujące oznaczenia:
 
 - A/B: rzeczywisty odstęp ikona → nagłówek → opis w „Zasadach” jest zgodny z krokami
   „Jak wygląda współpraca” (0,9rem i 0,7rem); test geometrii przy 390 i 1440px.
-- A/B/C: desktopowe hero wraz z nagłówkiem wypełnia pierwszy ekran, zachowując dwa CTA,
+- A/B/C: poziome desktopowe hero wraz z nagłówkiem wypełnia pierwszy ekran, zachowując dwa CTA,
   trzy fakty i oryginalne zdjęcie. Treść jest centrowana z zachowaniem proporcji portretu;
-  wysoki viewport nie może odsłaniać kolejnej sekcji przed przewinięciem.
+  W pionie (w tym 9:16) hero pozostaje zwarte, z wysokością wynikającą z proporcji
+  kompozycji, bez rozciągania na cały ekran i wielkich pustych pasów.
   Po dodatkowej uwadze zlecającego kolejność mobilna to portret → H1 → podpis → CTA.
   Portret poprzedza tekst również w DOM; desktop i krótkie okna poziome zachowują dwie kolumny.
 - Nawigacja przechodzi w menu poniżej 60em; logo nie jest ściskane przez linki.
   W niskim oknie panel menu ma własne przewijanie, a przycisk minimum 44px wysokości.
-- Regresję obejmują `hero-responsive.spec.js` (25 rozmiarów, 320–5120px, m.in. 4:3,
+- Regresję obejmują `hero-responsive.spec.js` (27 rozmiarów, 320–5120px, m.in. 4:3,
   16:9, 16:10, 21:9, 9:16 i 32:9) oraz `header-responsive.spec.js`.
   Po wyborze kadru redakcyjnego mobile ma naturalną wysokość: na krótkich telefonach
   CTA i szczegóły wymagają przewinięcia zamiast pomniejszania tekstu lub portretu.
   Desktop i krótkie okna poziome zachowują dotychczasowy układ. Powiększenie i odstępy użytkownika mogą
   naturalnie wydłużyć sekcję; nie stosujemy ukrywania treści ani ściskania liter.
 - Rozmiary testów to piksele CSS okna przeglądarki, nie fizyczna rozdzielczość matrycy.
+  `page-ending.spec.js` sprawdza także przejście „O mnie” → „Opinie” oraz koniec strony:
+  A/B nie sumują dolnego i górnego odstępu sąsiednich kremowych pasów; C zachowuje zmianę koloru.
+  Kontakt i stopka mają wspólny kontrakt minimalnej wysokości, dzięki któremu po pełnym
+  przewinięciu jasny pas nie wystaje spod nagłówka. Treść może swobodnie zwiększyć wysokość,
+  a stopka witryny pozostaje poza `main`; rozwiązanie nie wymaga pomiarów JavaScriptem.
+  Testy obejmują mobile, laptop, 2K/4K, pionowy monitor, tekst 200% i wyłączony JavaScript.
+  Po korekcie pionowego hero i końca strony: 396/396 testów lokalnych A/B/C
+  (Chromium, mobilny Chromium i Firefox); build oraz walidacja HTML/CSS/CSP poprawne.
   Testy silników i emulacji nie zastępują kontroli na fizycznym MacBooku Air.
   Publikację nadal dopuszcza wyłącznie pełny CI przypięty do SHA wszystkich wariantów.
 - Przebiegi lokalne przed zmianą kolejności mobile (Chromium, Firefox i mobile Chromium): A 376, B 406,

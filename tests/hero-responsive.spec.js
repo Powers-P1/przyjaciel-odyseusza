@@ -5,7 +5,7 @@ const viewports = [
   [568, 320], [667, 375], [844, 390], [767, 900], [768, 1024],
   [834, 1194], [1024, 768], [1280, 650], [1280, 800], [1366, 668], [1440, 780],
   [1440, 900], [1920, 1080], [1920, 1200], [2560, 1440], [2560, 1600],
-  [3440, 1440], [3840, 2160], [1080, 1920], [5120, 1440],
+  [3440, 1440], [3840, 2160], [1080, 1920], [1440, 2560], [2138, 3715], [5120, 1440],
 ];
 const scrollExceptions = new Set(['568x320']);
 const editorialMobile = (width, height) => width < 768 && !(width >= 560 && height <= 560);
@@ -202,11 +202,18 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       expect(overlaps(layout.portrait, layout.proof), 'portret nie nakłada się na fakty').toBe(false);
 
       if (!mobile && !scrollExceptions.has(width + 'x' + height)) {
-        if (width >= 768) {
-          expect(layout.hero.bottom, 'desktopowe hero wypełnia wysokość okna poniżej nagłówka').toBeGreaterThanOrEqual(layout.viewport.height - 1);
+        if (width >= 768 && width > height) {
+          expect(layout.hero.bottom, 'poziome desktopowe hero wypełnia wysokość okna poniżej nagłówka').toBeGreaterThanOrEqual(layout.viewport.height - 1);
         }
         expect(layout.hero.bottom, 'całe hero mieści się w pierwszym ekranie').toBeLessThanOrEqual(layout.viewport.height + 1);
         expect(layout.proof.bottom, 'wszystkie fakty mieszczą się w pierwszym ekranie').toBeLessThanOrEqual(layout.viewport.height + 1);
+      }
+      if (width >= 1080 && height > width) {
+        // Na pionowym monitorze pierwszy ekran nie jest celem kompozycji:
+        // hero pozostaje zwartym wprowadzeniem, bez pustej większości widoku.
+        expect(layout.hero.height, 'pionowy monitor: hero nie jest rozciągnięte na cały ekran').toBeLessThanOrEqual(height * 0.75);
+        expect(layout.grid.top - layout.hero.top, 'pionowy monitor: brak pustego pasa nad kompozycją').toBeLessThanOrEqual(48 + 1);
+        expect(layout.hero.bottom - layout.details.bottom, 'pionowy monitor: brak pustego pasa pod faktami').toBeLessThanOrEqual(48 + 1);
       }
       if (mobile) {
         // Makieta redakcyjna przewija się naturalnie: zamiast ściskać zdjęcie i tekst,

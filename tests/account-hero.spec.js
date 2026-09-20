@@ -9,6 +9,7 @@ test.describe('Hero po uwagach accounta', () => {
       await expect(page.locator('.hero h1')).toHaveText('Rozwój menadżerów zaczyna się od rozmowy');
       await expect(page.locator('.hero__actions a')).toHaveCount(2);
       await expect(page.locator('.proof__item')).toHaveCount(3);
+      await expect(page.locator('.hero__picture source')).toHaveCount(1);
       await expect(page.locator('.hero__lead, .hero__note, .hero__individual, .hero .eyebrow')).toHaveCount(0);
       await expect(page.locator('#oferta .section-sub').first()).toContainText(/firm, HR i\s+zarządów/);
       await expect(page.locator('#oferta .section-sub').first()).toContainText(/Także\s+prywatnie/);
@@ -16,12 +17,19 @@ test.describe('Hero po uwagach accounta', () => {
         const name = document.querySelector('.hero__name').getBoundingClientRect();
         const role = document.querySelector('.hero__role').getBoundingClientRect();
         const portrait = document.querySelector('.hero__portrait');
+        const firstAction = document.querySelector('.hero__actions a');
+        const secondAction = document.querySelectorAll('.hero__actions a')[1];
         return {
           overflow: document.documentElement.scrollWidth - innerWidth,
           nameBottom: name.bottom,
           roleTop: role.top,
           imageLoaded: portrait.complete && portrait.naturalWidth > 0,
           imageFit: getComputedStyle(portrait).objectFit,
+          imageSource: portrait.currentSrc,
+          firstActionText: firstAction.innerText.replace(/\s+/g, ' ').trim(),
+          primaryBackground: getComputedStyle(firstAction).backgroundColor,
+          secondaryUnderline: getComputedStyle(secondAction).textDecorationLine,
+          secondaryBorderWidth: parseFloat(getComputedStyle(secondAction).borderTopWidth),
         };
       });
       expect(layout.overflow).toBeLessThanOrEqual(0);
@@ -29,6 +37,18 @@ test.describe('Hero po uwagach accounta', () => {
       expect(layout.imageLoaded).toBe(true);
       // Kadr zależy także od proporcji okna, nie wyłącznie szerokości.
       expect(['contain', 'cover']).toContain(layout.imageFit);
+      if (width < 768) {
+        await expect(page.locator('.hero__summary')).toBeVisible();
+        await expect(page.locator('.hero__details .proof__item')).toHaveCount(3);
+        expect(layout.imageSource).toMatch(/-rozmowa-\d+\.webp(?:\?.*)?$/);
+        expect(layout.firstActionText).toBe('Umów bezpłatną rozmowę');
+        expect(layout.primaryBackground, 'główne CTA zachowuje kolor złoty').toBe('rgb(212, 189, 137)');
+        expect(layout.secondaryUnderline, 'oferta jako podkreślony link').toContain('underline');
+        expect(layout.secondaryBorderWidth, 'oferta bez obramowania przycisku').toBe(0);
+      } else {
+        await expect(page.locator('.hero__summary')).toBeHidden();
+        expect(layout.imageSource).not.toMatch(/-rozmowa-/);
+      }
     });
   }
 });

@@ -893,6 +893,20 @@ Stosuj następujące oznaczenia:
 
 **Responsywność i ostatnia uwaga accounta — 20.09.2026:**
 
+- Zaakceptowany mobilny wariant „Portret redakcyjny”: oryginalne zdjęcie siedzące
+  w pełnej szerokości, czterowierszowy nagłówek, złote CTA na pełną szerokość,
+  link „Poznaj ofertę” poniżej i skrót „Ponad 20 lat w zarządzaniu”.
+  Trzy szczegółowe fakty zachowano w kontynuacji pod otwarciem, bez duplikacji listy.
+  Kadr zmienia natywny `picture/source`, bez JavaScriptu i bez nowej grafiki AI.
+  Wersja C zachowuje „Porozmawiajmy” na desktopie, a na mobile używa zaakceptowanego CTA.
+  Testy obejmują też zmianę orientacji bez przeładowania i granicę breakpointu.
+- Weryfikacja wariantu redakcyjnego: 315/315 testów lokalnych (105 na A/B/C,
+  Chromium, mobilny Chromium, Firefox), bez powtórek i pominięć. W tym prawdziwe
+  powiększenie tekstu do 200% przy 320/390px, cały dokument bez poziomego overflow.
+  Dodatkowa regresja B: 79 testów dostępności, typografii i headera zaliczonych,
+  1 celowe pominięcie. HTML/CSS/CSP/typografia poprawne we wszystkich wariantach.
+  WebKit/iPhone sprawdza obowiązkowy CI; lokalny Windows blokuje silnik polityką aplikacji.
+
 - A/B: rzeczywisty odstęp ikona → nagłówek → opis w „Zasadach” jest zgodny z krokami
   „Jak wygląda współpraca” (0,9rem i 0,7rem); test geometrii przy 390 i 1440px.
 - A/B/C: hero uwzględnia wysokość i proporcje okna, zachowuje dwa CTA, trzy fakty
@@ -903,8 +917,9 @@ Stosuj następujące oznaczenia:
   W niskim oknie panel menu ma własne przewijanie, a przycisk minimum 44px wysokości.
 - Regresję obejmują `hero-responsive.spec.js` (24 rozmiary, 320–5120px, m.in. 4:3,
   16:9, 16:10, 21:9, 9:16 i 32:9) oraz `header-responsive.spec.js`.
-  Przy 320×568 i 568×320 nagłówek oraz CTA pozostają w pierwszym widoku,
-  ale komplet faktów wymaga przewinięcia. Powiększenie i odstępy użytkownika mogą
+  Po wyborze kadru redakcyjnego mobile ma naturalną wysokość: na krótkich telefonach
+  CTA i szczegóły wymagają przewinięcia zamiast pomniejszania tekstu lub portretu.
+  Desktop i krótkie okna poziome zachowują dotychczasowy układ. Powiększenie i odstępy użytkownika mogą
   naturalnie wydłużyć sekcję; nie stosujemy ukrywania treści ani ściskania liter.
 - Rozmiary testów to piksele CSS okna przeglądarki, nie fizyczna rozdzielczość matrycy.
   Testy silników i emulacji nie zastępują kontroli na fizycznym MacBooku Air.

@@ -288,7 +288,7 @@ Stosuj następujące oznaczenia:
   - Dowód: `:focus-visible { outline: 2px solid var(--gold) }` (na kremie `--gold-ink`); test „focus jest zawsze widoczny…” sprawdza `outline-style` każdego sfokusowanego elementu.
 
 - [x] Kolejność focusu jest logiczna.
-  - Dowód: kolejność DOM = kolejność wizualna (brak `tabindex` > 0); test dochodzi do stopki po kolei.
+  - Dowód: elementy interaktywne zachowują kolejność wizualną i DOM (brak `tabindex` > 0); test dochodzi do stopki po kolei.
 
 - [x] Nie istnieje pułapka klawiaturowa.
   - Użytkownik może wejść i wyjść z każdego elementu interaktywnego przy użyciu klawiatury.
@@ -897,7 +897,8 @@ Stosuj następujące oznaczenia:
   „Jak wygląda współpraca” (0,9rem i 0,7rem); test geometrii przy 390 i 1440px.
 - A/B/C: hero uwzględnia wysokość i proporcje okna, zachowuje dwa CTA, trzy fakty
   i oryginalne zdjęcie. Limit wysokości sceny chroni kadr na 4K i pionowych tabletach.
-  Na telefonie CTA poprzedzają portret; krótkie okna poziome mają układ kompaktowy.
+  Po dodatkowej uwadze zlecającego kolejność mobilna to portret → H1 → podpis → CTA.
+  Portret poprzedza tekst również w DOM; desktop i krótkie okna poziome zachowują dwie kolumny.
 - Nawigacja przechodzi w menu poniżej 60em; logo nie jest ściskane przez linki.
   W niskim oknie panel menu ma własne przewijanie, a przycisk minimum 44px wysokości.
 - Regresję obejmują `hero-responsive.spec.js` (24 rozmiary, 320–5120px, m.in. 4:3,
@@ -908,10 +909,14 @@ Stosuj następujące oznaczenia:
 - Rozmiary testów to piksele CSS okna przeglądarki, nie fizyczna rozdzielczość matrycy.
   Testy silników i emulacji nie zastępują kontroli na fizycznym MacBooku Air.
   Publikację nadal dopuszcza wyłącznie pełny CI przypięty do SHA wszystkich wariantów.
-- Końcowe pełne przebiegi lokalne (Chromium, Firefox i mobile Chromium): A 376, B 406,
+- Przebiegi lokalne przed zmianą kolejności mobile (Chromium, Firefox i mobile Chromium): A 376, B 406,
   C 400 testów zaliczonych, po 8 świadomych pominięć, bez błędów i niestabilnych powtórek.
   Build, walidacja HTML/CSS/CSP i 9 przypadków typografii poprawne.
   Obejrzano zrzuty laptopa 1280×650, telefonu, tabletu, 2K, 4K i 32:9 oraz obu sekcji odstępów.
+- Po zmianie kolejności mobile: po 96 testów hero na wariant w Chromium, Firefox i mobile Chromium
+  zaliczonych bez pominięć i powtórek; obejmują też układ i CTA bez JavaScriptu.
+  Build oraz walidacja HTML/CSS/CSP/typografii poprawne. Obejrzano nowy portret nad tekstem
+  na małych i dużych telefonach. Zrzut desktop B 1470×820 pozostał identyczny bajtowo.
 
 **Uwagi accounta — 19.09.2026, kolejna iteracja:**
 

@@ -209,11 +209,12 @@ button { font: inherit; color: inherit; }
 .hero__grid {
   flex: 1;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "copy portrait";
   gap: 2rem; align-items: end;
   min-height: 0;
   padding-top: var(--hero-pad);
 }
-.hero__copy { max-width: 40rem; align-self: center; padding-bottom: var(--hero-pad); }
+.hero__copy { grid-area: copy; max-width: 40rem; align-self: center; padding-bottom: var(--hero-pad); }
 .hero__title {
   font-size: var(--hero-title); line-height: 1.06;
   letter-spacing: -.025em; color: var(--paper); margin: 0 0 var(--hero-gap);
@@ -227,7 +228,7 @@ button { font: inherit; color: inherit; }
 .hero__role { font-size: 1rem; color: var(--mist-soft); letter-spacing: .01em; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: .85rem; }
 
-.hero__figure { position: relative; margin: 0; min-height: 0; align-self: stretch; }
+.hero__figure { grid-area: portrait; position: relative; margin: 0; min-height: 0; align-self: stretch; }
 .hero__portrait {
   position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto;
   height: 100%; width: 100%; max-width: 100%;
@@ -260,10 +261,11 @@ button { font: inherit; color: inherit; }
   }
   .hero__grid {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(9rem, 1fr);
+    grid-template-areas: "portrait" "copy";
+    grid-template-rows: minmax(9rem, 1fr) auto;
     gap: .75rem;
   }
-  .hero__copy { padding-bottom: 0; }
+  .hero__copy { padding-bottom: .75rem; }
   .hero__name { font-size: clamp(1.4rem, 4.8vw, 1.75rem); }
   .hero__role { font-size: .9375rem; line-height: 1.5; }
   .hero__actions { display: grid; grid-template-columns: 1.4fr 1fr; gap: .5rem; }
@@ -278,7 +280,9 @@ button { font: inherit; color: inherit; }
   .hero__portrait { object-fit: contain; object-position: bottom center; }
 }
 @media (max-width: 47.99em) and (max-height: 45em) {
-  .hero__grid { grid-template-rows: auto minmax(6.5rem, 1fr); }
+  .hero { --hero-pad: .5rem; }
+  .hero__grid { grid-template-rows: minmax(6.5rem, 1fr) auto; gap: .5rem; }
+  .hero__copy { padding-bottom: .5rem; }
   .hero__figure { width: min(65%, 18rem); }
   .proof { gap: .4rem; padding-block: .5rem; }
 }
@@ -287,14 +291,14 @@ button { font: inherit; color: inherit; }
   :root { --header-h: 4rem; }
   .brand__logo { height: 3rem; }
   .hero { --hero-pad: .5rem; --hero-gap: .4rem; --hero-title: clamp(2rem, 5svh, 2.5rem); }
-  .hero__grid { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); grid-template-rows: auto; gap: 1rem; }
+  .hero__grid { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); grid-template-areas: "copy portrait"; grid-template-rows: auto; gap: 1rem; }
   .hero__copy { padding-bottom: var(--hero-pad); }
   .hero__byline { gap: .25rem; }
   .hero__name { font-size: 1.4rem; }
   .hero__role { font-size: .9375rem; line-height: 1.4; }
   .hero__actions { display: flex; gap: .5rem; }
   .hero__actions .btn { padding: .55rem .5rem; font-size: .875rem; min-height: 2.75rem; }
-  .hero__figure { grid-column: 2; grid-row: 1; width: 100%; max-height: none; }
+  .hero__figure { width: 100%; max-height: none; }
   .proof { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding-block: .5rem; }
   .proof__item { padding-left: .75rem; gap: .15rem; }
   .proof__title { font-size: 1rem; }

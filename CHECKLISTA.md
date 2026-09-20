@@ -770,7 +770,7 @@ Stosuj następujące oznaczenia:
   - Dowód: testy i zrzuty 1280 i 1440 px (`docs/screens/desktop-*.png`).
 
 - [x] Bardzo szerokie ekrany nie powodują ewidentnie popsutego layoutu.
-  - Dowód: test „bardzo szeroki ekran nie psuje układu” (2560 px, kontener max 74 rem wyśrodkowany).
+  - Dowód: test „bardzo szeroki ekran nie psuje układu” (2560 px, kontener 88% szerokości, wyśrodkowany) i `wide-layout.spec.js`.
 
 - [x] Nawigacja działa poprawnie myszką, klawiaturą i dotykiem.
   - Dowód: testy klikania (desktop), `tap` w projektach mobilnych, Escape/Tab w `tests/a11y.spec.js`.
@@ -928,6 +928,18 @@ Stosuj następujące oznaczenia:
   Desktop i krótkie okna poziome zachowują dotychczasowy układ. Powiększenie i odstępy użytkownika mogą
   naturalnie wydłużyć sekcję; nie stosujemy ukrywania treści ani ściskania liter.
 - Rozmiary testów to piksele CSS okna przeglądarki, nie fizyczna rozdzielczość matrycy.
+  Po wskazaniu OK Agency jako odniesienia poszerzono cały desktop do 88% szerokości,
+  z płynnym przejściem od dotychczasowych 74rem i limitem 168rem dla ultrawide.
+  Nagłówki, akapity, logo, ikony i odstępy skalują się razem; górną skalę ogranicza
+  także wysokość okna, więc niski ultrawide nie dostaje nadmiernie dużego tekstu.
+  Miara akapitów pozostaje ograniczona do 58ch. Portret na dużym desktopie mieści
+  się proporcjonalnie w ramie, bez powiększania twarzy przez przypadkowy crop.
+  Zaktualizowano wskazówki `sizes` obrazów; nie generowano ani nie zmieniano zdjęć.
+  Zasady zachowują maksymalnie trzy kolumny, również na 4K; powiększony tekst
+  może zmniejszyć ich liczbę. Mobile zachowuje zaakceptowany układ redakcyjny.
+  Końcowa lokalna kontrola tej zmiany: 264/264 testy hero i zakończenia strony
+  (A/B/C × Chromium i mobile Chrome) oraz 54/54 testy szerokiego układu
+  (A/B/C × Chromium i Firefox), bez ponowień. Sprawdzono również zrzuty widoków.
   `page-ending.spec.js` sprawdza także przejście „O mnie” → „Opinie” oraz koniec strony:
   A/B nie sumują dolnego i górnego odstępu sąsiednich kremowych pasów; C zachowuje zmianę koloru.
   Kontakt i stopka mają wspólny kontrakt minimalnej wysokości, dzięki któremu po pełnym

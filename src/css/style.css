@@ -37,7 +37,7 @@
   /* Szerokość treści. Wiersz dłuższy niż ok. 75 znaków gubi początek następnego, dlatego kontener
      jest ograniczony — ale na dużych monitorach może urosnąć, bo każdy blok tekstu ma własny limit
      szerokości (--miara), więc wiersze i tak się nie wydłużą. */
-  --container: 74rem;
+  --container: clamp(74rem, 88vw, 168rem);
   --miara: 58ch; /* zmierzone: ok. 70 znaków w wierszu przy kroju Inter */
   --min-kolumna: 22rem;
   --gutter: clamp(1rem, 4vw, 3rem);
@@ -258,10 +258,19 @@ button { font: inherit; color: inherit; }
 .proof__title { font: 400 1.2rem/1.3 var(--serif); color: var(--paper); }
 .proof__sub { font-size: .88rem; color: var(--mist-soft); }
 
-/* Duże monitory (od 1800 px): kontener rośnie, żeby treść nie tonęła w pustych marginesach.
-   Wiersze zostają krótkie, bo pilnuje ich --miara na blokach tekstu. */
-@media (min-width: 112.5em) {
-  :root { --container: 86rem; }
+/* Duży desktop: rośnie cała kompozycja, ale akapity zachowują własną miarę.
+   Limit chroni układ ultraszeroki; procentowe granice szanują rozmiar tekstu użytkownika. */
+@media (min-width: 100em) {
+  :root {
+    font-size: clamp(100%, min(calc(100vw / 120), calc(100vh / 60)), 200%);
+  }
+  .hero__copy { max-width: 46rem; }
+  .hero__portrait {
+    width: auto;
+    height: 100%;
+    object-fit: contain;
+    object-position: bottom center;
+  }
 }
 @media (max-width: 64em) {
   .hero__grid { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); }
@@ -377,6 +386,7 @@ button { font: inherit; color: inherit; }
 }
 .situation__num { font: 400 .95rem/1.3 var(--serif); color: var(--gold-ink); padding-top: .25rem; }
 .situation__icon { color: var(--ink-soft); }
+.situation__icon svg { width: 2rem; height: 2rem; }
 .situation__title { font-size: 1.3rem; }
 .situation__desc { margin: 0; max-width: var(--miara); }
 @media (max-width: 57.99em) {
@@ -400,8 +410,15 @@ button { font: inherit; color: inherit; }
 
 .principles { margin-top: clamp(3rem, 6vw, 5rem); padding-top: clamp(2.5rem, 4vw, 3.5rem); border-top: 1px solid var(--teal-line); }
 .principles__title { font-size: clamp(1.4rem, 1.15rem + .8vw, 1.8rem); margin-bottom: 1.75rem; }
-.principles__list { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--min-kolumna), 100%), 1fr)); gap: 2rem 3rem; }
+.principles__list {
+  /* Maksymalnie trzy kolumny; minimalna miara pozwala zejść do dwóch lub jednej. */
+  --principle-column-gap: 3rem;
+  list-style: none; display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, max(var(--min-kolumna), calc((100% - 2 * var(--principle-column-gap)) / 3))), 1fr));
+  gap: 2rem var(--principle-column-gap);
+}
 .principle__icon { display: block; color: var(--gold); margin-bottom: .9rem; }
+.principle__icon svg { width: 1.75rem; height: 1.75rem; }
 .principle__title { font-size: 1.2rem; margin-bottom: .7rem; }
 .principle p { margin: 0; color: var(--mist-soft); font-size: .97rem; max-width: var(--miara); }
 

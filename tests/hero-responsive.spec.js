@@ -106,6 +106,7 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
         const copyStyle = getComputedStyle(copyElement);
         return {
           viewport: { width: innerWidth, height: innerHeight },
+          rootFontSize: parseFloat(getComputedStyle(document.documentElement).fontSize),
           overflow: document.documentElement.scrollWidth - innerWidth,
           header: rect('.site-header'),
           hero: rect('.hero'),
@@ -212,8 +213,8 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
         // Na pionowym monitorze pierwszy ekran nie jest celem kompozycji:
         // hero pozostaje zwartym wprowadzeniem, bez pustej większości widoku.
         expect(layout.hero.height, 'pionowy monitor: hero nie jest rozciągnięte na cały ekran').toBeLessThanOrEqual(height * 0.75);
-        expect(layout.grid.top - layout.hero.top, 'pionowy monitor: brak pustego pasa nad kompozycją').toBeLessThanOrEqual(48 + 1);
-        expect(layout.hero.bottom - layout.details.bottom, 'pionowy monitor: brak pustego pasa pod faktami').toBeLessThanOrEqual(48 + 1);
+        expect(layout.grid.top - layout.hero.top, 'pionowy monitor: brak pustego pasa nad kompozycją').toBeLessThanOrEqual(3 * layout.rootFontSize + 1);
+        expect(layout.hero.bottom - layout.details.bottom, 'pionowy monitor: brak pustego pasa pod faktami').toBeLessThanOrEqual(3 * layout.rootFontSize + 1);
       }
       if (mobile) {
         // Makieta redakcyjna przewija się naturalnie: zamiast ściskać zdjęcie i tekst,

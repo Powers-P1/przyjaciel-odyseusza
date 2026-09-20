@@ -160,11 +160,11 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
   test('bardzo szeroki ekran nie psuje układu', async ({ page }) => {
     await page.setViewportSize({ width: 2560, height: 1200 });
     await page.goto('/');
-    // treść ma się rozciągnąć na dużym monitorze (--container rośnie do 86rem), ale nie w nieskończoność:
-    // o czytelność wiersza dba osobno --miara na blokach tekstu
+    // Na 2560 px wspólna kompozycja zajmuje 88% szerokości okna.
+    // Czytelność akapitów i górny limit skali na 4K/ultrawide sprawdza wide-layout.spec.js.
     const box = await page.locator('.hero .container').first().boundingBox();
-    expect(box.width, 'szerokość kontenera').toBeLessThanOrEqual(1376);
-    expect(box.width, 'kontener nie urósł wraz z ekranem').toBeGreaterThanOrEqual(1300);
-    expect(box.x).toBeGreaterThan(500);
+    expect(Math.abs(box.width - 2252.8), 'kontener zajmuje 88% szerokości okna').toBeLessThanOrEqual(1);
+    const availableWidth = await page.evaluate(() => document.documentElement.clientWidth);
+    expect(Math.abs(box.x - (availableWidth - box.width) / 2), 'kontener pozostaje wyśrodkowany').toBeLessThanOrEqual(1);
   });
 });

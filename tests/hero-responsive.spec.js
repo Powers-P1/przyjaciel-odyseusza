@@ -3,12 +3,36 @@ import { test, expect, ORIGIN, BASE_PATH } from './_fixtures.js';
 const viewports = [
   [320, 568], [360, 640], [390, 844], [430, 932], [640, 800],
   [568, 320], [667, 375], [844, 390], [767, 900], [768, 1024],
-  [834, 1194], [1024, 768], [1280, 650], [1366, 668], [1440, 780],
+  [834, 1194], [1024, 768], [1280, 650], [1280, 800], [1366, 668], [1440, 780],
   [1440, 900], [1920, 1080], [1920, 1200], [2560, 1440], [2560, 1600],
   [3440, 1440], [3840, 2160], [1080, 1920], [5120, 1440],
 ];
 const scrollExceptions = new Set(['568x320']);
 const editorialMobile = (width, height) => width < 768 && !(width >= 560 && height <= 560);
+
+async function expectExperienceOnce(page) {
+  await expect(page.locator('.hero__summary'), 'brak dodatkowego podsumowania po CTA').toHaveCount(0);
+  const experience = /^Ponad 20\s+lat w\s+zarządzaniu$/;
+  await expect(page.locator('.hero .proof__title').filter({ hasText: experience })).toHaveCount(1);
+  const heroText = await page.locator('.hero').textContent();
+  expect(heroText.match(/Ponad 20\s+lat w\s+zarządzaniu/g) ?? [], 'doświadczenie występuje w hero tylko raz').toHaveLength(1);
+}
+
+async function expectMobileProofSpacing(page) {
+  const spacing = await page.evaluate(() => {
+    const actions = document.querySelector('.hero__actions').getBoundingClientRect();
+    const proof = document.querySelector('.hero .proof').getBoundingClientRect();
+    const firstFact = document.querySelector('.hero .proof__item').getBoundingClientRect();
+    return {
+      rootFontSize: parseFloat(getComputedStyle(document.documentElement).fontSize),
+      dividerGap: proof.top - actions.bottom,
+      firstFactGap: firstFact.top - actions.bottom,
+    };
+  });
+  expect(spacing.dividerGap, 'fakty zaczynają się po CTA').toBeGreaterThanOrEqual(-1);
+  expect(spacing.dividerGap, 'bez pustego bloku po CTA').toBeLessThanOrEqual(3 * spacing.rootFontSize + 1);
+  expect(spacing.firstFactGap, 'pierwszy fakt bez nadmiarowego odstępu').toBeLessThanOrEqual(5 * spacing.rootFontSize + 1);
+}
 
 async function expectActionUnobscured(action) {
   // Przewinięcie jest zaokrąglane do CSS px; np. dolna krawędź 640.0625 przy
@@ -38,13 +62,10 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       await expect(page.locator('.hero__actions a')).toHaveCount(2);
       await expect(page.locator('.proof__item')).toHaveCount(3);
       const mobile = editorialMobile(width, height);
-      const summary = page.locator('.hero__summary');
+      await expectExperienceOnce(page);
       if (mobile) {
-        await expect(summary).toBeVisible();
-        await expect(summary).toHaveText(/Ponad 20\s+lat w\s+zarządzaniu/);
+        await expectMobileProofSpacing(page);
         await expect(page.locator('.hero__actions a').first()).toHaveText('Umów bezpłatną rozmowę', { useInnerText: true });
-      } else {
-        await expect(summary).toBeHidden();
       }
       await expect.poll(() => page.locator('.hero__portrait').evaluate((image) =>
         image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
@@ -102,7 +123,6 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
           proof: rect('.proof'),
           details: rect('.hero__details'),
           grid: rect('.hero__grid'),
-          summary: rect('.hero__summary'),
           singleColumn: getComputedStyle(document.querySelector('.hero__grid')).gridTemplateColumns.trim().split(/\s+/).length === 1,
           figureBeforeCopy: Boolean(document.querySelector('.hero__figure').compareDocumentPosition(document.querySelector('.hero__copy'))
             & Node.DOCUMENT_POSITION_FOLLOWING),
@@ -149,10 +169,9 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
         expect(layout.actions[0].left, 'główne CTA równe szerokości tekstu').toBeCloseTo(layout.copyContent.left, 0);
         expect(layout.actions[0].right).toBeCloseTo(layout.copyContent.right, 0);
         expect(layout.actions[0].bottom, 'link oferty pod głównym CTA').toBeLessThanOrEqual(layout.actions[1].top + 1);
-        expect(layout.actionGroup.bottom, 'podsumowanie po CTA').toBeLessThanOrEqual(layout.summary.top + 1);
-        expect(layout.summary.bottom, 'podsumowanie wewnątrz części wprowadzającej').toBeLessThanOrEqual(layout.grid.bottom + 1);
-        expect(layout.details.top, 'szczegółowe fakty w osobnym bloku po wprowadzeniu').toBeGreaterThanOrEqual(layout.grid.bottom - 1);
-        expect(layout.proof.top, 'szczegóły nie konkurują z krótkim podsumowaniem').toBeGreaterThan(layout.summary.bottom + 16);
+        expect(layout.actionGroup.bottom, 'CTA kończy część wprowadzającą').toBeLessThanOrEqual(layout.grid.bottom + 1);
+        expect(layout.details.top, 'szczegółowe fakty po wprowadzeniu').toBeGreaterThanOrEqual(layout.grid.bottom - 1);
+        expect(layout.proof.top, 'fakty po CTA bez dodatkowego podsumowania').toBeGreaterThanOrEqual(layout.actionGroup.bottom - 1);
       } else {
         expect(mobile, 'desktop i niski landscape zachowują dwie kolumny').toBe(false);
         expect(layout.title.bottom, 'H1 widoczne bez przewijania').toBeLessThanOrEqual(layout.viewport.height + 1);
@@ -183,6 +202,9 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       expect(overlaps(layout.portrait, layout.proof), 'portret nie nakłada się na fakty').toBe(false);
 
       if (!mobile && !scrollExceptions.has(width + 'x' + height)) {
+        if (width >= 768) {
+          expect(layout.hero.bottom, 'desktopowe hero wypełnia wysokość okna poniżej nagłówka').toBeGreaterThanOrEqual(layout.viewport.height - 1);
+        }
         expect(layout.hero.bottom, 'całe hero mieści się w pierwszym ekranie').toBeLessThanOrEqual(layout.viewport.height + 1);
         expect(layout.proof.bottom, 'wszystkie fakty mieszczą się w pierwszym ekranie').toBeLessThanOrEqual(layout.viewport.height + 1);
       }
@@ -206,11 +228,12 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       await page.goto('/');
       await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
       await page.evaluate(() => document.fonts.ready);
-      await expect(page.locator('.hero__summary')).toBeVisible();
+      await expectExperienceOnce(page);
+      await expectMobileProofSpacing(page);
       // Na urządzeniu mobilnym overflow może powiększyć innerWidth; porównujemy
       // szerokość dokumentu z faktycznie ustawionym viewportem testu.
       expect(await page.evaluate(() => document.documentElement.scrollWidth), 'brak przewijania poziomego przy większym tekście').toBeLessThanOrEqual(width + 1);
-      const elements = page.locator('.brand, .nav-toggle, .hero h1, .hero__name, .hero__role, .hero__actions a, .hero__summary, .proof__item');
+      const elements = page.locator('.brand, .nav-toggle, .hero h1, .hero__name, .hero__role, .hero__actions a, .proof__item');
       for (const element of await elements.all()) {
         await expect(element).toBeVisible();
         const bounds = await element.boundingBox();
@@ -234,7 +257,6 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     const portrait = page.locator('.hero__portrait');
-    const summary = page.locator('.hero__summary');
     const expectLoadedSource = async (mobile) => {
       await expect.poll(() => portrait.evaluate((image) => ({
         loaded: image.complete && image.naturalWidth > 0,
@@ -242,11 +264,12 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       }))).toEqual({ loaded: true, seated: mobile });
     };
     await expectLoadedSource(true);
-    await expect(summary).toBeVisible();
+    await expectExperienceOnce(page);
+    await expectMobileProofSpacing(page);
 
     await page.setViewportSize({ width: 667, height: 375 });
     await expectLoadedSource(false);
-    await expect(summary).toBeHidden();
+    await expectExperienceOnce(page);
     const landscape = await page.evaluate(() => ({
       copyRight: document.querySelector('.hero__copy').getBoundingClientRect().right,
       portraitLeft: document.querySelector('.hero__figure').getBoundingClientRect().left,
@@ -257,7 +280,8 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await expectLoadedSource(true);
-    await expect(summary).toBeVisible();
+    await expectExperienceOnce(page);
+    await expectMobileProofSpacing(page);
     await expect(page.locator('.hero__actions a').first()).toHaveText('Umów bezpłatną rozmowę', { useInnerText: true });
     await page.locator('.hero__actions a').last().click();
     await expect(page).toHaveURL(/#oferta$/);
@@ -274,7 +298,8 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       await expect.poll(() => page.evaluate(() => document.fonts.status)).toBe('loaded');
       await expect(page.locator('.hero__actions a')).toHaveCount(2);
       await expect(page.locator('.proof__item')).toHaveCount(3);
-      await expect(page.locator('.hero__summary')).toBeVisible();
+      await expectExperienceOnce(page);
+      await expectMobileProofSpacing(page);
       await expect.poll(() => page.locator('.hero__portrait').evaluate((image) =>
         image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
       )).toBe(true);
@@ -286,7 +311,7 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
         return {
           portrait: rect('.hero__figure'), title: rect('.hero h1'),
           imageSource: document.querySelector('.hero__portrait').currentSrc,
-          summary: rect('.hero__summary'), proof: rect('.proof'),
+          proof: rect('.proof'),
           byline: rect('.hero__byline'), actions: rect('.hero__actions'),
           buttons: [...document.querySelectorAll('.hero__actions a')].map(element => element.getBoundingClientRect().toJSON()),
           singleColumn: getComputedStyle(document.querySelector('.hero__grid')).gridTemplateColumns.trim().split(/\s+/).length === 1,
@@ -303,8 +328,7 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       expect(layout.portrait.bottom, 'zdjęcie przed H1 bez JS').toBeLessThanOrEqual(layout.title.top + 1);
       expect(layout.title.bottom, 'H1 przed podpisem bez JS').toBeLessThanOrEqual(layout.byline.top + 1);
       expect(layout.byline.bottom, 'podpis przed CTA bez JS').toBeLessThanOrEqual(layout.actions.top + 1);
-      expect(layout.actions.bottom, 'CTA przed podsumowaniem bez JS').toBeLessThanOrEqual(layout.summary.top + 1);
-      expect(layout.summary.bottom, 'podsumowanie przed szczegółami bez JS').toBeLessThanOrEqual(layout.proof.top + 1);
+      expect(layout.actions.bottom, 'CTA przed faktami bez JS i bez dodatkowego podsumowania').toBeLessThanOrEqual(layout.proof.top + 1);
       expect(layout.overflow).toBeLessThanOrEqual(1);
       for (const bounds of [layout.portrait, layout.title, layout.byline, layout.actions]) {
         expect(bounds.width).toBeGreaterThan(0);

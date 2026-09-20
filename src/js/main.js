@@ -45,7 +45,7 @@
     header.addEventListener('focusout', function (e) {
       if (nav.classList.contains('is-open') && !header.contains(e.relatedTarget)) setNavOpen(false);
     });
-    var mq = window.matchMedia('(min-width: 48em)');
+    var mq = window.matchMedia('(min-width: 60em)');
     if (mq.addEventListener) mq.addEventListener('change', function () { setNavOpen(false); });
   }
 

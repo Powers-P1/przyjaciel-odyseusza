@@ -129,8 +129,9 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
     await expect(page.locator('#kontakt h2')).toBeInViewport({ ratio: 1 });
 
     await page.keyboard.press('Tab');
-    // WebKit kończy natywne przewinięcie do fokusu po zdarzeniu klawiatury.
-    // Czekamy na ten sam pełny kontrakt widoczności, bez ręcznego przewijania.
+    // Czekamy na natywne przewinięcie do fokusu, bez ręcznego przewijania.
+    // Tolerancja 1 CSS px, jak w pozostałych pomiarach: WebKit może zaokrąglić
+    // pozycję przewinięcia, zachowując ułamkowy prostokąt linku (np. 320.203125).
     await expect.poll(() => page.evaluate(() => {
       const element = document.activeElement;
       const bounds = element.getBoundingClientRect();
@@ -141,7 +142,7 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
         isControl: !['BODY', 'HTML'].includes(element.tagName),
         inHiddenMenu: Boolean(element.closest('#nav-glowna')),
         belowHeader: bounds.top >= document.querySelector('.site-header').getBoundingClientRect().bottom - 1,
-        onScreen: bounds.top >= 0 && bounds.bottom <= innerHeight && bounds.left >= 0 && bounds.right <= innerWidth,
+        onScreen: bounds.top >= -1 && bounds.bottom <= innerHeight + 1 && bounds.left >= -1 && bounds.right <= innerWidth + 1,
         unobscured: Boolean(hit && element.contains(hit)),
       };
     })).toEqual(expect.objectContaining({ isControl: true, inHiddenMenu: false, belowHeader: true, onScreen: true, unobscured: true }));

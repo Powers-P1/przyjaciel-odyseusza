@@ -129,19 +129,21 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
     await expect(page.locator('#kontakt h2')).toBeInViewport({ ratio: 1 });
 
     await page.keyboard.press('Tab');
-    const focus = await page.evaluate(() => {
+    // WebKit kończy natywne przewinięcie do fokusu po zdarzeniu klawiatury.
+    // Czekamy na ten sam pełny kontrakt widoczności, bez ręcznego przewijania.
+    await expect.poll(() => page.evaluate(() => {
       const element = document.activeElement;
       const bounds = element.getBoundingClientRect();
       const hit = document.elementFromPoint((bounds.left + bounds.right) / 2, (bounds.top + bounds.bottom) / 2);
       return {
+        target: element.id || element.tagName,
+        bounds: { top: bounds.top, right: bounds.right, bottom: bounds.bottom, left: bounds.left },
         isControl: !['BODY', 'HTML'].includes(element.tagName),
         inHiddenMenu: Boolean(element.closest('#nav-glowna')),
         belowHeader: bounds.top >= document.querySelector('.site-header').getBoundingClientRect().bottom - 1,
         onScreen: bounds.top >= 0 && bounds.bottom <= innerHeight && bounds.left >= 0 && bounds.right <= innerWidth,
         unobscured: Boolean(hit && element.contains(hit)),
       };
-    });
-    expect(focus).toEqual({ isControl: true, inHiddenMenu: false, belowHeader: true, onScreen: true, unobscured: true });
+    })).toEqual(expect.objectContaining({ isControl: true, inHiddenMenu: false, belowHeader: true, onScreen: true, unobscured: true }));
   });
 });
-

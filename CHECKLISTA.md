@@ -895,8 +895,12 @@ Stosuj następujące oznaczenia:
 
 - Zaakceptowany mobilny wariant „Portret redakcyjny”: oryginalne zdjęcie siedzące
   w pełnej szerokości, czterowierszowy nagłówek, złote CTA na pełną szerokość,
-  link „Poznaj ofertę” poniżej i skrót „Ponad 20 lat w zarządzaniu”.
-  Trzy szczegółowe fakty zachowano w kontynuacji pod otwarciem, bez duplikacji listy.
+  link „Poznaj ofertę” poniżej, a następnie trzy szczegółowe fakty.
+  Po uwadze zlecającego usunięto powtórzony skrót „Ponad 20 lat w zarządzaniu”
+  pod CTA wraz z jego linią i odstępem. Informacja występuje w hero tylko raz,
+  we właściwym bloku doświadczenia; regresja sprawdza brak duplikatu również bez JS.
+  Po korekcie duplikatu i wysokości desktopu: 216/216 testów lokalnych A/B/C
+  (Chromium i mobilny Chromium), bez pominięć i powtórek; build i walidacja poprawne.
   Kadr zmienia natywny `picture/source`, bez JavaScriptu i bez nowej grafiki AI.
   Wersja C zachowuje „Porozmawiajmy” na desktopie, a na mobile używa zaakceptowanego CTA.
   Testy obejmują też zmianę orientacji bez przeładowania i granicę breakpointu.
@@ -909,13 +913,14 @@ Stosuj następujące oznaczenia:
 
 - A/B: rzeczywisty odstęp ikona → nagłówek → opis w „Zasadach” jest zgodny z krokami
   „Jak wygląda współpraca” (0,9rem i 0,7rem); test geometrii przy 390 i 1440px.
-- A/B/C: hero uwzględnia wysokość i proporcje okna, zachowuje dwa CTA, trzy fakty
-  i oryginalne zdjęcie. Limit wysokości sceny chroni kadr na 4K i pionowych tabletach.
+- A/B/C: desktopowe hero wraz z nagłówkiem wypełnia pierwszy ekran, zachowując dwa CTA,
+  trzy fakty i oryginalne zdjęcie. Treść jest centrowana z zachowaniem proporcji portretu;
+  wysoki viewport nie może odsłaniać kolejnej sekcji przed przewinięciem.
   Po dodatkowej uwadze zlecającego kolejność mobilna to portret → H1 → podpis → CTA.
   Portret poprzedza tekst również w DOM; desktop i krótkie okna poziome zachowują dwie kolumny.
 - Nawigacja przechodzi w menu poniżej 60em; logo nie jest ściskane przez linki.
   W niskim oknie panel menu ma własne przewijanie, a przycisk minimum 44px wysokości.
-- Regresję obejmują `hero-responsive.spec.js` (24 rozmiary, 320–5120px, m.in. 4:3,
+- Regresję obejmują `hero-responsive.spec.js` (25 rozmiarów, 320–5120px, m.in. 4:3,
   16:9, 16:10, 21:9, 9:16 i 32:9) oraz `header-responsive.spec.js`.
   Po wyborze kadru redakcyjnego mobile ma naturalną wysokość: na krótkich telefonach
   CTA i szczegóły wymagają przewinięcia zamiast pomniejszania tekstu lub portretu.

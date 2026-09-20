@@ -9,6 +9,10 @@ test.describe('Hero po uwagach accounta', () => {
       await expect(page.locator('.hero h1')).toHaveText('Rozwój menadżerów zaczyna się od rozmowy');
       await expect(page.locator('.hero__actions a')).toHaveCount(2);
       await expect(page.locator('.proof__item')).toHaveCount(3);
+      await expect(page.locator('.hero__summary')).toHaveCount(0);
+      await expect(page.locator('.hero .proof__title').filter({ hasText: /^Ponad 20\s+lat w\s+zarządzaniu$/ })).toHaveCount(1);
+      const heroText = await page.locator('.hero').textContent();
+      expect(heroText.match(/Ponad 20\s+lat w\s+zarządzaniu/g) ?? [], 'bez powtórzenia doświadczenia pod CTA').toHaveLength(1);
       await expect(page.locator('.hero__picture source')).toHaveCount(1);
       await expect(page.locator('.hero__lead, .hero__note, .hero__individual, .hero .eyebrow')).toHaveCount(0);
       await expect(page.locator('#oferta .section-sub').first()).toContainText(/firm, HR i\s+zarządów/);
@@ -38,7 +42,6 @@ test.describe('Hero po uwagach accounta', () => {
       // Kadr zależy także od proporcji okna, nie wyłącznie szerokości.
       expect(['contain', 'cover']).toContain(layout.imageFit);
       if (width < 768) {
-        await expect(page.locator('.hero__summary')).toBeVisible();
         await expect(page.locator('.hero__details .proof__item')).toHaveCount(3);
         expect(layout.imageSource).toMatch(/-rozmowa-\d+\.webp(?:\?.*)?$/);
         expect(layout.firstActionText).toBe('Umów bezpłatną rozmowę');
@@ -46,7 +49,6 @@ test.describe('Hero po uwagach accounta', () => {
         expect(layout.secondaryUnderline, 'oferta jako podkreślony link').toContain('underline');
         expect(layout.secondaryBorderWidth, 'oferta bez obramowania przycisku').toBe(0);
       } else {
-        await expect(page.locator('.hero__summary')).toBeHidden();
         expect(layout.imageSource).not.toMatch(/-rozmowa-/);
       }
     });

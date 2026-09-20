@@ -37,7 +37,7 @@ Stosuj następujące oznaczenia:
 - Dodatkowe języki: brak
 - ID analityki produkcyjnej: brak (privacy-first; rekomendacja Cloudflare Web Analytics, patrz `docs/plan-pomiarowy.md`)
 - CMP / system zgód: brak (strona nie ustawia cookies i nie ładuje trackerów, potwierdzone testem)
-- Data bieżącego QA lokalnego: 2026-09-19 (zakres, wyniki i ograniczenia w sekcji 15)
+- Data bieżącego QA lokalnego: 2026-09-20 (zakres, wyniki i ograniczenia w sekcji 15)
 - Audyt wykonał: Claude (agent) dla OK Agency / Damian Karolewski Technology Solutions
 
 ---
@@ -891,6 +891,28 @@ Stosuj następujące oznaczenia:
 
 > To, co da się wiarygodnie sprawdzić automatycznie, nie powinno zależeć od pamięci developera lub agenta.
 
+**Responsywność i ostatnia uwaga accounta — 20.09.2026:**
+
+- A/B: rzeczywisty odstęp ikona → nagłówek → opis w „Zasadach” jest zgodny z krokami
+  „Jak wygląda współpraca” (0,9rem i 0,7rem); test geometrii przy 390 i 1440px.
+- A/B/C: hero uwzględnia wysokość i proporcje okna, zachowuje dwa CTA, trzy fakty
+  i oryginalne zdjęcie. Limit wysokości sceny chroni kadr na 4K i pionowych tabletach.
+  Na telefonie CTA poprzedzają portret; krótkie okna poziome mają układ kompaktowy.
+- Nawigacja przechodzi w menu poniżej 60em; logo nie jest ściskane przez linki.
+  W niskim oknie panel menu ma własne przewijanie, a przycisk minimum 44px wysokości.
+- Regresję obejmują `hero-responsive.spec.js` (24 rozmiary, 320–5120px, m.in. 4:3,
+  16:9, 16:10, 21:9, 9:16 i 32:9) oraz `header-responsive.spec.js`.
+  Przy 320×568 i 568×320 nagłówek oraz CTA pozostają w pierwszym widoku,
+  ale komplet faktów wymaga przewinięcia. Powiększenie i odstępy użytkownika mogą
+  naturalnie wydłużyć sekcję; nie stosujemy ukrywania treści ani ściskania liter.
+- Rozmiary testów to piksele CSS okna przeglądarki, nie fizyczna rozdzielczość matrycy.
+  Testy silników i emulacji nie zastępują kontroli na fizycznym MacBooku Air.
+  Publikację nadal dopuszcza wyłącznie pełny CI przypięty do SHA wszystkich wariantów.
+- Końcowe pełne przebiegi lokalne (Chromium, Firefox i mobile Chromium): A 376, B 406,
+  C 400 testów zaliczonych, po 8 świadomych pominięć, bez błędów i niestabilnych powtórek.
+  Build, walidacja HTML/CSS/CSP i 9 przypadków typografii poprawne.
+  Obejrzano zrzuty laptopa 1280×650, telefonu, tabletu, 2K, 4K i 32:9 oraz obu sekcji odstępów.
+
 **Uwagi accounta — 19.09.2026, kolejna iteracja:**
 
 - A/B/C: powiększony portret i H1, osobne wiersze nazwiska i roli, dwa CTA i trzy fakty.
@@ -1189,7 +1211,7 @@ Każdy wyjątek musi mieć powód i właściciela/decyzję.
 - [ ] OPUBLIKOWANE NA PRODUKCJI
 - [ ] KONTROLA PO PUBLIKACJI ZAKOŃCZONA
 
-Data bieżącej weryfikacji lokalnej i aktualizacji dokumentacji: 2026-09-19. Wyniki: sekcja 15.
+Data bieżącej weryfikacji lokalnej i aktualizacji dokumentacji: 2026-09-20. Wyniki: sekcja 15.
 
 Historyczny audyt z 18.09: Claude. Bieżące poprawki i QA z 19.09: Codex na zlecenie OK Agency / Damian Karolewski Technology Solutions.
 

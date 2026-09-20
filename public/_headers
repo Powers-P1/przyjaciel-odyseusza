@@ -5,7 +5,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
   Cross-Origin-Opener-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com 'sha256-B+noZ/isOvNQAdpktj9LQF4ygbUujLOVbeVtWabzKbc='; style-src 'self' 'sha256-TDnkQyd0h2E44K84hb0kg//CT9wLvtucipb4pz6D4Wg='; img-src 'self' data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com 'sha256-B+noZ/isOvNQAdpktj9LQF4ygbUujLOVbeVtWabzKbc='; style-src 'self' 'sha256-2pc+ubwKNTL4ON8+V8ZKRYJK4klen7j75mCxOPcfsFo='; img-src 'self' data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; form-action 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'
 
 /assets/fonts/*
   Cache-Control: public, max-age=31536000, immutable

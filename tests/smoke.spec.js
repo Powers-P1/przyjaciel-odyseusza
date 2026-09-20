@@ -152,7 +152,9 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
         dol: document.querySelector('.hero').getBoundingClientRect().bottom,
         okno: window.innerHeight,
       }));
-      expect(dol, 'dolna krawędź hero względem dołu okna').toBeLessThanOrEqual(okno);
+      // Gecko może zaokrąglić sumę wysokości do 1440.0166 px przy oknie 1440 px.
+      // Tolerancja 0.1 CSS px obejmuje wyłącznie subpikselowy wynik układu.
+      expect(dol, 'dolna krawędź hero względem dołu okna').toBeLessThanOrEqual(okno + 0.1);
       await expect(page.locator('.proof__item').first()).toBeInViewport();
     });
   }

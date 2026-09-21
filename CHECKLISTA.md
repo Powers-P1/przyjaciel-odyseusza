@@ -967,6 +967,10 @@ Stosuj następujące oznaczenia:
   przykładów (bez autoplay, z klawiaturą, natywnym przewijaniem i pełną treścią bez JS).
 - B: usunięty cennik, odpowiadające mu linki i dane ceny; mniejszy odstęp po sekcji „O mnie”.
   C: krótszy układ „O mnie”, osobne akapity rozpoczynające się od „Łączę” i „Odpowiem”.
+- B — 21.09.2026: doświadczenie i wykształcenie połączone z biografią przy zdjęciu,
+  jak w układzie C, zamiast osobnego pasa na całą szerokość. Zachowano cztery wpisy
+  doświadczenia, dwa wpisy wykształcenia, kremowe tło i dotychczasowy portret B.
+  Na mobile kolejność pozostaje: wprowadzenie → zdjęcie → kwalifikacje.
 - B/C: wymagane potwierdzenie informacji o danych, zatwierdzone przez zlecającego, oraz przycisk
   „Wyślij formularz”. Walidacja HTML/JS i backendu; to potwierdzenie informacji, nie zgoda marketingowa.
   Wymagalność pola nie oznacza zatwierdzenia całej dokumentacji prawnej.

@@ -100,7 +100,7 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
         };
         // Sprawdzamy widoczny kadr, nie raster celowo szerszy od ramy picture.
         // Cała treść tekstowa i elementy interaktywne nadal muszą być nieprzycięte.
-        const selectors = '.hero h1, .hero__name, .hero__role, .hero__actions a, .hero__figure, .proof__item';
+        const selectors = '.hero__eyebrow, .hero h1, .hero__name, .hero__role, .hero__actions a, .hero__figure, .proof__item';
         const copyElement = document.querySelector('.hero__copy');
         const copyBox = box(copyElement);
         const copyStyle = getComputedStyle(copyElement);
@@ -241,7 +241,7 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       // Na urządzeniu mobilnym overflow może powiększyć innerWidth; porównujemy
       // szerokość dokumentu z faktycznie ustawionym viewportem testu.
       expect(await page.evaluate(() => document.documentElement.scrollWidth), 'brak przewijania poziomego przy większym tekście').toBeLessThanOrEqual(width + 1);
-      const elements = page.locator('.brand, .nav-toggle, .hero h1, .hero__name, .hero__role, .hero__actions a, .proof__item');
+      const elements = page.locator('.brand, .nav-toggle, .hero__eyebrow, .hero h1, .hero__name, .hero__role, .hero__actions a, .proof__item');
       for (const element of await elements.all()) {
         await expect(element).toBeVisible();
         const bounds = await element.boundingBox();
@@ -311,7 +311,7 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       await expect.poll(() => page.locator('.hero__portrait').evaluate((image) =>
         image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
       )).toBe(true);
-      for (const element of await page.locator('.hero__portrait, .hero h1, .hero__byline, .hero__actions a, .proof__item').all()) {
+      for (const element of await page.locator('.hero__portrait, .hero__eyebrow, .hero h1, .hero__byline, .hero__actions a, .proof__item').all()) {
         await expect(element).toBeVisible();
       }
       const layout = await page.evaluate(() => {

@@ -961,6 +961,9 @@ Stosuj następujące oznaczenia:
 
 **Uwagi accounta — 19.09.2026, kolejna iteracja:**
 
+- Aktualizacja zleceniodawcy — 21.09.2026: we wszystkich wersjach nadtytuł
+  „Mentoring i coaching dla menedżerów” i H1 „Partner w ważnych decyzjach.”.
+  Pozostałe treści i układ hero zachowane; nadtytuł jako akapit, jeden semantyczny H1.
 - A/B/C: powiększony portret i H1, osobne wiersze nazwiska i roli, dwa CTA i trzy fakty.
   Usunięto wskazane dopiski hero; informacja B2B-first z możliwością współpracy prywatnej jest na początku oferty.
 - B/C: symbole mentoringu i coachingu, szersze wprowadzenie oferty, ręczny slider sześciu jawnie oznaczonych

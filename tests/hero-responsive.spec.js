@@ -7,7 +7,9 @@ const viewports = [
   [1440, 900], [1920, 1080], [1920, 1200], [2560, 1440], [2560, 1600],
   [3440, 1440], [3840, 2160], [1080, 1920], [1440, 2560], [2138, 3715], [5120, 1440],
 ];
-const scrollExceptions = new Set(['568x320']);
+// Pełny H1 w niskich telefonach poziomych wymaga przewinięcia.
+// Zachowujemy czytelny tekst i sprawdzamy dostępność obu CTA po przewinięciu.
+const scrollExceptions = new Set(['568x320', '667x375']);
 const editorialMobile = (width, height) => width < 768 && !(width >= 560 && height <= 560);
 
 async function expectExperienceOnce(page) {
@@ -192,7 +194,7 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
       for (const action of layout.actions) {
         expect(action.height, 'obszar przycisku: wysokość').toBeGreaterThanOrEqual(44);
         expect(action.width, 'obszar przycisku: szerokość').toBeGreaterThanOrEqual(44);
-        if (!mobile) {
+        if (!mobile && !scrollExceptions.has(width + 'x' + height)) {
           expect(action.bottom, 'CTA widoczne bez przewijania').toBeLessThanOrEqual(layout.viewport.height + 1);
           expect(action.receivesPointer, 'CTA nie zasłania inny element').toBe(true);
         }
@@ -216,7 +218,7 @@ test.describe('Hero: macierz proporcji i wysokości okna', () => {
         expect(layout.grid.top - layout.hero.top, 'pionowy monitor: brak pustego pasa nad kompozycją').toBeLessThanOrEqual(3 * layout.rootFontSize + 1);
         expect(layout.hero.bottom - layout.details.bottom, 'pionowy monitor: brak pustego pasa pod faktami').toBeLessThanOrEqual(3 * layout.rootFontSize + 1);
       }
-      if (mobile) {
+      if (mobile || scrollExceptions.has(width + 'x' + height)) {
         // Makieta redakcyjna przewija się naturalnie: zamiast ściskać zdjęcie i tekst,
         // sprawdzamy dostępność obu CTA po natywnym przewinięciu do elementu.
         for (const action of await page.locator('.hero__actions a').all()) {

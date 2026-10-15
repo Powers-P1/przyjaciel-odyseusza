@@ -7,7 +7,7 @@ test.describe('Hero: aktualny nadtytuł i H1', () => {
       await page.goto('/');
       await page.evaluate(() => document.fonts.ready);
       await expect(page.locator('h1')).toHaveCount(1);
-      await expect(page.locator('.hero h1')).toHaveText('Partner w ważnych decyzjach.');
+      await expect(page.locator('.hero h1')).toHaveText('Partner w ważnych decyzjach. Zawodowych i życiowych.');
       await expect(page.locator('.hero__eyebrow')).toHaveText('Mentoring i coaching dla menedżerów');
       await expect(page.locator('.hero__copy > p.hero__eyebrow + h1')).toHaveCount(1);
       await expect(page.locator('.hero__actions a')).toHaveCount(2);

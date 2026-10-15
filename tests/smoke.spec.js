@@ -1,6 +1,48 @@
 import { test, expect, ORIGIN, BASE_PATH } from './_fixtures.js';
 
 test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
+  test('wersja A zawiera uzgodnione korekty oferty, współpracy i biografii', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('#oferta-tytul')).toHaveText('Mentoring i coaching dla liderów i menedżerów');
+    await expect(page.locator('.mode').first().locator('p').first()).toHaveText('Wnoszę doświadczenie z zarządzania. Wspólnie z menedżerem analizujemy wyzwania, możliwe działania i ich konsekwencje.');
+    await expect(page.locator('.mode__title')).toHaveText(['Mentoring', 'Coaching']);
+    await expect(page.locator('.mode__title .mode__icon[aria-hidden="true"]')).toHaveCount(2);
+    await expect(page.locator('#dla-kogo h2')).toHaveText('Rozwój menedżerów w Twojej organizacji. Twój rozwój.');
+    await expect(page.locator('.card--individual p').last()).toHaveText('Możesz zgłosić się prywatnie, bez udziału pracodawcy. Mentoring i coaching to czas na Twoje wyzwania zawodowe i osobiste oraz własne decyzje. Pomogę Ci.');
+    await expect(page.locator('#sytuacje')).toHaveText('Kiedy warto skorzystać z doświadczonego wsparcia');
+    await expect(page.locator('.situation')).toHaveCount(5);
+    await expect(page.locator('.situation__num')).toHaveText(['01', '02', '03', '04', '05']);
+    await expect(page.locator('.situation').last().locator('.situation__title')).toHaveText('Zarządzanie ludźmi, projektami i czasem');
+    await expect(page.locator('.situation').last().locator('.situation__desc')).toHaveText('Perspektywa psychologa z doświadczeniem w budowaniu zespołów, zarządzaniu zmianą i pokonywaniu przeszkód');
+    await expect(page.locator('.situation').last().locator('.situation__icon svg')).toHaveAttribute('viewBox', '0 0 32 32');
+    await expect(page.locator('#wspolpraca .section-head .section-intro')).toHaveText('Od rozmowy o potrzebach firmy, menedżera, człowieka do wspólnego podsumowania.');
+    await expect(page.locator('.about__private')).toHaveText('Prywatnie jestem ojcem trójki dzieci, cenię klasyczną literaturę, jazdę na rowerze szosowym i długie rozmowy przy dobrej kawie.');
+    await expect(page.locator('.cv__row').filter({ has: page.locator('dt', { hasText: 'Działalność' }) }).locator('dd')).toHaveText('Dwa wine bary w Warszawie, usługi doradcze i konsultingowe');
+    await expect(page.locator('.cv dd').filter({ hasText: 'Lisbon' })).toHaveText('Lisbon School of Business and Economics (Portugalia)');
+  });
+
+  for (const width of [320, 390, 928, 1440]) {
+    test(`punkt 05 zachowuje czytelną relację tytułu i opisu przy ${width}px`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      await page.evaluate(() => document.fonts.ready);
+      const item = page.locator('.situation').last();
+      await item.scrollIntoViewIfNeeded();
+      const title = await item.locator('.situation__title').boundingBox();
+      const description = await item.locator('.situation__desc').boundingBox();
+      await expect(item.locator('.situation__icon svg')).toBeVisible();
+      if (width < 928) {
+        expect(description.y, 'opis po tytule na mobile').toBeGreaterThanOrEqual(title.y + title.height - 1);
+      } else {
+        expect(description.x, 'opis w sąsiedniej kolumnie na desktopie').toBeGreaterThanOrEqual(title.x + title.width);
+        expect(Math.abs(description.y - title.y)).toBeLessThanOrEqual(1);
+      }
+      expect(description.x + description.width).toBeLessThanOrEqual(width);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    });
+  }
+
   test('bez JavaScriptu mobilna nawigacja i kontakt pozostają dostępne', async ({ browser, baseURL }) => {
     const context = await browser.newContext({ javaScriptEnabled: false, baseURL, viewport: { width: 390, height: 844 } });
     try {

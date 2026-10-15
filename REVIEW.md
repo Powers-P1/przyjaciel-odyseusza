@@ -4,9 +4,10 @@ Dokument wewnętrzny (agencja). Sekcje 1–4b zachowują historyczny zapis anali
 nie stanowią potwierdzenia akceptacji całego obecnego tekstu. Aktualny zakres wariantów i implementacji
 opisują sekcje 4c–7, zaktualizowane 19.09.2026. Wyniki dawnych pomiarów nie są wynikami bieżącego kodu.
 
-Najnowsza instrukcja daje swobodę redakcji i układu w kierunku „Pełne morze”. Narracja ma prowadzić
-odbiorcę B2B (około 70% nacisku), zachowując ofertę indywidualną u góry (około 30%). Mentoring i coaching
-pozostają równorzędne. Nie ma obowiązku pełnego justowania, minimalnej liczby słów ani publikacji całego CV.
+Aktualna decyzja klienta: wersja A z szerszym kontekstem, kierunek „Pełne morze”.
+Zakres bieżącej korekty ogranicza się do U01–U15. Pozostałe zaakceptowane treści i układ zachowujemy.
+Damian 15.10.2026 odrzucił B/C oraz ich dalsze QA i publikację. Poniższe opisy porównań wariantów,
+swobody redakcji i dawnej macierzy CI są zapisem historycznym, a nie instrukcją do dalszej pracy.
 
 ---
 

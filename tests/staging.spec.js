@@ -1,23 +1,17 @@
-import { test, expect, STAGING, ORIGIN, BASE_PATH, SITE, SHARED_404 } from './_fixtures.js';
-import AxeBuilder from '@axe-core/playwright';
+import { test, expect, STAGING, ORIGIN, BASE_PATH, SITE } from './_fixtures.js';
 
 // Sprawdzenia specyficzne dla hostingu testowego w podkatalogu (GitHub Pages). Na emulacji Cloudflare są pomijane.
 test.describe('Hosting testowy (podkatalog, noindex)', () => {
   test.skip(!STAGING, 'tylko z STAGING_URL');
 
-  test('wybór wariantu jest dostępny i prowadzi do trzech właściwych adresów', async ({ page }) => {
-    test.skip(SHARED_404, 'wspólny spis jest sprawdzany z wariantu A');
-    await page.goto('/wersje/');
-    await expect(page.locator('main h1')).toHaveText('Przyjaciel Odyseusza – wersje testowe strony');
-    const links = page.locator('main ol a');
-    await expect(links).toHaveCount(3);
-    const urls = await links.evaluateAll(elements => elements.map(element => element.href));
-    expect(urls).toEqual([`${SITE}/`, `${SITE}/wersja-b/`, `${SITE}/wersja-c/`]);
-    expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze()).violations).toEqual([]);
+  test('odrzucone B/C i spis wariantów nie są publikowane', async ({ request }) => {
+    for (const path of ['/wersja-b/', '/wersja-c/', '/wersje/']) {
+      expect((await request.get(path)).status(), path).toBe(404);
+    }
   });
 
   test('każda strona ma noindex, a robots.txt nie blokuje robotów (żeby noindex był widoczny)', async ({ request }) => {
-    for (const path of ['/', '/polityka-prywatnosci', ...(SHARED_404 ? [] : ['/nie-ma-takiej-strony-staging'])]) {
+    for (const path of ['/', '/polityka-prywatnosci', '/nie-ma-takiej-strony-staging']) {
       const html = await (await request.get(path)).text();
       expect(html, path).toMatch(/<meta name="robots" content="noindex, nofollow">/);
     }
@@ -31,7 +25,7 @@ test.describe('Hosting testowy (podkatalog, noindex)', () => {
   test('w HTML nie ma adresów bez podścieżki ani adresów produkcyjnych', async ({ request }) => {
     // po `="/` zostaje podścieżka bez wiodącego ukośnika, np. `przyjaciel-odyseusza/`
     const inner = BASE_PATH.slice(1).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    for (const path of ['/', '/polityka-prywatnosci', ...(SHARED_404 ? [] : ['/nie-ma-takiej-strony-staging'])]) {
+    for (const path of ['/', '/polityka-prywatnosci', '/nie-ma-takiej-strony-staging']) {
       const html = await (await request.get(path)).text();
       expect(html, `${path}: adres produkcyjny`).not.toContain('https://przyjacielodyseusza.pl');
       expect(html, `${path}: adres produkcyjny www`).not.toContain('https://www.przyjacielodyseusza.pl');

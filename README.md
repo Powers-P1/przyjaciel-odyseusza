@@ -4,10 +4,11 @@ Statyczny landing page dla Bartłomieja Przytuły (mentoring i coaching dla mene
 darmowy plan **Cloudflare Pages**. Czysty HTML, CSS i odrobina JavaScriptu, bez frameworków. Formularz
 kontaktowy jest przygotowany do działania przez Pages Function (`functions/api/contact.js`) i Resend po konfiguracji kont oraz sprawdzeniu dostarczenia wiadomości.
 
-Stan prac 19.09.2026: trzy warianty przeszły lokalne QA i są przygotowane do przeglądu klienta.
-Bieżące wyniki znajdują się w sekcji 15 CHECKLISTA.md. CI testuje cały przypięty zestaw przed publikacją;
-aktualny status i opublikowane SHA można sprawdzić w GitHub Actions oraz stemplu build w HTML podglądu.
-Podgląd klienta pozwala porównać treść i układ; gotowość do produkcji wymaga osobno zamknięcia listy na końcu tego pliku.
+Decyzja klienta: wybrana została wersja A z szerszym kontekstem w kierunku „Pełne morze”.
+Aktualny zakres to uwagi U01–U15; pozostałe zaakceptowane treści i układ pozostają zachowane.
+Decyzją Damiana z 15.10.2026 B/C są odrzucone i usunięte z CI oraz publikacji.
+Aktualny status i opublikowany SHA można sprawdzić w GitHub Actions oraz stemplu build w HTML podglądu.
+Gotowość do produkcji wymaga osobno zamknięcia listy na końcu tego pliku.
 
 Dokumenty towarzyszące:
 
@@ -216,24 +217,16 @@ zdarzeń: `docs/plan-pomiarowy.md` (Cloudflare Web Analytics, bez cookies). Skry
 
 ## Wersja testowa na GitHub Pages
 
-Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Każdy push do `main` albo gałęzi `wersja-*`
-uruchamia workflow (`.github/workflows/qa.yml`). Ręczny `workflow_dispatch` jest również dostępny.
-Publikacja jest dozwolona tylko dla `main`, `wersja-b` i `wersja-c`; lokalne gałęzie `codex/*` nie uruchamiają
-publikacji. Najpierw workflow przypina cały zestaw A/B/C do SHA, a następnie wykonuje QA każdego z tych commitów.
-Dopiero zielona macierz pozwala opublikować wspólny podgląd:
+Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Push do `main` uruchamia workflow
+(`.github/workflows/qa.yml`). Ręczny `workflow_dispatch` jest również dostępny. PR-y przechodzą QA;
+publikacja jest dozwolona tylko dla `main`. Lokalne gałęzie `codex/*` nie uruchamiają publikacji.
 
-| Wersja | Gałąź      | Adres testowy                                                | Zawartość |
-|--------|------------|--------------------------------------------------------------|-----------|
-| A      | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/>          | szerszy kontekst oferty i współpracy |
-| B      | `wersja-b` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-b/> | zwięzłe przedstawienie oferty i doświadczenia |
-| C      | `wersja-c` | <https://powers-p1.github.io/przyjaciel-odyseusza/wersja-c/> | krótsza ścieżka od oferty i sytuacji zawodowych do kontaktu |
-| spis   | `main`     | <https://powers-p1.github.io/przyjaciel-odyseusza/wersje/>   | strona z linkami do wszystkich wersji (`tools/wersje.html`) |
-
-Job `qa` buduje i weryfikuje każdy przypięty commit, a potem zapisuje jego gotowy wariant demonstracyjny
-jako artefakt oznaczony SHA. Job `staging` składa te konkretne artefakty w jedną witrynę bez ponownego
-pobierania ruchomych gałęzi. Job `staging-smoke` pobiera testy z tych samych SHA. Cały przebieg publikacji
-jest serializowany między gałęziami, a adres docelowy musi należeć do `github.io`. Po wyborze wariantu
-trzeba świadomie uporządkować gałęzie, workflow i spis wersji.
+Jedyny podgląd to wersja A: <https://powers-p1.github.io/przyjaciel-odyseusza/>.
+Job `qa` buduje i weryfikuje dokładny SHA zdarzenia, po czym zapisuje gotowy podgląd jako artefakt
+oznaczony tym SHA. Job `staging` publikuje ten artefakt bez ponownego pobierania ruchomej gałęzi.
+Job `staging-smoke` sprawdza wdrożony SHA i wykonuje testy z tego samego commitu.
+Cały przebieg publikacji jest serializowany, a adres docelowy musi należeć do `github.io`.
+B/C i dawny spis wariantów nie należą do publikowanej paczki; ich dawne adresy zwracają 404.
 
 - `npm run build:staging` (`tools/staging.mjs`) przepisuje gotowe `public/` do `dist-gh/`: podścieżka `/przyjaciel-odyseusza/`
   we wszystkich adresach, adres testowy zamiast produkcyjnego w canonical/OG/JSON-LD/`llms.txt`/`security.txt`,
@@ -242,8 +235,7 @@ trzeba świadomie uporządkować gałęzie, workflow i spis wersji.
   `/api/contact`. Formularz ma widoczną informację o trybie demo oraz przycisk „Sprawdź formularz”:
   sprawdza pola lokalnie, zachowuje dane, nie wysyła żądania i nie rejestruje udanej wysyłki. Bez JS przycisk
   jest wyłączony. Noindex ogranicza indeksowanie, ale nie jest kontrolą dostępu. Wszystko, co zależy od nagłówków i backendu, testujemy na emulacji Cloudflare (`npm test`).
-  Witryna GitHub Pages ma jeden `404.html` (z wersji A), więc wersje w podkatalogach dzielą z nią stronę błędu;
-  testy tych wersji pomijają sprawdzanie treści 404 (`SHARED_404` w `tests/_fixtures.js`).
+  Strona `404.html` wersji A obsługuje również nieistniejące, dawne adresy B/C i spisu wariantów.
 - `npm run test:staging` uruchamia te same testy na opublikowanym adresie (z podścieżką; testy nagłówków i backendu są
   pomijane, dochodzą sprawdzenia z `tests/staging.spec.js`). `npm run lighthouse:staging` zapisuje raporty do
   `docs/lighthouse/staging/`, a `npm run psi:staging` pobiera pomiar PageSpeed Insights (Lighthouse po stronie Google).

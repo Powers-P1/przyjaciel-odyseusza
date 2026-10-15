@@ -16,7 +16,8 @@ Stosuj następujące oznaczenia:
 - Nigdy nie usuwaj po cichu punktów z checklisty.
 - Nie oznaczaj wymagań prawnych, prywatności, dostępności lub bezpieczeństwa jako spełnionych wyłącznie dlatego, że zainstalowano bibliotekę lub wtyczkę. Sprawdź faktyczne działanie.
 
-> **Aktualizacja 19.09.2026:** bieżące zmiany dotyczą trzech wariantów do przeglądu klienta.
+> **Aktualizacja 15.10.2026:** klient wybrał wersję A z szerszym kontekstem; bieżący zakres to U01–U15.
+> Decyzją Damiana B/C usunięto z dalszego QA i publikacji. Dawne wyniki i zapisy A/B/C poniżej są historyczne.
 > Jawny tryb demo formularza i oznaczone przykłady opinii są dopuszczalnymi elementami podglądu.
 > Gotowość do produkcji wymaga osobnego zamknięcia DNS/MX, dostarczania poczty, dokumentów prawnych,
 > wyboru finalnych materiałów i kontroli wdrożenia. Brak dostępu do kont nie przesuwa tych warunków na czas po starcie.

@@ -13,7 +13,7 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
     await expect(page.locator('.situation')).toHaveCount(5);
     await expect(page.locator('.situation__num')).toHaveText(['01', '02', '03', '04', '05']);
     await expect(page.locator('.situation').last().locator('.situation__title')).toHaveText('Zarządzanie ludźmi, projektami i czasem');
-    await expect(page.locator('.situation').last().locator('.situation__desc')).toHaveText('Perspektywa psychologa z doświadczeniem w budowaniu zespołów, zarządzaniu zmianą i pokonywaniu przeszkód');
+    await expect(page.locator('.situation').last().locator('.situation__desc')).toHaveText('Perspektywa psychologa z doświadczeniem w budowaniu zespołów, zarządzaniu zmianą i pokonywaniu przeszkód.');
     await expect(page.locator('.situation').last().locator('.situation__icon svg')).toHaveAttribute('viewBox', '0 0 32 32');
     await expect(page.locator('#wspolpraca .section-head .section-intro')).toHaveText('Od rozmowy o potrzebach firmy, menedżera, człowieka do wspólnego podsumowania.');
     await expect(page.locator('.about__private')).toHaveText('Prywatnie jestem ojcem trójki dzieci, cenię klasyczną literaturę, jazdę na rowerze szosowym i długie rozmowy przy dobrej kawie.');

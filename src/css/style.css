@@ -294,7 +294,7 @@ button { font: inherit; color: inherit; }
   .hero__picture { position: absolute; inset: 0; overflow: hidden; }
   .hero__portrait {
     left: -5%; right: auto; width: 120%; max-width: none; height: 100%;
-    object-fit: cover; object-position: center 25%;
+    object-fit: cover; object-position: center 10%;
   }
   .hero__copy { width: 100%; max-width: 40rem; margin-inline: auto; padding: 1.5rem 1.5rem 2rem; }
   .hero__title { line-height: 1.02; letter-spacing: -.025em; margin-bottom: .75rem; text-wrap: wrap; }
@@ -322,7 +322,7 @@ button { font: inherit; color: inherit; }
 }
 /* Szerszy kadr mobilny zachowuje oddech nad głową przy ograniczonej wysokości zdjęcia. */
 @media (min-width: 40em) and (max-width: 47.99em) and (min-height: 35.01em) {
-  .hero__portrait { object-position: center 20%; }
+  .hero__portrait { object-position: center 10%; }
 }
 @media (min-width: 48em) and (max-aspect-ratio: 1/1) {
   /* Pionowy monitor: wysokość wynika z proporcji treści, nie całego ekranu. */
@@ -439,13 +439,20 @@ button { font: inherit; color: inherit; }
 .cv dd { margin: 0; }
 .cv__context { font-weight: 400; color: var(--ink-soft); }
 
-.about__figure { position: relative; width: min(100%, 26rem); justify-self: end; margin: 0; isolation: isolate; padding: 0 1.25rem 1.25rem 0; }
+.about__figure { position: relative; width: min(100%, 28rem); justify-self: end; margin: 0; isolation: isolate; }
 .frame { position: relative; }
-.frame--chamfer { clip-path: polygon(0 0, calc(100% - var(--chamfer)) 0, 100% var(--chamfer), 100% 100%, 0 100%); }
 .frame img { width: 100%; }
+.about__figure::before {
+  content: ""; position: absolute; z-index: -1;
+  width: 94%; aspect-ratio: 1; left: 3%; bottom: 0;
+  border-radius: 50%; background: var(--cream-2);
+  pointer-events: none;
+}
 .about__figure::after {
   content: ""; position: absolute; z-index: -1;
-  inset: 1.25rem 0 0 1.25rem; border: 1px solid var(--gold-soft);
+  width: 94%; aspect-ratio: 1; left: 6%; bottom: -.75rem;
+  border: 1px solid var(--gold-soft); border-top-color: transparent; border-left-color: transparent;
+  border-radius: 50%;
   pointer-events: none;
 }
 

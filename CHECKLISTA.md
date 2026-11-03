@@ -1,5 +1,19 @@
 # Checklista produkcyjna strony statycznej
 
+> **Stan wdrożenia 03.11.2026:** opublikowano wariant startowy na Cloudflare Pages Free
+> (`https://przyjaciel-odyseusza.pages.dev/`, commit `be4f7f6`). Damian wybrał kontakt
+> e-mail/telefon, bez formularza; `dist-cf/` usuwa również przykładowe opinie.
+> Uzupełniono dane firmy i dostawców w polityce prywatności. Build, walidacja HTML/CSP
+> i 11 testów backendu przeszły; wszystkie 33 pliki na Cloudflare są zgodne z artefaktem.
+> W home.pl i Cloudflare MX oraz SPF są już niezależne od WWW. Oryginalny DKIM zachowano,
+> SRV w Cloudflare wskazują serwer home.pl. SMTP 465 i IMAP 993 przeszły sprawdzenie TLS.
+> **Domena nie jest jeszcze przełączona:** edytor NS home.pl zatrzymuje się na ładowaniu;
+> Damian otrzymał dokładne wartości do zapisania ręcznie. Apex w nowej strefie nadal wskazuje
+> stary serwer WWW, więc nie należy oznaczać produkcji pod domeną ani odbioru poczty jako sprawdzonych.
+> Dowody: `docs/deployment-2026-11-03.md` oraz projektowy `outputs/deployment-2026-11-03/`.
+> Poniższe datowane wyniki i dawne blokery zachowano jako historię; formularz Resend nie jest
+> wymaganiem wariantu startowego wybranego 03.11.2026.
+
 > Cel: ten plik jest jednym źródłem prawdy dotyczącym gotowości technicznej strony do publikacji.
 >
 > Agenci mają aktualizować ten plik w trakcie prac. Nie wolno oznaczać punktu jako wykonanego tylko dlatego, że "powinien działać". Punkt można odznaczyć dopiero po wdrożeniu i weryfikacji.

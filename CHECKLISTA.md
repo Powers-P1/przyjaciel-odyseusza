@@ -7,9 +7,11 @@
 > i 11 testów backendu przeszły; wszystkie 33 pliki na Cloudflare są zgodne z artefaktem.
 > W home.pl i Cloudflare MX oraz SPF są już niezależne od WWW. Oryginalny DKIM zachowano,
 > SRV w Cloudflare wskazują serwer home.pl. SMTP 465 i IMAP 993 przeszły sprawdzenie TLS.
-> **Domena nie jest jeszcze przełączona:** edytor NS home.pl zatrzymuje się na ładowaniu;
-> Damian otrzymał dokładne wartości do zapisania ręcznie. Apex w nowej strefie nadal wskazuje
-> stary serwer WWW, więc nie należy oznaczać produkcji pod domeną ani odbioru poczty jako sprawdzonych.
+> **Przełączenie domeny trwa:** Damian zapisał NS Cloudflare w home.pl o 12:44;
+> potwierdzono to w panelu i jego komunikacie wykonania operacji. Apex i `www` w nowej strefie
+> są już rekordami CNAME na Pages. O 12:50 rejestr `.pl` nadal publikował stare NS home.pl,
+> Cloudflare miał status `pending`, a domena główna wciąż serwowała WordPress.
+> Test HTTPS pod właściwą domeną oraz rzeczywistego odbioru/wysyłki poczty pozostaje otwarty.
 > Dowody: `docs/deployment-2026-11-03.md` oraz projektowy `outputs/deployment-2026-11-03/`.
 > Poniższe datowane wyniki i dawne blokery zachowano jako historię; formularz Resend nie jest
 > wymaganiem wariantu startowego wybranego 03.11.2026.

@@ -40,8 +40,25 @@ Najpierw w home.pl rozdzielono pocztę od WWW:
 Cloudflare otrzymał również identyczny oryginalny DKIM oraz sześć rekordów SRV,
 których cel zmieniono z apeksu na ten sam serwer home.pl.
 Wildcard prowadzi DNS-only do serwera home.pl, aby zachować stare hosty poczty/FTP.
-Rekordy WWW muszą być jawne. A apeksu pozostaje na starej stronie do zakończenia przygotowania przełączenia.
-Weryfikacje końcowe i wykonane przełączenie należy dopisać po potwierdzeniu stanu na żywo.
+Rekordy WWW są jawne: apex i `www` mają CNAME na `przyjaciel-odyseusza.pages.dev`, z proxy Cloudflare.
+Przekierowanie 301 wymusza HTTPS i host bez `www`, zachowując ścieżkę oraz query string.
+Wyłączono obfuskację e-mail Cloudflare, aby zachować własny skrypt i ścisłe CSP.
+
+## Weryfikacja 03.11.2026
+
+- Produkcyjne wdrożenie Pages: `d7c68e28-ce95-49aa-963f-fb1ed74e2dc1`, kod `be4f7f6`, status `success`.
+- Wszystkie 33 pliki z artefaktu porównano bajt po bajcie z odpowiedziami Pages: zgodne,
+  także własna strona 404 z poprawnym statusem 404.
+- Adres techniczny ma `X-Robots-Tag: noindex, nofollow`; preview ma `noindex`.
+- Brak aktywnego formularza, pustych danych firmy i przykładowych opinii w wariancie produkcyjnym.
+- Zdjęcia ładują się; sprawdzono kontakt na pulpicie i brak poziomego przepełnienia.
+- SMTP 465 i IMAP 993: poprawne certyfikaty i TLS 1.3. Nie logowano się do skrzynki
+  i nie wysyłano wiadomości testowej do klienta.
+- Zapis NS przez Damiana: 12:44 czasu Warszawy; potwierdzenie home.pl odczytane w panelu.
+- Stan o 12:50: serwery rejestru `.pl` nadal zwracają NS home.pl; Cloudflare `pending`;
+  adres produkcyjny nadal odpowiada starym WordPressem. Aktywacja własnych domen i HTTPS
+  oczekuje na zewnętrzną propagację. Konfiguracja została zapisana po obu stronach.
+- Transfer rejestracji do OVH nie został rozpoczęty; potrzebne AuthInfo w kolejnym etapie.
 
 W programach pocztowych serwerem IMAP/SMTP jest `serwer2586394.home.pl`;
 IMAPS 993 i SMTPS 465. Sam adres domeny po przełączeniu będzie hostem strony WWW.

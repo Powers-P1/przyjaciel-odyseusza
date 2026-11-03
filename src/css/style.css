@@ -593,7 +593,6 @@ button { font: inherit; color: inherit; }
 .prose h2 { font-size: 1.5rem; margin: 2.25rem 0 .75rem; }
 .prose ul, .prose ol { padding-left: 1.25rem; margin-bottom: 1em; }
 .prose li { margin-bottom: .35rem; }
-.prose .note { padding: 1rem 1.25rem; background: var(--cream-2); border-left: 2px solid var(--gold); }
 .prose a { color: var(--ink); }
 .page--center { text-align: center; }
 .page--center .prose { margin-inline: auto; }

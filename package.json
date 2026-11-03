@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "wrangler pages dev --port 8788 --ip 127.0.0.1",
     "build": "node tools/build.mjs",
+    "build:production": "npm run build && node tools/production.mjs",
     "build:staging": "node tools/staging.mjs",
     "validate": "html-validate public/index.html public/polityka-prywatnosci.html public/404.html && node tools/css-unused.mjs && node tools/csp-hash.mjs && node tools/typografia.test.mjs",
     "test": "playwright test",
@@ -16,7 +17,7 @@
     "lighthouse": "node tools/lighthouse.mjs",
     "lighthouse:staging": "node tools/lighthouse.mjs https://powers-p1.github.io/przyjaciel-odyseusza/ docs/lighthouse/staging --allow-noindex",
     "psi:staging": "node tools/psi.mjs https://powers-p1.github.io/przyjaciel-odyseusza/ docs/lighthouse/staging",
-    "deploy": "npm run build && wrangler pages deploy"
+    "deploy": "npm run build:production && wrangler pages deploy dist-cf --project-name przyjaciel-odyseusza --branch main"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

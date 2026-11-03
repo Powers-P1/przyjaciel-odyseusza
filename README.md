@@ -4,6 +4,13 @@ Statyczny landing page dla Bartłomieja Przytuły (mentoring i coaching dla mene
 darmowy plan **Cloudflare Pages**. Czysty HTML, CSS i odrobina JavaScriptu, bez frameworków. Formularz
 kontaktowy jest przygotowany do działania przez Pages Function (`functions/api/contact.js`) i Resend po konfiguracji kont oraz sprawdzeniu dostarczenia wiadomości.
 
+**Wariant uruchomieniowy 03.11.2026:** Damian wybrał kontakt e-mailowy i telefoniczny,
+bez formularza. `npm run build:production` tworzy `dist-cf/`, przenosi dane kontaktowe
+do prawej kolumny i usuwa formularz oraz demonstracyjne opinie. Backend pozostaje
+w źródłach do przyszłej integracji, ale `_routes.json` wyłącza jego wywoływanie w tym wariancie.
+Publikuj `dist-cf/` poleceniem `npm run deploy`; `public/` pozostaje bazą podglądu i testów funkcji.
+Opis migracji: `docs/deployment-2026-11-03.md`.
+
 Decyzja klienta: wybrana została wersja A z szerszym kontekstem w kierunku „Pełne morze”.
 Aktualny zakres to uwagi U01–U15; pozostałe zaakceptowane treści i układ pozostają zachowane.
 Decyzją Damiana z 15.10.2026 B/C są odrzucone i usunięte z CI oraz publikacji.

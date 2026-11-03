@@ -66,6 +66,8 @@ IMAPS 993 i SMTPS 465. Sam adres domeny po przełączeniu będzie hostem strony 
 ## Powtarzanie wdrożenia i powrót
 
 Po wczytaniu lokalnego tokenu w tym samym procesie: `npm run deploy`.
+Skrypt przed buildem i publikacją potwierdza stałe ID konta klienta przez API.
+Brak tokenu lub inne konto zatrzymuje wdrożenie, bez użycia domyślnego profilu OAuth.
 Tokeny są poza repozytorium w katalogu `.codex/secrets/przyjaciel-odyseusza` profilu użytkownika.
 Nie zapisuj tokenów w skryptach, argumentach CLI, raportach ani konfiguracji Git.
 

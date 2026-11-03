@@ -17,7 +17,7 @@
     "lighthouse": "node tools/lighthouse.mjs",
     "lighthouse:staging": "node tools/lighthouse.mjs https://powers-p1.github.io/przyjaciel-odyseusza/ docs/lighthouse/staging --allow-noindex",
     "psi:staging": "node tools/psi.mjs https://powers-p1.github.io/przyjaciel-odyseusza/ docs/lighthouse/staging",
-    "deploy": "npm run build:production && wrangler pages deploy dist-cf --project-name przyjaciel-odyseusza --branch main"
+    "deploy": "node tools/deploy.mjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",

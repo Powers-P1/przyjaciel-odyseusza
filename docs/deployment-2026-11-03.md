@@ -60,6 +60,26 @@ Wyłączono obfuskację e-mail Cloudflare, aby zachować własny skrypt i ścis�
   oczekuje na zewnętrzną propagację. Konfiguracja została zapisana po obu stronach.
 - Transfer rejestracji do OVH nie został rozpoczęty; potrzebne AuthInfo w kolejnym etapie.
 
+### Wynik końcowy — 13:20 czasu Warszawy
+
+- Strefa Cloudflare ma status `active`, plan `Free Website` (0); rejestr `.pl` publikuje NS Cloudflare.
+- `https://przyjacielodyseusza.pl/` odpowiada 200 z nową stroną, także w Edge i przez zwykły resolver systemowy.
+- Wszystkie 33 pliki porównano na domenie produkcyjnej: zgodne; 404 pozostaje prawdziwym 404.
+- HTTP oraz `www` → kanoniczne HTTPS bez `www`: 301, poprawna ścieżka i query string, ważne TLS.
+- Root nie ma `X-Robots-Tag: noindex`; nagłówki HSTS i CSP są obecne. Brak błędów konsoli,
+  uszkodzonych obrazów i poziomego przepełnienia w sprawdzonym widoku przeglądarki.
+- Oba rekordy WWW końcowo mają włączone proxy; pozostałe hosty poczty/FTP pozostają DNS-only.
+- Reguła kanoniczna wyklucza `/.well-known/acme-challenge/`, żeby nie blokować walidacji i odnowień TLS.
+  Osobne `Always Use HTTPS` jest wyłączone; HTTPS wymusza ta reguła.
+- Podczas wystawiania certyfikatu skopiowano do starej strefy home.pl dwie bieżące wartości
+  `_acme-challenge` z API Universal SSL i potwierdzono je na obu zestawach serwerów DNS.
+  Po natychmiastowym sprawdzeniu DCV certyfikat Universal SSL uzyskał status `active`.
+- Dodatkowy certyfikat Google w panelu Pages dla apeksu nadal ma `pending`, a jego własność `active`.
+  Aktywny Universal SSL obsługuje poprawne HTTPS. `www` w Pages ma status `active`.
+- Poczta: 10/10 kontroli publicznego DNS, niezmieniony DKIM i host home.pl; IMAP/SMTP TLS poprawne.
+  Bez testu uwierzytelnionej wysyłki/odbioru i bez wiadomości wysłanych do klienta.
+- Monitor pomocniczy zatrzymano po kontroli działającej produkcji; nie pozostawiono serwera developerskiego.
+
 W programach pocztowych serwerem IMAP/SMTP jest `serwer2586394.home.pl`;
 IMAPS 993 i SMTPS 465. Sam adres domeny po przełączeniu będzie hostem strony WWW.
 

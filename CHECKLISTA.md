@@ -7,11 +7,14 @@
 > i 11 testów backendu przeszły; wszystkie 33 pliki na Cloudflare są zgodne z artefaktem.
 > W home.pl i Cloudflare MX oraz SPF są już niezależne od WWW. Oryginalny DKIM zachowano,
 > SRV w Cloudflare wskazują serwer home.pl. SMTP 465 i IMAP 993 przeszły sprawdzenie TLS.
-> **Przełączenie domeny trwa:** Damian zapisał NS Cloudflare w home.pl o 12:44;
-> potwierdzono to w panelu i jego komunikacie wykonania operacji. Apex i `www` w nowej strefie
-> są już rekordami CNAME na Pages. O 12:50 rejestr `.pl` nadal publikował stare NS home.pl,
-> Cloudflare miał status `pending`, a domena główna wciąż serwowała WordPress.
-> Test HTTPS pod właściwą domeną oraz rzeczywistego odbioru/wysyłki poczty pozostaje otwarty.
+> **Strona działa na domenie produkcyjnej:** Damian zapisał NS Cloudflare w home.pl o 12:44.
+> O 13:20 strefa jest aktywna, `https://przyjacielodyseusza.pl/` zwraca nową stronę (200),
+> certyfikat Universal SSL jest aktywny, a HTTP i `www` przekierowują 301 na kanoniczne HTTPS
+> z zachowaniem ścieżki i query string. Wszystkie 33 pliki porównano również na właściwej domenie.
+> Root nie ma `noindex`; przeglądarka Edge potwierdziła nową stronę, obrazy i brak błędów konsoli.
+> Pocztowe DNS przeszły 10 kontroli po migracji. Rzeczywista wysyłka i odbiór ze skrzynki nie były testowane.
+> Panel Pages pokazuje jeszcze `pending` dla własnego certyfikatu Google apeksu; HTTPS działa
+> przez aktywny certyfikat Universal SSL. `www` ma status `active`. To jawny stan panelu po publikacji.
 > Dowody: `docs/deployment-2026-11-03.md` oraz projektowy `outputs/deployment-2026-11-03/`.
 > Poniższe datowane wyniki i dawne blokery zachowano jako historię; formularz Resend nie jest
 > wymaganiem wariantu startowego wybranego 03.11.2026.
@@ -1274,7 +1277,7 @@ Każdy wyjątek musi mieć powód i właściciela/decyzję.
 
 - [x] ŚRODOWISKO TESTOWE DOSTĘPNE: https://powers-p1.github.io/przyjaciel-odyseusza/ (`noindex`; aktualny commit wskazują stempel build w HTML i GitHub Actions)
 - [ ] GOTOWE DO PRODUKCJI (po zamknięciu 6 blokerów powyżej)
-- [ ] OPUBLIKOWANE NA PRODUKCJI
+- [x] OPUBLIKOWANE NA PRODUKCJI — wariant kontakt e-mail/telefon, Cloudflare Free, 03.11.2026; dowody w datowanej aktualizacji na początku pliku.
 - [ ] KONTROLA PO PUBLIKACJI ZAKOŃCZONA
 
 Data bieżącej weryfikacji lokalnej i aktualizacji dokumentacji: 2026-09-20. Wyniki: sekcja 15.

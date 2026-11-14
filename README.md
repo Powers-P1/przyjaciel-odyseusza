@@ -9,6 +9,8 @@ kontaktowy działa przez Pages Function (`functions/api/contact.js`), Turnstile 
 `_routes.json` uruchamia backend tylko na `/api/contact`; pozostała strona pozostaje statyczna.
 Wysyłka korzysta z istniejącej poczty OVH, bez nowego konta mailowego ani płatnej usługi.
 Konfiguracja i aktualne potwierdzenie wdrożenia: `docs/contact-form-2026-11-14.md`.
+Formularz jest włączony na `https://przyjacielodyseusza.pl/#kontakt`; zatwierdzony test z podglądu
+dotarł do INBOX OVH 14.11.2026 o 14:30:22 CET. Sprawdzono treść i Reply-To oraz konfigurację produkcji.
 Publikuj `dist-cf/` poleceniem `npm run deploy`; `public/` pozostaje bazą podglądu i testów funkcji.
 Opis migracji: `docs/deployment-2026-11-03.md`.
 
@@ -283,7 +285,7 @@ Pełna lista ze statusami: `CHECKLISTA.md`. To warunki przed uruchomieniem ruchu
 a nie powody do wstrzymania przeglądu trzech wariantów przez klienta. Minimum:
 
 - [ ] Plan migracji DNS/MX/SPF potwierdzony z operatorem poczty; zachowana ciągłość wysyłki i odbioru
-- [ ] Sekrety SMTP/Turnstile i zmienne środowiskowe ustawione, testowy formularz dotarł na właściwą skrzynkę
+- [x] Sekrety SMTP/Turnstile i zmienne środowiskowe ustawione, testowy formularz dotarł na właściwą skrzynkę — 14.11.2026, `docs/contact-form-2026-11-14.md`
 - [ ] Dane administratora w polityce prywatności uzupełnione
 - [ ] Fakty do potwierdzenia z klientem i zakres analityki/zgód zatwierdzone (`REVIEW.md`)
 - [ ] Finalne zdjęcia wybrane; prawdziwe opinie zatwierdzone albo sekcja ukryta

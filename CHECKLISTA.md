@@ -1,9 +1,11 @@
 # Checklista produkcyjna strony statycznej
 
-> **Formularz — 14.11.2026, prace w toku:** przygotowany podgląd z Turnstile i SMTP istniejącej
-> skrzynki OVH, bez dodatkowych kosztów. Przeszło 15 testów backendu i 59 kontroli formularza,
-> dostępności i układu; rzeczywisty widget uzyskał token. Pełna wysyłka i odbiór testu oczekują
-> na osobne polecenie Damiana. Formularz na domenie produkcyjnej nie jest jeszcze włączony.
+> **Formularz — 14.11.2026, wdrożony:** Turnstile i SMTP istniejącej skrzynki OVH,
+> bez dodatkowych kosztów. Przeszło 15 testów backendu i 59 kontroli formularza, dostępności
+> i układu. Po osobnym poleceniu Damiana wysłano dokładnie jeden test z podglądu; odczyt IMAP
+> potwierdził odbiór w INBOX OVH o 14:30:22 CET, poprawną treść i Reply-To. Formularz działa na
+> `https://przyjacielodyseusza.pl/#kontakt`. Produkcję zweryfikowano o 14:33 CET: HTML 200,
+> zgodny skrypt JS, sekrety i host Turnstile, walidacja 422 oraz brak wysyłki bez tokena (403).
 > Szczegóły i status: `docs/contact-form-2026-11-14.md`. Poniższe wpisy są datowaną historią.
 
 > **Stan wdrożenia 03.11.2026:** opublikowano wariant startowy na Cloudflare Pages Free

@@ -94,6 +94,17 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
     await expect(page.locator('#f-message')).toHaveValue('');
   });
 
+  test('limit prób 429 daje czytelny komunikat i zachowuje wiadomość', async ({ page }) => {
+    test.skip(STAGING, 'Statyczny demonstrator nie wysyła danych.');
+    await page.route('**/api/contact', (route) => route.fulfill({ status: 429, contentType: 'text/html', body: 'Rate limited' }));
+    await page.goto('/');
+    await fillValid(page);
+    await page.locator('#formularz .form__submit').click();
+    await expect(page.locator('#form-status')).toContainText('Zbyt wiele prób');
+    await expect(page.locator('#f-message')).toHaveValue(MESSAGE);
+    await expect(page.locator('#formularz .form__submit')).toBeEnabled();
+  });
+
   test('brak odpowiedzi kończy oczekiwanie i zachowuje dane', async ({ page }) => {
     test.skip(STAGING, 'Demo nie wywołuje backendu.');
     await page.addInitScript(() => {

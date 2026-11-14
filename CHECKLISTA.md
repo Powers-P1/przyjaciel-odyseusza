@@ -1,5 +1,11 @@
 # Checklista produkcyjna strony statycznej
 
+> **Formularz — 14.11.2026, prace w toku:** przygotowany podgląd z Turnstile i SMTP istniejącej
+> skrzynki OVH, bez dodatkowych kosztów. Przeszło 15 testów backendu i 59 kontroli formularza,
+> dostępności i układu; rzeczywisty widget uzyskał token. Pełna wysyłka i odbiór testu oczekują
+> na osobne polecenie Damiana. Formularz na domenie produkcyjnej nie jest jeszcze włączony.
+> Szczegóły i status: `docs/contact-form-2026-11-14.md`. Poniższe wpisy są datowaną historią.
+
 > **Stan wdrożenia 03.11.2026:** opublikowano wariant startowy na Cloudflare Pages Free
 > (`https://przyjaciel-odyseusza.pages.dev/`, commit `be4f7f6`). Damian wybrał kontakt
 > e-mail/telefon, bez formularza; `dist-cf/` usuwa również przykładowe opinie.

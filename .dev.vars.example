@@ -1,5 +1,7 @@
 # Skopiuj do .dev.vars (lokalnie, nie commitować) i uzupełnij:
-RESEND_API_KEY=re_xxxxxxxxx
-CONTACT_TO=bartek@przyjacielodyseusza.pl
-CONTACT_FROM=Formularz – Przyjaciel Odyseusza <formularz@przyjacielodyseusza.pl>
-# TURNSTILE_SECRET=0x4AAA...
+# Nie używaj prawdziwej skrzynki w automatycznych testach.
+# Produkcyjne wartości są w sekretach Cloudflare Pages; nie kopiuj ich do repo.
+SMTP_USERNAME=bartek@przyjacielodyseusza.pl
+SMTP_PASSWORD=
+TURNSTILE_SECRET=
+TURNSTILE_HOSTNAMES=127.0.0.1

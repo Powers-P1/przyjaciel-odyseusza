@@ -31,6 +31,14 @@ export function p(url) {
 
 export const test = base.extend({
   page: async ({ page }, use) => {
+    // Third-party CAPTCHA is exercised once on the real deployment, not by UI test browsers.
+    if (!STAGING) await page.route('**/turnstile/v0/api.js*', (route) => route.fulfill({
+      contentType: 'application/javascript', body: `window.turnstile = {
+        ready() { throw new Error('An async/defer Turnstile loader must render from its load event.'); },
+        render(slot, options) { this.options = options; options.callback('ui-test-token'); return 'widget-test'; },
+        reset() { this.options.callback('ui-test-token-new'); }
+      };`,
+    }));
     const goto = page.goto.bind(page);
     page.goto = (url, options) => goto(p(url), options);
     await use(page);

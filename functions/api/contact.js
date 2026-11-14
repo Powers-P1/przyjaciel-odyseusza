@@ -3,19 +3,35 @@
  * Ścieżka: POST /api/contact
  *
  * Zmienne środowiskowe (Pages → Settings → Environment variables):
- *   RESEND_API_KEY    – klucz API z https://resend.com (wymagany)
- *   CONTACT_TO        – adres odbiorcy (domyślnie bartek@przyjacielodyseusza.pl)
- *   CONTACT_FROM      – nadawca w zweryfikowanej domenie, np.
- *                       "Formularz – Przyjaciel Odyseusza <formularz@przyjacielodyseusza.pl>"
- *   TURNSTILE_SECRET  – (opcjonalnie) sekret Cloudflare Turnstile; gdy ustawiony,
- *                       token z formularza jest weryfikowany
+ *   SMTP_USERNAME       – stała skrzynka bartek@przyjacielodyseusza.pl
+ *   SMTP_PASSWORD       – sekret istniejącej skrzynki OVH
+ *   TURNSTILE_SECRET    – sekret ochrony antyspamowej
+ *   TURNSTILE_HOSTNAMES – dokładne hosty frontendu dla danego środowiska
  */
-
-const DEFAULT_TO = 'bartek@przyjacielodyseusza.pl';
-const DEFAULT_FROM = 'Formularz – Przyjaciel Odyseusza <formularz@przyjacielodyseusza.pl>';
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+import { MAILBOX, sendSmtpMessage } from '../../src/server/smtp.js';
+const EMAIL_RE = /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i;
 const VERIFY_TIMEOUT_MS = 8_000;
-const MAIL_TIMEOUT_MS = 10_000;
+const MAX_BODY_BYTES = 32_768;
+
+async function boundedRequest(request) {
+  if (Number(request.headers.get('Content-Length')) > MAX_BODY_BYTES) throw new Error('too_large');
+  const reader = request.body?.getReader();
+  const chunks = [];
+  let size = 0;
+  try {
+    if (reader) while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_BODY_BYTES) { await reader.cancel(); throw new Error('too_large'); }
+      chunks.push(value);
+    }
+  } finally { reader?.releaseLock(); }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new Request(request.url, { method: 'POST', headers: request.headers, body: bytes });
+}
 
 async function fetchWithTimeout(url, options, timeoutMs, readJson = false) {
   const controller = new AbortController();
@@ -32,7 +48,7 @@ async function fetchWithTimeout(url, options, timeoutMs, readJson = false) {
 }
 
 function clean(value, max) {
-  return String(value == null ? '' : value).replace(/\s+/g, ' ').trim().slice(0, max);
+  return typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, max) : '';
 }
 
 // Nagłówki ustawiamy w samej funkcji: Cloudflare nie stosuje reguł z pliku _headers do odpowiedzi
@@ -53,6 +69,7 @@ function respond(status, body, wantsJson) {
     turnstile: 'Weryfikacja antyspamowa wymaga JavaScriptu. Włącz go lub skorzystaj z kontaktu poniżej.',
     turnstile_unavailable: 'Weryfikacja antyspamowa jest chwilowo niedostępna. Spróbuj ponownie później.',
     mail_timeout: 'Nie udało się potwierdzić wysyłki w wyznaczonym czasie. Wiadomość mogła już dotrzeć.',
+    too_large: 'Wiadomość jest za długa. Skróć ją lub skorzystaj z bezpośredniego adresu e-mail.',
   };
   const description = body.ok
     ? 'Odezwę się, żeby umówić rozmowę.'
@@ -64,21 +81,29 @@ function respond(status, body, wantsJson) {
   });
 }
 
-export async function onRequestPost({ request, env }) {
+export function createContactHandler(sendMail = sendSmtpMessage) {
+return async function onRequestPost({ request, env }) {
   const contentType = request.headers.get('content-type') || '';
   const accept = request.headers.get('accept') || '';
   const wantsJson = accept.includes('application/json') || contentType.includes('application/json');
+  const origin = request.headers.get('Origin');
+  if (origin && origin !== new URL(request.url).origin) return respond(403, { ok: false, error: 'origin' }, wantsJson);
+  if (!/application\/json|application\/x-www-form-urlencoded|multipart\/form-data/i.test(contentType)) {
+    return respond(415, { ok: false, error: 'bad_request' }, wantsJson);
+  }
 
   let data;
   try {
+    const bounded = await boundedRequest(request);
     if (contentType.includes('application/json')) {
-      data = await request.json();
+      data = await bounded.json();
     } else {
-      const fd = await request.formData();
+      const fd = await bounded.formData();
       data = Object.fromEntries(fd.entries());
     }
   } catch (err) {
-    return respond(400, { ok: false, error: 'bad_request' }, wantsJson);
+    const tooLarge = err.message === 'too_large';
+    return respond(tooLarge ? 413 : 400, { ok: false, error: tooLarge ? 'too_large' : 'bad_request' }, wantsJson);
   }
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     return respond(400, { ok: false, error: 'bad_request' }, wantsJson);
@@ -87,53 +112,47 @@ export async function onRequestPost({ request, env }) {
   const name = clean(data.name, 100);
   const email = clean(data.email, 200);
   const phone = clean(data.phone, 40);
-  const message = String(data.message == null ? '' : data.message).trim().slice(0, 4000);
+  const message = typeof data.message === 'string' ? data.message.trim().slice(0, 4000) : '';
   const subjectFor = clean(data.subject_for, 10);
   const honeypot = clean(data.website, 200);
   // Honeypot jest pułapką na boty. Szybkość pisania/autouzupełniania nie świadczy o spamie.
   if (honeypot) return respond(200, { ok: true }, wantsJson);
 
   const invalid = [];
-  if (name.length < 2) invalid.push('name');
-  if (!EMAIL_RE.test(email)) invalid.push('email');
-  if (message.length < 10) invalid.push('message');
+  if (typeof data.name !== 'string' || name.length < 2 || data.name.trim().length > 100) invalid.push('name');
+  if (typeof data.email !== 'string' || data.email.length > 200 || !EMAIL_RE.test(email) || email.startsWith('.') || email.includes('..')) invalid.push('email');
+  if (typeof data.message !== 'string' || message.length < 10 || data.message.trim().length > 4000) invalid.push('message');
+  if (data.phone != null && (typeof data.phone !== 'string' || data.phone.length > 40)) invalid.push('phone');
+  if ((data.subject_for != null && typeof data.subject_for !== 'string') || !['', 'firma', 'ja'].includes(subjectFor)) invalid.push('subject_for');
   if (invalid.length) return respond(422, { ok: false, error: 'validation', fields: invalid }, wantsJson);
 
-  // Fail-closed. Weryfikacja Turnstile jest warunkowa, żeby formularz działał na emulacji lokalnej
-  // (tam nie ma sekretów). Na działającym wdrożeniu – poznajemy je po kluczu do wysyłki maili –
-  // brak sekretu Turnstile oznaczałby formularz bez ochrony antyspamowej, więc zatrzymujemy go
-  // głośno. Literówka w nazwie zmiennej w panelu Pages nie może po cichu wyłączyć captchy.
-  if (env.RESEND_API_KEY && !env.TURNSTILE_SECRET) {
-    console.error('Brak TURNSTILE_SECRET przy skonfigurowanej wysyłce – formularz zatrzymany.');
+  const expectedHosts = new Set((env.TURNSTILE_HOSTNAMES || '').split(',').map((host) => host.trim()).filter(Boolean));
+  if (env.SMTP_USERNAME !== MAILBOX || !env.SMTP_PASSWORD || !env.TURNSTILE_SECRET || !expectedHosts.size) {
     return respond(500, { ok: false, error: 'not_configured' }, wantsJson);
   }
 
   if (env.TURNSTILE_SECRET) {
-    const token = clean(data['cf-turnstile-response'], 4096);
-    if (!token) return respond(403, { ok: false, error: 'turnstile' }, wantsJson);
+    const token = typeof data['cf-turnstile-response'] === 'string' ? data['cf-turnstile-response'] : '';
+    if (!token || token.length > 2048) return respond(403, { ok: false, error: 'turnstile' }, wantsJson);
     const ip = request.headers.get('CF-Connecting-IP') || '';
     let verified = false;
     try {
       const vr = await fetchWithTimeout('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: env.TURNSTILE_SECRET, response: token, remoteip: ip }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: token, remoteip: ip }),
       }, VERIFY_TIMEOUT_MS, true);
       if (!vr.ok) return respond(503, { ok: false, error: 'turnstile_unavailable' }, wantsJson);
-      verified = Boolean(vr.body && vr.body.success === true);
+      verified = Boolean(vr.body?.success === true && vr.body.action === 'contact'
+        && expectedHosts.has(vr.body.hostname) && vr.body.hostname === new URL(request.url).hostname);
     } catch (err) {
       return respond(503, { ok: false, error: 'turnstile_unavailable' }, wantsJson);
     }
     if (!verified) return respond(403, { ok: false, error: 'turnstile' }, wantsJson);
   }
 
-  if (!env.RESEND_API_KEY) {
-    return respond(500, { ok: false, error: 'not_configured' }, wantsJson);
-  }
-
   const forLabel = subjectFor === 'firma' ? 'menedżera w firmie' : subjectFor === 'ja' ? 'siebie' : 'nie wskazano';
   const sentAt = new Date().toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' });
-  const country = request.headers.get('CF-IPCountry') || '';
 
   const text = [
     'Nowe zapytanie ze strony przyjacielodyseusza.pl',
@@ -147,33 +166,31 @@ export async function onRequestPost({ request, env }) {
     message,
     '',
     '—',
-    `Wysłano: ${sentAt}${country ? ` · kraj: ${country}` : ''}`,
+    `Wysłano: ${sentAt}`,
   ].join('\n');
 
   const payload = {
-    from: env.CONTACT_FROM || DEFAULT_FROM,
-    to: [env.CONTACT_TO || DEFAULT_TO],
-    reply_to: email,
+    replyTo: email,
     subject: `Zapytanie ze strony: ${name} (${forLabel})`,
     text,
+    messageId: crypto.randomUUID(),
   };
 
   let sent = false;
   try {
-    const r = await fetchWithTimeout('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }, MAIL_TIMEOUT_MS);
-    sent = r.ok;
+    const result = await sendMail(payload, { username: env.SMTP_USERNAME, password: env.SMTP_PASSWORD });
+    sent = result?.accepted === true;
   } catch (err) {
-    const timedOut = err && err.message === 'upstream_timeout';
+    const timedOut = err && err.message === 'mail_timeout';
     return respond(timedOut ? 504 : 502, { ok: false, error: timedOut ? 'mail_timeout' : 'mail_failed' }, wantsJson);
   }
 
   if (!sent) return respond(502, { ok: false, error: 'mail_failed' }, wantsJson);
   return respond(200, { ok: true }, wantsJson);
+};
 }
+
+export const onRequestPost = createContactHandler();
 
 export function onRequest({ request }) {
   if (request.method === 'POST') return undefined;

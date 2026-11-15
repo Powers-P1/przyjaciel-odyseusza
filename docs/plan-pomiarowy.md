@@ -49,3 +49,10 @@ Nie ma automatycznego `form_submit` liczonego po kliknięciu. Podglądy nie ład
 W testach analityki prawdziwa biblioteka i kolektor Google są aktywne, ale Turnstile i odpowiedzi formularza są atrapami wyłącznie we własnej przeglądarce QA: **zero nowych maili do klienta**. Rzeczywiste dostarczenie formularza sprawdzono wcześniej odrębnym autoryzowanym testem. Weryfikujemy także brak pól formularza, testowego e-maila i jego SHA256 w żądaniach Google.
 
 Źródła: [Basic Consent Mode](https://developers.google.com/tag-platform/security/concepts/consent-mode), [flaga wyłączenia GA](https://developers.google.com/tag-platform/security/guides/privacy), [cookies](https://developers.google.com/tag-platform/security/guides/customize-cookies), [CSP bez reklam](https://developers.google.com/tag-platform/security/guides/csp).
+
+
+## RUM po zgodzie — uzupełnienie 15.11
+
+W istniejącym strumieniu rejestrowane jest zdarzenie `web_vital`: tylko `vital_name` (LCP/INP/CLS), liczbowe `vital_value`, `vital_rating` oraz `vital_unit`. Jedna próbka danej metryki na cykl nawigacji; BFCache może rozpocząć nowy cykl. Brak atrybucji DOM, metric.id, adresów elementów i pól. Biblioteka web-vitals jest dołączona lokalnie do analytics.js i nie tworzy obserwatorów przed zgodą. Stare odmowy pozostają odmowami; wcześniejsza zgoda na węższy cel wymaga ponownego wyboru (wersja preferencji 2). Cofnięcie blokuje również opóźnione próbki; ponowna zgoda w tej samej stronie nie odtwarza starej próbki wydajności. Kontakt nadal działa.
+
+To diagnostyczny RUM wizyt ze zgodą, obciążony doborem próby; nie jest pełnym CrUX. Wyniki LCP/INP są w ms, CLS jest współczynnikiem — nie sumować ich razem. Średnia lub suma w GA4 nie jest p75. G02 i G20 pozostają otwarte do odpowiedniej ilości danych i oceny trendu. Źródło implementacji: [Google web-vitals](https://github.com/GoogleChrome/web-vitals); użyto standardowego wariantu bez attribution.

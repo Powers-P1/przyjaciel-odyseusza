@@ -1,25 +1,32 @@
 // Basic Consent Mode: no Google script or analytics queue before an affirmative choice.
+import { createVitalsTelemetry } from './vitals.mjs';
 (function () {
   'use strict';
   var script = document.currentScript;
   var id = script && script.getAttribute('data-ga4-id');
   if (!/^G-[A-Z0-9]{6,20}$/.test(id || '') || location.hostname !== 'przyjacielodyseusza.pl') return;
   var KEY = 'po:analytics-consent:v1';
+  var VERSION = 2;
   var LIFETIME = 180 * 24 * 60 * 60 * 1000;
   var allowed = false;
   var loaded = false;
+  var vitals = createVitalsTelemetry(function (name, params) {
+    if (allowed) window.gtag('event', name, Object.assign(pageInfo(), params));
+  }, function () { return allowed; });
   var previousFocus;
   function readChoice() {
     var stored;
     try { stored = JSON.parse(localStorage.getItem(KEY)); } catch (_) { /* choice stays necessary */ }
-    return stored && stored.version === 1 && Number.isFinite(stored.expires) && stored.expires > Date.now()
+    // Keep the storage key for cross-tab withdrawal compatibility. Preserve an
+    // earlier refusal, but request fresh consent before the expanded RUM purpose.
+    return stored && (stored.version === VERSION || (stored.version === 1 && stored.choice === 'denied')) && Number.isFinite(stored.expires) && stored.expires > Date.now()
       && ['granted', 'denied'].includes(stored.choice) ? stored.choice : '';
   }
   var choice = readChoice();
 
   function save(value) {
     choice = value;
-    try { localStorage.setItem(KEY, JSON.stringify({ version: 1, choice: value, expires: Date.now() + LIFETIME })); }
+    try { localStorage.setItem(KEY, JSON.stringify({ version: VERSION, choice: value, expires: Date.now() + LIFETIME })); }
     catch (_) { /* a blocked preference store must not prevent contact or a current-tab choice */ }
   }
 
@@ -59,10 +66,12 @@
       window.gtag('consent', 'update', { analytics_storage: 'granted', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
     }
     window.gtag('event', 'page_view', pageInfo());
+    vitals.start();
   }
 
   function stop() {
     allowed = false;
+    vitals.revoke();
     // The official opt-out flag blocks collection in an already-loaded Google tag.
     // Do not send a denied consent ping or reload a visitor's unfinished form.
     window['ga-disable-' + id] = true;
@@ -80,7 +89,7 @@
   dialog.setAttribute('aria-labelledby', 'consent-title');
   dialog.setAttribute('aria-describedby', 'consent-description');
   dialog.innerHTML = '<h2 id="consent-title">Statystyki odwiedzin</h2>' +
-    '<p id="consent-description">Za Twoją zgodą użyję Google Analytics, aby mierzyć odwiedziny i korzystanie z kontaktu. Ze strony i formularza możesz korzystać także bez zgody.</p>' +
+    '<p id="consent-description">Za Twoją zgodą użyję Google Analytics, aby mierzyć odwiedziny, korzystanie z kontaktu i szybkość działania strony. Ze strony i formularza możesz korzystać także bez zgody.</p>' +
     '<p><a href="/polityka-prywatnosci" target="_blank" rel="noopener noreferrer">Polityka prywatności (nowa karta)</a></p>' +
     '<div class="consent-actions"><button class="btn btn--outline" type="button" data-consent="denied" autofocus>Odrzucam</button>' +
     '<button class="btn btn--outline" type="button" data-consent="granted">Zgadzam się</button></div>';

@@ -10,6 +10,8 @@ const fontLicense = 'public/assets/fonts/SIL-OFL-1.1.txt';
 const originalFontLicense = fs.readFileSync(fontLicense, 'utf8');
 const normalizedFontLicense = originalFontLicense.replace(/\r\n/g, '\n');
 if (normalizedFontLicense !== originalFontLicense) fs.writeFileSync(fontLicense, normalizedFontLicense);
+fs.mkdirSync('public/assets/licenses', { recursive: true });
+fs.writeFileSync('public/assets/licenses/web-vitals-APACHE-2.0.txt', fs.readFileSync('node_modules/web-vitals/LICENSE', 'utf8').replace(/\r\n/g, '\n'));
 
 const jobs = [
   // Arkusz trafia wyłącznie do <style> w HTML, więc plik pośredni nie ma czego szukać w public/.
@@ -22,13 +24,17 @@ const jobs = [
 
 for (const job of jobs) {
   const source = fs.readFileSync(job.from, 'utf8');
-  const result = await esbuild.transform(source, {
+  const options = {
     loader: job.loader,
     minify: true,
     target: ['es2017', 'chrome90', 'firefox90', 'safari14'],
     charset: 'utf8',
     legalComments: 'none',
-  });
+  };
+  const result = job.from === 'src/js/analytics.js'
+    ? { code: (await esbuild.build({ entryPoints: [job.from], bundle: true, write: false, minify: true,
+      target: options.target, charset: options.charset, legalComments: options.legalComments, format: 'iife' })).outputFiles[0].text }
+    : await esbuild.transform(source, options);
   fs.mkdirSync(path.dirname(job.to), { recursive: true });
   fs.writeFileSync(job.to, result.code);
   console.log(`${job.from} → ${job.to}  ${source.length} → ${result.code.length} B`);

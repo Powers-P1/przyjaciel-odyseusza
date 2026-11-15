@@ -62,6 +62,34 @@ test.describe('GA4: Basic Consent Mode bez rzeczywistej wysyłki do Google', () 
     expect(await page.evaluate(() => typeof window.gtag)).toBe('undefined');
   });
 
+  test('rozszerzony cel RUM wymaga nowej zgody; obserwatory wydajności czekają na jej udzielenie', async ({page}) => {
+    await page.addInitScript(({key}) => {
+      localStorage.setItem(key,JSON.stringify({version:1,choice:'granted',expires:Date.now()+86400000}));
+      const NativeObserver=window.PerformanceObserver;
+      window.__performanceObservations=[];
+      window.PerformanceObserver=class extends NativeObserver {
+        observe(options) { window.__performanceObservations.push(options.type||options.entryTypes); return super.observe(options); }
+      };
+    },{key:KEY});
+    await page.goto(SITE);
+    await expect(page.getByRole('dialog')).toBeVisible();
+    expect(googleRequests).toHaveLength(0);
+    expect(await page.evaluate(()=>window.__performanceObservations)).toEqual([]);
+    await page.getByRole('button',{name:'Zgadzam się',exact:true}).click();
+    await expect.poll(()=>page.evaluate(()=>window.__tagLoaded)).toBe(1);
+    expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).version,KEY)).toBe(2);
+    const supportsPaint=await page.evaluate(()=>PerformanceObserver.supportedEntryTypes.includes('largest-contentful-paint'));
+    if(supportsPaint) await expect.poll(()=>page.evaluate(()=>window.__performanceObservations.length)).toBeGreaterThan(0);
+  });
+
+  test('wcześniejsza odmowa pozostaje odmową po dodaniu pomiaru wydajności', async ({page}) => {
+    await page.addInitScript(({key})=>localStorage.setItem(key,JSON.stringify({version:1,choice:'denied',expires:Date.now()+86400000})),{key:KEY});
+    await page.goto(SITE);
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    expect(googleRequests).toHaveLength(0);
+    expect(await page.evaluate(()=>typeof window.gtag)).toBe('undefined');
+  });
+
   test('zgoda ładuje jeden tag; URL i parametry zdarzeń pomijają dane formularza', async ({page}) => {
     const violations=[];
     page.on('console',m=>{if(/Content Security Policy/i.test(m.text())) violations.push(m.text());});

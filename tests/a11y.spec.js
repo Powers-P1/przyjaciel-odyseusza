@@ -136,7 +136,7 @@ test.describe('Klawiatura i focus', () => {
     for (const id of ['f-name', 'f-email', 'f-message']) {
       const input = page.locator(`#${id}`);
       await expect(input).toHaveAttribute('aria-invalid', 'true');
-      await expect(input).toHaveAttribute('aria-describedby', `${id}-error`);
+      await expect(input).toHaveAttribute('aria-describedby', new RegExp(`(?:^| )${id}-error(?: |$)`));
       await expect(page.locator(`#${id}-error`)).toBeVisible();
     }
     await expect(page.locator('#f-name')).toBeFocused();

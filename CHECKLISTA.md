@@ -1,5 +1,38 @@
 # Checklista produkcyjna strony statycznej
 
+> **Pełna konfiguracja OVH i Cloudflare — 15.11.2026:** aktualny plan odbioru to
+> [kompleksowa checklista techniczna](docs/CHECKLISTA_TECHNICZNA_2026-11-15.md): 226 punktów
+> w 15 obszarach, z priorytetami, warunkami odbioru, kosztami i źródłami. Uwzględnia odczyt
+> bieżących DNS/WWW oraz rozdziela wymagania, zalecenia i opcje. Starsze audyty poniżej
+> pozostają historią, a nowa lista nie oznacza automatycznego wykonania całej konfiguracji.
+
+> **Formularz — 14.11.2026, wdrożony:** Turnstile i SMTP istniejącej skrzynki OVH,
+> bez dodatkowych kosztów. Przeszło 15 testów backendu i 59 kontroli formularza, dostępności
+> i układu. Po osobnym poleceniu Damiana wysłano dokładnie jeden test z podglądu; odczyt IMAP
+> potwierdził odbiór w INBOX OVH o 14:30:22 CET, poprawną treść i Reply-To. Formularz działa na
+> `https://przyjacielodyseusza.pl/#kontakt`. Produkcję zweryfikowano o 14:33 CET: HTML 200,
+> zgodny skrypt JS, sekrety i host Turnstile, walidacja 422 oraz brak wysyłki bez tokena (403).
+> Szczegóły i status: `docs/contact-form-2026-11-14.md`. Poniższe wpisy są datowaną historią.
+
+> **Stan wdrożenia 03.11.2026:** opublikowano wariant startowy na Cloudflare Pages Free
+> (`https://przyjaciel-odyseusza.pages.dev/`, commit `be4f7f6`). Damian wybrał kontakt
+> e-mail/telefon, bez formularza; `dist-cf/` usuwa również przykładowe opinie.
+> Uzupełniono dane firmy i dostawców w polityce prywatności. Build, walidacja HTML/CSP
+> i 11 testów backendu przeszły; wszystkie 33 pliki na Cloudflare są zgodne z artefaktem.
+> W home.pl i Cloudflare MX oraz SPF są już niezależne od WWW. Oryginalny DKIM zachowano,
+> SRV w Cloudflare wskazują serwer home.pl. SMTP 465 i IMAP 993 przeszły sprawdzenie TLS.
+> **Strona działa na domenie produkcyjnej:** Damian zapisał NS Cloudflare w home.pl o 12:44.
+> O 13:20 strefa jest aktywna, `https://przyjacielodyseusza.pl/` zwraca nową stronę (200),
+> certyfikat Universal SSL jest aktywny, a HTTP i `www` przekierowują 301 na kanoniczne HTTPS
+> z zachowaniem ścieżki i query string. Wszystkie 33 pliki porównano również na właściwej domenie.
+> Root nie ma `noindex`; przeglądarka Edge potwierdziła nową stronę, obrazy i brak błędów konsoli.
+> Pocztowe DNS przeszły 10 kontroli po migracji. Rzeczywista wysyłka i odbiór ze skrzynki nie były testowane.
+> Panel Pages pokazuje jeszcze `pending` dla własnego certyfikatu Google apeksu; HTTPS działa
+> przez aktywny certyfikat Universal SSL. `www` ma status `active`. To jawny stan panelu po publikacji.
+> Dowody: `docs/deployment-2026-11-03.md` oraz projektowy `outputs/deployment-2026-11-03/`.
+> Poniższe datowane wyniki i dawne blokery zachowano jako historię; formularz Resend nie jest
+> wymaganiem wariantu startowego wybranego 03.11.2026.
+
 > Cel: ten plik jest jednym źródłem prawdy dotyczącym gotowości technicznej strony do publikacji.
 >
 > Agenci mają aktualizować ten plik w trakcie prac. Nie wolno oznaczać punktu jako wykonanego tylko dlatego, że "powinien działać". Punkt można odznaczyć dopiero po wdrożeniu i weryfikacji.
@@ -1258,7 +1291,7 @@ Każdy wyjątek musi mieć powód i właściciela/decyzję.
 
 - [x] ŚRODOWISKO TESTOWE DOSTĘPNE: https://powers-p1.github.io/przyjaciel-odyseusza/ (`noindex`; aktualny commit wskazują stempel build w HTML i GitHub Actions)
 - [ ] GOTOWE DO PRODUKCJI (po zamknięciu 6 blokerów powyżej)
-- [ ] OPUBLIKOWANE NA PRODUKCJI
+- [x] OPUBLIKOWANE NA PRODUKCJI — wariant kontakt e-mail/telefon, Cloudflare Free, 03.11.2026; dowody w datowanej aktualizacji na początku pliku.
 - [ ] KONTROLA PO PUBLIKACJI ZAKOŃCZONA
 
 Data bieżącej weryfikacji lokalnej i aktualizacji dokumentacji: 2026-09-20. Wyniki: sekcja 15.

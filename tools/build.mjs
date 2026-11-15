@@ -9,6 +9,8 @@ const jobs = [
   { from: 'src/css/style.css', to: '.build/style.css', loader: 'css' },
   { from: 'src/js/init.js', to: '.build/init.js', loader: 'js' },
   { from: 'src/js/main.js', to: 'public/assets/js/main.js', loader: 'js' },
+  { from: 'src/js/analytics.js', to: 'public/assets/js/analytics.js', loader: 'js' },
+  { from: 'src/css/analytics.css', to: 'public/assets/css/analytics.css', loader: 'css' },
 ];
 
 for (const job of jobs) {

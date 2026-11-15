@@ -1,10 +1,8 @@
 # Publikujemy wyłącznie wybraną wersję A z commitu, który przeszedł QA.
-name: QA i publikacja testowa
+name: Ręczna publikacja archiwalnego demonstratora GitHub
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  # Produkcja jest na Cloudflare. Ten stary przebieg z artefaktami nie uruchamia się automatycznie.
   workflow_dispatch:
 
 permissions:
@@ -31,10 +29,10 @@ jobs:
       publish: ${{ steps.refs.outputs.publish }}
       base-url: ${{ steps.refs.outputs.base-url }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - id: pages
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/configure-pages@v6
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
       - name: Ustal publikację wybranej wersji A
         id: refs
         env:
@@ -59,10 +57,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.snapshots.outputs.sha }}
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
@@ -96,14 +94,14 @@ jobs:
           npm run build:staging
           test -f dist-gh/.nojekyll
           test -f dist-gh/.well-known/security.txt
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: staging-A-${{ needs.snapshots.outputs.sha }}
           path: dist-gh
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: raporty-qa-A-${{ needs.snapshots.outputs.sha }}
@@ -127,7 +125,7 @@ jobs:
     outputs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: staging-A-${{ needs.snapshots.outputs.sha }}
           path: dist-gh
@@ -139,12 +137,12 @@ jobs:
           test ! -e dist-gh/wersje
           test -f dist-gh/.nojekyll
           test -f dist-gh/.well-known/security.txt
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
         with:
           path: dist-gh
           include-hidden-files: true
       - id: deploy
-        uses: actions/deploy-pages@v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
 
   staging-smoke:
     needs: [snapshots, staging]
@@ -153,10 +151,10 @@ jobs:
     env:
       STAGING_URL: ${{ needs.staging.outputs.url }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.snapshots.outputs.sha }}
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
@@ -177,7 +175,7 @@ jobs:
           exit 1
       - name: Sprawdź opublikowaną wersję A testami z tego samego SHA
         run: npm run test:staging -- --project=chromium --project=mobile-chrome
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: raporty-staging-A-${{ needs.snapshots.outputs.sha }}

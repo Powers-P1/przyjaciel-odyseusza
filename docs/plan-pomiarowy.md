@@ -1,32 +1,42 @@
-# Plan pomiarowy – przyjacielodyseusza.pl
+# Plan pomiarowy — Przyjaciel Odyseusza
 
-Cel biznesowy strony: **zapytania o współpracę** (formularz, telefon, e-mail) od dwóch grup: firm szukających mentora dla menedżera oraz menedżerów zgłaszających się samodzielnie.
+Aktualizacja 15.11.2026. Późniejsze ustalenia z klientem obejmują GA4; wcześniejsze wyłączenie GA4 w tym dokumencie nie zamyka tego zobowiązania.
 
-## Decyzja architektoniczna (privacy-first)
+## Stan i uruchomienie
 
-- Strona nie ustawia cookies i nie ładuje trackerów. Dzięki temu nie potrzebuje banera zgód (CMP).
-- Rekomendowane narzędzie: **Cloudflare Web Analytics** (bez cookies, bez fingerprintingu, darmowe, nie wymaga zgody). Włączenie: Cloudflare Dashboard → Web Analytics → Add site → wklejenie tokena w `index.html` (jedna linia `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "..."}'>`) oraz dopisanie `https://static.cloudflareinsights.com` do `script-src` i `connect-src` w `public/_headers`.
-- GA4 / GTM / Clarity: **świadomie nie wdrażamy**. Wymagałyby CMP i zgody, a skala projektu (one-pager, kilkanaście leadów miesięcznie) tego nie uzasadnia. Decyzję można zmienić, gdy klient zacznie prowadzić kampanie płatne.
+Obecnie identyfikator w `config/analytics.json` jest pusty: **brak tagu Google, banera i żądań analitycznych**. Gotowy moduł jest włączany tylko przez niepusty identyfikator rzeczywistego strumienia GA4 w produkcyjnym buildzie. Sam plik JS nie inicjuje pomiaru na podglądach, GitHub Pages lub obcych hostach.
 
-## Zdarzenia (wbudowane w `main.js`)
+Przed wpisaniem identyfikatora trzeba utworzyć/skonfigurować usługę na koncie klienta. Agencja ma własny delegowany dostęp; własność klienta nie może zależeć od wspólnego hasła.
 
-Strona emituje zdarzenia niezależnie od narzędzia: `window.dispatchEvent(new CustomEvent('po:event', {detail}))` oraz `window.dataLayer.push(detail)`, jeśli `dataLayer` istnieje. Każde narzędzie analityczne może je podchwycić bez zmian w kodzie strony.
+- Domena strumienia: `https://przyjacielodyseusza.pl`; strefa czasu Warszawa, waluta PLN.
+- Retencja zdarzeń i użytkowników: 2 miesiące. To nie określa retencji raportów zbiorczych.
+- Google Signals, zbieranie danych przekazanych przez użytkowników, funkcje reklamowe, łączenie z Ads i zbędne udostępnianie danych wyłączone.
+- Enhanced Measurement wyłączone, w szczególności automatyczne zdarzenia formularzy i historii. Mierzymy własne zdarzenia po faktycznym wyniku backendu.
+- Sprawdzić warunki i aneks przetwarzania danych na koncie właściciela, redakcję adresów e-mail i parametrów URL oraz uprawnienia.
+- Po ustawieniu identyfikatora build dodaje jednocześnie interfejs zgody, odpowiednią informację w polityce prywatności i wąskie wyjątki CSP dla GA4 bez reklam.
+- Odbiór na prawdziwym strumieniu: sieć przed wyborem, po odmowie, po zgodzie, po wycofaniu i po odświeżeniu; DebugView/Realtime i brak podwójnych zdarzeń. Test z atrapą biblioteki Google nie zastępuje tego odbioru.
 
-| Zdarzenie | Kiedy | Parametry | Konwersja |
-|-----------|-------|-----------|-----------|
-| `cta_click` | kliknięcie przycisku „Porozmawiajmy” / „Kontakt” / „Poznaj ofertę” | `label`, `location` (hero, nav, sytuacje…) | nie |
-| `form_start` | pierwsza interakcja z polem formularza | – | nie |
-| `form_submit_success` | backend potwierdził wysyłkę (odpowiedź 200 ok:true) | `subject_for` (firma / ja / brak) | **tak** |
-| `form_submit_error` | backend zwrócił błąd lub brak połączenia | `error` | nie |
-| `tel_click` | kliknięcie linku `tel:` | `location` | **tak** |
-| `mailto_click` | kliknięcie linku `mailto:` | `location` | tak (pomocnicza) |
+## Zgoda i prywatność
 
-Zasady: sukces formularza liczymy tylko po potwierdzeniu przez backend, nie po kliknięciu „Wyślij”. Zdarzenia nie zawierają danych osobowych (żadnych wartości pól).
+Basic Consent Mode: biblioteka Google i kolejka jej zdarzeń powstają dopiero po zgodzie. Brak wyboru i odmowa nie przekazują Google nawet sygnału odmowy. Odrzucenie i zgoda są równie dostępne, także z klawiatury. Escape nie włącza pomiaru. Politykę prywatności można przeczytać bez podejmowania decyzji.
 
-## UTM
+„Ustawienia prywatności” w stopce pozwalają wycofać zgodę. Oficjalna flaga `ga-disable` zatrzymuje wysyłanie i zapis cookies; usuwamy wyłącznie cookies `_ga`/`_ga_*`. Formularz zachowuje wpisaną treść, strona nie przeładowuje się. Preferencja trwa 180 dni, cookies GA maksymalnie 60 dni bez automatycznego przedłużania. W przeglądarce bez obsługi interfejsu zgody pomiar pozostaje wyłączony.
 
-Jeśli strona będzie promowana (LinkedIn, mailing), stosujemy: `utm_source` (linkedin, newsletter, wizytowka), `utm_medium` (social, email, qr), `utm_campaign` (nazwa-akcji-rrrr-mm). Małe litery, myślniki. Parametry nie są przechowywane po stronie strony; atrybucję robi narzędzie analityczne.
+Adres strony przekazywany do GA zawiera tylko znaną ścieżkę, bez query i hash; nieznane ścieżki mają stałą etykietę `/404`. Referrer ograniczamy do originu. Parametry zdarzeń mają białe listy. Nie przekazujemy nazwisk, e-maili, telefonów, treści wiadomości ani etykiet z dowolnego wejścia użytkownika. Nie ma dopisywania do marketingu na podstawie zapytania.
 
-## Ruch testowy
+## Zdarzenia biznesowe
 
-Przed publikacją analityka nie jest włączona, więc testy nie zanieczyszczają danych. Po włączeniu Cloudflare Web Analytics: podgląd `*.pages.dev` nie ma tokena, więc nie raportuje.
+`main.js` emituje lokalne `po:event`; moduł pomiarowy odbiera je dopiero po zgodzie. Wcześniejsze zdarzenia nie są odtwarzane do Google po późniejszej zgodzie.
+
+| Zdarzenie | Wyzwalacz | Dozwolone parametry | Znaczenie |
+|---|---|---|---|
+| `page_view` | Po zgodzie i wejściu na stronę | bezpieczny URL/referrer/title | odwiedziny |
+| `cta_click` | Zwykły przycisk wezwania do kontaktu | stałe miejsce sekcji | interakcja, bez przycisków zgody |
+| `form_start` | Pierwsza interakcja z formularzem | bez wartości pól | rozpoczęcie |
+| `form_submit_success` | Backend potwierdził przyjęcie maila | firma/ja/brak | główne zdarzenie kontaktu |
+| `form_submit_error` | Potwierdzony błąd/timeout | znany kod kategorii | diagnostyka |
+| `tel_click` / `mailto_click` | Kliknięcie linku kontaktowego | stałe miejsce sekcji | pomocniczy sygnał; nie dowodzi rozmowy/wysłania |
+
+Nie ma automatycznego `form_submit` liczonego po kliknięciu. Podglądy nie ładują pomiaru Google. Obecny brak danych CrUX lub niedostępność publicznego PSI nie dowodzi dobrych albo złych wyników użytkowników; wyniki Lighthouse opisujemy osobno jako laboratoryjne.
+
+Źródła: [Basic Consent Mode](https://developers.google.com/tag-platform/security/concepts/consent-mode), [flaga wyłączenia GA](https://developers.google.com/tag-platform/security/guides/privacy), [cookies](https://developers.google.com/tag-platform/security/guides/customize-cookies), [CSP bez reklam](https://developers.google.com/tag-platform/security/guides/csp).

@@ -42,7 +42,7 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
   test('walidacja po stronie klienta daje konkretny feedback', async ({ page }) => {
     await page.goto('/');
     await page.locator('#formularz .form__submit').click();
-    await expect(page.locator('#f-name-error')).toHaveText('Podaj imię i nazwisko.');
+    await expect(page.locator('#f-name-error')).toHaveText('Podaj imię.');
     await expect(page.locator('#f-email-error')).toContainText('poprawny adres e-mail');
     await expect(page.locator('#f-message-error')).toBeVisible();
     await page.fill('#f-name', 'Jan Kowalski');
@@ -73,6 +73,10 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
     await submit.click();
     await expect(page.locator('#form-status')).toContainText('Nie udało się wysłać wiadomości.');
     await expect(page.locator('#form-status a[href^="mailto:"]')).toHaveCount(1);
+    const fallback = await page.locator('#form-status a[href^="mailto:"]').getAttribute('href');
+    expect(fallback).not.toContain('body=');
+    expect(decodeURIComponent(fallback)).not.toContain(MESSAGE);
+    expect(decodeURIComponent(fallback)).not.toContain('jan@example.com');
     await expect(page.locator('#form-status a[href^="tel:"]')).toHaveCount(1);
     await expect(page.locator('#f-message')).toHaveValue(MESSAGE);
     await expect(submit).toBeEnabled();
@@ -92,6 +96,17 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
     await expect(page.locator('#form-status')).toContainText('Dziękuję');
     expect(posts).toBe(1);
     await expect(page.locator('#f-message')).toHaveValue('');
+  });
+
+  test('limit prób 429 daje czytelny komunikat i zachowuje wiadomość', async ({ page }) => {
+    test.skip(STAGING, 'Statyczny demonstrator nie wysyła danych.');
+    await page.route('**/api/contact', (route) => route.fulfill({ status: 429, contentType: 'text/html', body: 'Rate limited' }));
+    await page.goto('/');
+    await fillValid(page);
+    await page.locator('#formularz .form__submit').click();
+    await expect(page.locator('#form-status')).toContainText('Zbyt wiele prób');
+    await expect(page.locator('#f-message')).toHaveValue(MESSAGE);
+    await expect(page.locator('#formularz .form__submit')).toBeEnabled();
   });
 
   test('brak odpowiedzi kończy oczekiwanie i zachowuje dane', async ({ page }) => {
@@ -133,8 +148,8 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
       return route.fulfill(tokens.length === 1 ? { status: 502, json: { ok: false, error: 'mail_failed' } } : { json: { ok: true } });
     });
     await page.goto('/');
-    await expect.poll(() => page.evaluate(() => window.turnstile && window.turnstile.count)).toBe(1);
     await fillValid(page);
+    await expect.poll(() => page.evaluate(() => window.turnstile && window.turnstile.count)).toBe(1);
     await page.locator('#formularz .form__submit').click();
     await expect(page.locator('#form-status')).toContainText('Nie udało się');
     await expect(page.locator('#f-message')).toHaveValue(MESSAGE);

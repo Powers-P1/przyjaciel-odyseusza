@@ -1,6 +1,6 @@
 /* Fonty self-hosted, odchudzone (fontTools): łacina + polskie znaki, bez preloadu, font-display: swap.
    Source Serif 4: plik zmienny (wght 400–600, opsz 28). Inter: instancje statyczne 400/500/600 (opsz 14). */
-@font-face{font-family:'Source Serif 4';font-style:normal;font-weight:400 600;font-display:swap;src:url('/assets/fonts/SourceSerif4-var.woff2') format('woff2')}
+@font-face{font-family:'Odyseusz Serif';font-style:normal;font-weight:400 600;font-display:swap;src:url('/assets/fonts/OdyseuszSerif-var-v1.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('/assets/fonts/Inter-400.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('/assets/fonts/Inter-500.woff2') format('woff2')}
 @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('/assets/fonts/Inter-600.woff2') format('woff2')}
@@ -31,7 +31,7 @@
   --gold-soft: #bdad87;
   --gold-ink: #6f5b31;   /* złoto czytelne na kremie i kremie-2 (AA, ≥ 5:1 także przy 12 px) */
 
-  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --serif: "Odyseusz Serif", Georgia, "Times New Roman", serif;
   --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 
   /* Szerokość treści. Wiersz dłuższy niż ok. 75 znaków gubi początek następnego, dlatego kontener
@@ -593,7 +593,6 @@ button { font: inherit; color: inherit; }
 .prose h2 { font-size: 1.5rem; margin: 2.25rem 0 .75rem; }
 .prose ul, .prose ol { padding-left: 1.25rem; margin-bottom: 1em; }
 .prose li { margin-bottom: .35rem; }
-.prose .note { padding: 1rem 1.25rem; background: var(--cream-2); border-left: 2px solid var(--gold); }
 .prose a { color: var(--ink); }
 .page--center { text-align: center; }
 .page--center .prose { margin-inline: auto; }

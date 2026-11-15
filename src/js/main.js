@@ -93,7 +93,7 @@
   function track(name, params) {
     var detail = Object.assign({ event: name }, params || {});
     try { window.dispatchEvent(new CustomEvent('po:event', { detail: detail })); } catch (e) { /* stare przeglądarki */ }
-    if (Array.isArray(window.dataLayer)) window.dataLayer.push(detail);
+    // Integracja pomiaru odbiera tylko dozwolone pola po zgodzie przez po:event.
   }
   function sectionOf(el) {
     var s = el.closest('section, header, footer');
@@ -102,6 +102,7 @@
   document.addEventListener('click', function (e) {
     var a = e.target.closest('a[href], button');
     if (!a) return;
+    if (a.closest('.consent-dialog') || a.classList.contains('consent-settings')) return;
     var href = a.getAttribute('href') || '';
     if (href.indexOf('tel:') === 0) track('tel_click', { location: sectionOf(a) });
     else if (href.indexOf('mailto:') === 0) track('mailto_click', { location: sectionOf(a) });
@@ -131,10 +132,12 @@
     message: form.elements.namedItem('message')
   };
 
-  /* Cloudflare Turnstile – ładowany tylko, gdy ustawiono klucz w data-turnstile-sitekey */
+  /* Turnstile: prepare near the form or on interaction, not on every hero-page visit. */
   var sitekey = form.getAttribute('data-turnstile-sitekey');
   var turnstileWidget = null;
   var turnstileToken = '';
+  var turnstileLoading = false;
+  var turnstileObserver;
 
   function resetTurnstile() {
     turnstileToken = '';
@@ -145,24 +148,41 @@
     }
   }
 
-  if (sitekey && !isDemo) {
+  function loadTurnstile() {
+    if (!sitekey || isDemo || turnstileLoading) return;
+    turnstileLoading = true;
+    if (turnstileObserver) turnstileObserver.disconnect();
     var slot = document.getElementById('turnstile-slot');
     if (slot) slot.className = 'turnstile';
     var s = document.createElement('script');
     s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
     s.async = true; s.defer = true;
+    s.addEventListener('error', function () {
+      turnstileLoading = false;
+      s.remove(); // retry only on another deliberate form interaction, never in a loop
+    });
     s.addEventListener('load', function () {
       if (!slot || !window.turnstile) return;
-      window.turnstile.ready(function () {
-        turnstileWidget = window.turnstile.render(slot, {
-          sitekey: sitekey, theme: 'dark', language: 'pl', appearance: 'interaction-only',
+      // The load event already means api.js is ready; ready() rejects async/defer loaders.
+      turnstileWidget = window.turnstile.render(slot, {
+          sitekey: sitekey, action: 'contact', theme: 'dark', language: 'pl', appearance: 'interaction-only',
+          size: window.matchMedia('(max-width: 360px)').matches ? 'compact' : 'flexible',
           callback: function (token) { turnstileToken = token; },
           'expired-callback': resetTurnstile,
           'error-callback': function () { turnstileToken = ''; }
-        });
       });
     });
     document.head.appendChild(s);
+  }
+  if (sitekey && !isDemo) {
+    form.addEventListener('focusin', loadTurnstile);
+    form.addEventListener('pointerdown', loadTurnstile);
+    if ('IntersectionObserver' in window) {
+      turnstileObserver = new IntersectionObserver(function (entries) {
+        if (entries.some(function (entry) { return entry.isIntersecting; })) loadTurnstile();
+      }, { rootMargin: '600px 0px' });
+      turnstileObserver.observe(form);
+    } else loadTurnstile();
   }
 
   function showStatus(type, html) {
@@ -174,12 +194,14 @@
 
   function fallbackHtml(error) {
     var subject = encodeURIComponent('Zapytanie ze strony przyjacielodyseusza.pl');
-    var body = encodeURIComponent((fields.message && fields.message.value) || '');
-    var mailto = 'mailto:' + EMAIL + '?subject=' + subject + '&body=' + body;
+    // Treść pozostaje w formularzu. Nie umieszczamy jej w URL linku ani zdarzeniach.
+    var mailto = 'mailto:' + EMAIL + '?subject=' + subject;
     var messages = {
       turnstile: 'Nie udało się zakończyć weryfikacji antyspamowej. Poczekaj na jej odświeżenie i spróbuj ponownie.',
       turnstile_unavailable: 'Weryfikacja antyspamowa jest chwilowo niedostępna. Spróbuj ponownie za chwilę.',
       validation: 'Sprawdź zaznaczone pola i spróbuj ponownie.',
+      too_large: 'Wiadomość jest za długa. Skróć ją lub skorzystaj z bezpośredniego adresu e-mail.',
+      rate_limited: 'Zbyt wiele prób w krótkim czasie. Odczekaj chwilę i spróbuj ponownie.',
       timeout: 'Nie udało się potwierdzić wysyłki w wyznaczonym czasie. Wiadomość mogła już dotrzeć.',
       mail_timeout: 'Nie udało się potwierdzić wysyłki w wyznaczonym czasie. Wiadomość mogła już dotrzeć.'
     };
@@ -195,7 +217,9 @@
     input.setAttribute('aria-invalid', show ? 'true' : 'false');
     if (err) {
       err.hidden = !show;
-      if (show) input.setAttribute('aria-describedby', err.id);
+      var descriptions = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(function (id) { return id && id !== err.id; });
+      if (show) descriptions.push(err.id);
+      if (descriptions.length) input.setAttribute('aria-describedby', descriptions.join(' '));
       else input.removeAttribute('aria-describedby');
     }
   }
@@ -247,6 +271,7 @@
       return;
     }
     if (sitekey && !turnstileToken) {
+      loadTurnstile();
       showStatus('error', fallbackHtml('turnstile'));
       return;
     }
@@ -280,12 +305,13 @@
       signal: controller ? controller.signal : undefined
     })
       .then(function (res) {
+        if (res.status === 429) throw new Error('rate_limited');
         return res.json().catch(function () { throw new Error('bad_response'); }).then(function (json) {
           if (json && res.ok && json.ok === true) return;
           if (json && json.error === 'validation' && Array.isArray(json.fields)) {
             json.fields.forEach(function (key) { if (fields[key]) setError(fields[key], true); });
           }
-          var knownErrors = ['validation', 'turnstile', 'turnstile_unavailable', 'not_configured', 'mail_failed', 'mail_timeout'];
+          var knownErrors = ['validation', 'too_large', 'turnstile', 'turnstile_unavailable', 'not_configured', 'mail_failed', 'mail_timeout'];
           throw new Error(json && knownErrors.indexOf(json.error) !== -1 ? json.error : 'bad_response');
         });
       });
@@ -298,7 +324,7 @@
         form.reset();
       })
       .catch(function (err) {
-        var knownErrors = ['validation', 'turnstile', 'turnstile_unavailable', 'not_configured', 'mail_failed', 'mail_timeout', 'timeout', 'bad_response'];
+        var knownErrors = ['validation', 'too_large', 'rate_limited', 'turnstile', 'turnstile_unavailable', 'not_configured', 'mail_failed', 'mail_timeout', 'timeout', 'bad_response'];
         var error = err && knownErrors.indexOf(err.message) !== -1 ? err.message : 'network';
         showStatus('error', fallbackHtml(error));
         track('form_submit_error', { error: error });

@@ -1,0 +1,20 @@
+Webfonts in this directory are licensed under the SIL Open Font License 1.1.
+The complete license is provided in SIL-OFL-1.1.txt.
+
+Inter (400, 500, 600):
+Copyright 2016 The Inter Project Authors (https://github.com/rsms/inter).
+Original project: https://github.com/google/fonts/tree/main/ofl/inter
+These webfonts are subsets and static instances for this website.
+
+Odyseusz Serif:
+Based on Source Serif 4, Copyright 2014 - 2021 Adobe Systems Incorporated
+(http://www.adobe.com/), with Reserved Font Name 'Source'.
+Original project: https://github.com/google/fonts/tree/main/ofl/sourceserif4
+This Modified Version is a Latin/Polish subset, with optical size 28 and
+weight range 400-600. The primary name is changed to respect the Reserved
+Font Name. Glyph outlines, metrics and shaping are unchanged from the
+previous website subset. The original authors do not endorse this version.
+
+Modifications: fontTools subsetting/instancing, as recorded in
+tools/fonts-build.py; primary-name metadata updated 2026-11-15.
+All font software and modifications remain under SIL OFL 1.1.

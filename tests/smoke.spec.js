@@ -97,7 +97,7 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
     for (const href of await mail.evaluateAll((as) => as.map((a) => a.href))) expect(href.startsWith('mailto:bartek@przyjacielodyseusza.pl')).toBeTruthy();
   });
 
-  test('strona nie ustawia cookies ani localStorage (brak trackerów, brak potrzeby CMP)', async ({ page, context }) => {
+  test('strona nie ustawia cookies ani localStorage; jedyną integracją jest ochrona Turnstile', async ({ page, context }) => {
     await page.goto('/', { waitUntil: 'networkidle' });
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await page.locator('#formularz .form__submit').click();
@@ -109,7 +109,7 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
     const thirdParty = [];
     page.on('request', (r) => { if (!r.url().startsWith(ORIGIN)) thirdParty.push(r.url()); });
     await page.reload({ waitUntil: 'networkidle' });
-    expect(thirdParty).toEqual([]);
+    expect(thirdParty.filter((url) => !url.startsWith('https://challenges.cloudflare.com/turnstile/'))).toEqual([]);
   });
 
   test('stare kotwice z poprzedniej strony trafiają do istniejących sekcji', async ({ page }) => {

@@ -1,8 +1,21 @@
 # Przyjaciel Odyseusza – strona (wersja „Pełne morze”)
 
+Aktualny plan pełnej konfiguracji i utrzymania: [checklista techniczna OVH i Cloudflare z 15.11.2026](docs/CHECKLISTA_TECHNICZNA_2026-11-15.md).
+Obejmuje 226 punktów w 15 obszarach; odznaczenie wymaga dowodu wykonania lub jawnego uzasadnienia N/D.
+
 Statyczny landing page dla Bartłomieja Przytuły (mentoring i coaching dla menedżerów), przygotowany pod
 darmowy plan **Cloudflare Pages**. Czysty HTML, CSS i odrobina JavaScriptu, bez frameworków. Formularz
-kontaktowy jest przygotowany do działania przez Pages Function (`functions/api/contact.js`) i Resend po konfiguracji kont oraz sprawdzeniu dostarczenia wiadomości.
+kontaktowy działa przez Pages Function (`functions/api/contact.js`), Turnstile i szyfrowane SMTP istniejącej skrzynki OVH.
+
+**Formularz 14.11.2026:** na polecenie Damiana przywrócono formularz obok kontaktu e-mailowego i telefonicznego.
+`npm run build:production` tworzy `dist-cf/`, zachowuje formularz i usuwa demonstracyjne opinie.
+`_routes.json` uruchamia backend tylko na `/api/contact`; pozostała strona pozostaje statyczna.
+Wysyłka korzysta z istniejącej poczty OVH, bez nowego konta mailowego ani płatnej usługi.
+Konfiguracja i aktualne potwierdzenie wdrożenia: `docs/contact-form-2026-11-14.md`.
+Formularz jest włączony na `https://przyjacielodyseusza.pl/#kontakt`; zatwierdzony test z podglądu
+dotarł do INBOX OVH 14.11.2026 o 14:30:22 CET. Sprawdzono treść i Reply-To oraz konfigurację produkcji.
+Publikuj `dist-cf/` poleceniem `npm run deploy`; `public/` pozostaje bazą podglądu i testów funkcji.
+Opis migracji: `docs/deployment-2026-11-03.md`.
 
 Decyzja klienta: wybrana została wersja A z szerszym kontekstem w kierunku „Pełne morze”.
 Aktualny zakres to uwagi U01–U15; pozostałe zaakceptowane treści i układ pozostają zachowane.
@@ -31,7 +44,7 @@ Dokumenty towarzyszące:
 │   ├── .well-known/security.txt    # kanał zgłaszania podatności
 │   └── assets/
 │       ├── js/main.js              # ZMINIFIKOWANE (nie edytować ręcznie – patrz src/)
-│       ├── fonts/                  # Source Serif 4 + Inter (woff2, latin + latin-ext, self-hosting)
+│       ├── fonts/                  # Odyseusz Serif (podzbiór Source Serif 4) + Inter, WOFF2 i licencje OFL
 │       ├── img/                    # zdjęcia (webp + jpg), logo, obraz OG
 │       └── icons/                  # favicony i ikony
 ├── src/
@@ -95,7 +108,7 @@ Dla niezależnego serwera QA ustaw `QA_PORT` na wolny port (domyślnie 8788).
    od pierwszego malowania. Build oblicza jego osobny hash w `script-src`; CSP nie używa `unsafe-inline`.
    Bez JavaScriptu klasa `js` nie powstaje i linki nawigacji pozostają widoczne.
 3. Fonty: odchudzone pliki self-hosted zbudowane skryptem `tools/fonts-build.py` (fontTools) z pełnych fontów
-   Google (Source Serif 4 jako font zmienny 400–600, Inter 400/500/600), zestaw znaków: łacina + polskie znaki
+   Google (Source Serif 4 jako font zmienny 400–600, pod własną nazwą Odyseusz Serif; Inter 400/500/600), zestaw znaków: łacina + polskie znaki
    + typografia. Bez preloadu, `font-display: swap`. Nowa grubość lub znaki spoza zestawu (np. cyrylica) wymagają
    ponownego uruchomienia skryptu (instrukcja w jego nagłówku).
 4. Opinie klientów: sekcja `#opinie` pokazuje układ demonstracyjny z widoczną etykietą przykładu
@@ -180,46 +193,49 @@ a ochrona przed spamem obejmuje honeypot i Turnstile wymagany przy skonfigurowan
 lub autouzupełnianie nie są powodem odrzucenia zgłoszenia. Stan sukcesu pokazuje się dopiero po potwierdzeniu przez backend. Endpoint wysyła wyłącznie na
 stały adres z konfiguracji, więc nie da się go użyć jako otwartego przekaźnika.
 
-### Wysyłka e-mail (Resend; limity zgodnie z wybranym planem)
+### Wysyłka e-mail przez istniejącą skrzynkę OVH
 
-1. Konto na <https://resend.com>, dodaj i zweryfikuj domenę `przyjacielodyseusza.pl` (rekordy SPF/DKIM –
-   Resend pokaże wartości dla danej domeny; politykę DMARC uzgodnij z administratorem poczty i sprawdź przed zmianą DNS).
-2. Klucz API z uprawnieniem *Sending access*.
-3. Pages → projekt → **Settings → Environment variables** (Production):
+Transport: `src/server/smtp.js`, TLS na `smtp.mail.ovh.net:465`. Nadawca i odbiorca są na stałe
+ustawieni na `bartek@przyjacielodyseusza.pl`, a adres osoby piszącej trafia do `Reply-To`.
+Treść jest kodowana w UTF-8; formularz nie wysyła automatycznych odpowiedzi do podanych adresów.
 
-| Zmienna          | Wartość                                                                 |
-|------------------|-------------------------------------------------------------------------|
-| `RESEND_API_KEY` | klucz z Resend (oznacz jako *Secret*)                                    |
-| `CONTACT_TO`     | `bartek@przyjacielodyseusza.pl`                                         |
-| `CONTACT_FROM`   | `Formularz – Przyjaciel Odyseusza <formularz@przyjacielodyseusza.pl>`   |
+| Zmienna | Miejsce |
+|---------|---------|
+| `SMTP_USERNAME` | `wrangler.toml`: istniejąca skrzynka Bartka |
+| `SMTP_PASSWORD` | Secret w Pages, osobno Production i Preview |
+| `TURNSTILE_SECRET` | Secret w Pages, osobno Production i Preview |
+| `TURNSTILE_HOSTNAMES` | `wrangler.toml`: produkcja `przyjacielodyseusza.pl`, Preview tylko `contact-form.przyjaciel-odyseusza.pages.dev` |
 
-4. Ponowny deploy (zmienne wczytują się przy deployu). Do czasu ustawienia klucza funkcja zwraca błąd,
-   a strona pokazuje użytkownikowi bezpośredni e-mail i telefon.
+Po zmianie hasła skrzynki należy zaktualizować `SMTP_PASSWORD` i ponownie wdrożyć stronę.
+Nie przechowuj haseł w Git, logach ani argumentach komend. Nie włączaj płatnego planu Workers.
 
-### Turnstile (wymagany przed publikacją, darmowy antyspam bez CAPTCHA)
+### Ochrona antyspamowa
 
-Bez niego formularz chroniłby tylko honeypot, który nie wystarcza do ochrony publicznej wysyłki. Dlatego funkcja jest **fail-closed**: jeśli `RESEND_API_KEY` jest ustawiony (czyli wdrożenie
-działa), a `TURNSTILE_SECRET` nie, `/api/contact` zwraca 500, a strona pokazuje kontakt awaryjny.
-Literówka w nazwie zmiennej nie wyłączy captchy po cichu.
-
-1. Cloudflare → Turnstile → Add site (`przyjacielodyseusza.pl`, tryb Managed).
-2. `public/index.html`: `data-turnstile-sitekey="0x4AAA..."` na elemencie `<form>`.
-3. Zmienna `TURNSTILE_SECRET` (Secret) w Pages. CSP w `_headers` już dopuszcza `challenges.cloudflare.com`.
-4. Cloudflare → Security → WAF → Rate limiting: reguła na `/api/contact` (plan Free daje jedną regułę,
-   stałe okno 10 s). To jedyne miejsce w tym projekcie, w którym warto ją wydać.
+Turnstile w trybie Managed weryfikuje token na serwerze: wymagane są `success === true`,
+akcja `contact` i dokładny host frontendu dla środowiska. Brak konfiguracji zatrzymuje wysyłkę.
+Token jest jednorazowy, a interfejs odświeża go po próbie. Honeypot i kontrola Origin ograniczają
+spam; maksymalny rozmiar żądania to 32 KiB, a wiadomości 4000 znaków.
+Dodatkowo bezpłatna reguła Cloudflare ogranicza POST na produkcyjny endpoint do 10 prób
+na adres IP w ciągu 10 sekund; odrzucenie 429 zachowuje dane i pokazuje komunikat.
+Sukces pojawia się po zaakceptowaniu wiadomości przez SMTP. Niepewny timeout zachowuje treść
+i uprzedza, że wiadomość mogła już dotrzeć; backend nie ponawia wysyłki automatycznie.
 
 ## Analityka
 
-W bazowej konfiguracji strona nie ustawia cookies i nie ładuje trackerów. Docelowy zakres analityki,
-mechanizm zgód i informację dla użytkownika trzeba uzgodnić z klientem przed produkcją. Plan
-zdarzeń: `docs/plan-pomiarowy.md` (Cloudflare Web Analytics, bez cookies). Skrypt strony emituje zdarzenia
-`po:event` i `dataLayer.push`, które dowolne narzędzie może podchwycić bez zmian w kodzie.
+GA4 pozostaje w uzgodnionym zakresie. Pusty identyfikator w `config/analytics.json` oznacza brak
+pomiaru i banera. Gotowa integracja uruchamia tag dopiero po zgodzie, blokuje go po odmowie lub
+wycofaniu i pomija wartości pól oraz parametry URL. Aktualny stan i warunki uruchomienia rzeczywistego
+strumienia na koncie klienta: [plan pomiarowy](docs/plan-pomiarowy.md).
 
 ## Wersja testowa na GitHub Pages
 
-Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Push do `main` uruchamia workflow
-(`.github/workflows/qa.yml`). Ręczny `workflow_dispatch` jest również dostępny. PR-y przechodzą QA;
-publikacja jest dozwolona tylko dla `main`. Lokalne gałęzie `codex/*` nie uruchamiają publikacji.
+Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. PR i push do `main` uruchamiają
+`.github/workflows/technical-qa.yml`: build, walidację, testy i Lighthouse, bez publikacji oraz bez
+magazynu artefaktów. Produkcja jest publikowana przez `npm run deploy` na Cloudflare.
+
+Archiwalny demonstrator GitHub pozostaje z noindex i bez realnej wysyłki formularza.
+Stary `.github/workflows/qa.yml`, opisany poniżej, uruchamia się wyłącznie ręcznie. Nie wznawiamy
+automatycznie jego publikacji ani przechowywania artefaktów przy zmianach produkcji.
 
 Jedyny podgląd to wersja A: <https://powers-p1.github.io/przyjaciel-odyseusza/>.
 Job `qa` buduje i weryfikuje dokładny SHA zdarzenia, po czym zapisuje gotowy podgląd jako artefakt
@@ -256,15 +272,15 @@ B/C i dawny spis wariantów nie należą do publikowanej paczki; ich dawne adres
   CLS ≤ 0,1, TBT ≤ 200 ms. Raporty w `docs/lighthouse/`.
 - Typografia: testy mierzą przepełnienia i jednoliterowe wyrazy na końcu wiersza w szerokościach 320–1600 px,
   także z odstępami użytkownika WCAG 1.4.12; sprawdzają utrzymanie focusu podczas zmiany szerokości.
-- CI (`.github/workflows/qa.yml`) uruchamia build, testy i Lighthouse dla całej przypiętej macierzy A/B/C;
-  błąd dowolnego wariantu zatrzymuje publikację zestawu. Historyczne raporty nie potwierdzają bieżących zmian.
+- CI (`.github/workflows/technical-qa.yml`) uruchamia build, testy i Lighthouse dla aktualnej wybranej strony.
+  Historyczne warianty B/C nie mają osobnych przebiegów. Historyczne raporty nie potwierdzają bieżących zmian.
 
 ## Operacje (do uzupełnienia przez agencję/klienta)
 
 | Obszar                      | Ustalenie                                                                 |
 |-----------------------------|---------------------------------------------------------------------------|
 | Właściciel domeny           | *(kto, gdzie zarejestrowana, data odnowienia)*                            |
-| DNS                         | Cloudflare (zalecane) – rekordy: apex i `www` → Pages (CNAME), MX/SPF/DKIM/DMARC dla poczty i Resend |
+| DNS                         | Cloudflare – apex i `www` → Pages (CNAME), niezależne MX/SPF/DKIM dla poczty OVH |
 | Hosting i płatności         | Cloudflare Pages Free – konto: *(kto)*                                    |
 | Sekrety                     | tylko w Cloudflare Pages → Environment variables; lokalnie `.dev.vars` (w `.gitignore`) |
 | Monitoring uptime           | *(np. Cloudflare Health Checks / UptimeRobot – do włączenia po publikacji)* |
@@ -276,7 +292,7 @@ Pełna lista ze statusami: `CHECKLISTA.md`. To warunki przed uruchomieniem ruchu
 a nie powody do wstrzymania przeglądu trzech wariantów przez klienta. Minimum:
 
 - [ ] Plan migracji DNS/MX/SPF potwierdzony z operatorem poczty; zachowana ciągłość wysyłki i odbioru
-- [ ] Klucz Resend, Turnstile i zmienne środowiskowe ustawione, testowy formularz dotarł na właściwą skrzynkę
+- [x] Sekrety SMTP/Turnstile i zmienne środowiskowe ustawione, testowy formularz dotarł na właściwą skrzynkę — 14.11.2026, `docs/contact-form-2026-11-14.md`
 - [ ] Dane administratora w polityce prywatności uzupełnione
 - [ ] Fakty do potwierdzenia z klientem i zakres analityki/zgód zatwierdzone (`REVIEW.md`)
 - [ ] Finalne zdjęcia wybrane; prawdziwe opinie zatwierdzone albo sekcja ukryta

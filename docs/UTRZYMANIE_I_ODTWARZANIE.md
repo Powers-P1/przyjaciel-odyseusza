@@ -16,7 +16,7 @@ Docelowy właściciel kont/danych: klient. Operator wdrożenia: VERTIQ. Odbiorca
 | Po publikacji | Commit, domena, SHA JS, 200/404, kontakt/nagłówki i adekwatna regresja; bez testowej wysyłki do klienta bez osobnego polecenia. |
 | Po incydencie | Data, Ray ID, objaw bez pól/sekretów; zabezpieczenie kopii, zatrzymanie wadliwej zmiany, kontakt z właścicielem. Obowiązki prawne ocenia właściwa osoba dla konkretnego zdarzenia. |
 
-Monitor korzysta wyłącznie ze standardowych runnerów publicznego GitHub; bez płatnego magazynu artefaktów i usług alarmowych. Powiadomienia o nieudanych Actions wymagają włączenia i odbioru przez operatora. Cron nie zapewnia dokładnego czasu ani SLA. Następna rewizja techniczna **11.12.2026**, przed wygaśnięciem tokena publikacji **15.12 o 06:22 CET**. Zapis daty nie tworzy automatycznego zlecenia ani umowy stałej obsługi.
+Monitor korzysta wyłącznie ze standardowych runnerów publicznego GitHub; bez płatnego magazynu artefaktów i usług alarmowych. Powiadomienia o nieudanych Actions wymagają włączenia i odbioru przez operatora. Cron nie zapewnia dokładnego czasu ani SLA. Następna rewizja techniczna **11.12.2026**, przed wygaśnięciem tokenów HELA **15.12: Cloudflare 06:22, OVH 10:41 CET**. Oba zawężone zamienniki sprawdzono i stare szerokie klucze HELA unieważniono; dostępów innych komputerów nie zmieniano. Zapis daty nie tworzy automatycznego zlecenia ani umowy stałej obsługi.
 
 ## Publikacja i rollback WWW
 
@@ -30,6 +30,8 @@ Monitor korzysta wyłącznie ze standardowych runnerów publicznego GitHub; bez 
 Reguły starych URL: page_id=2 ma 301 do odpowiadającej strony głównej; usunięte wersje/kategorie/portfolio zwracają rzeczywiste 404 przez URL Rewrite Rule, bez uruchamiania Functions dla całego WWW. Nie kierować wszystkich dawnych treści na homepage. Przy rollbacku usuwać tylko nowe rule ID z legacy-routing-created.json, zachowując pierwotny canonical redirect. Obecny token CLI nie edytuje Transform Rules — użyć uwierzytelnionego panelu właściwej strefy; nie poszerzać tokena do całego konta jako obejścia błędu uprawnień.
 
 Pusty ga4MeasurementId utrzymuje analitykę wyłączoną. Warunki uruchomienia i własności: [plan pomiarowy](plan-pomiarowy.md). Nie używać strumienia innego klienta/agencji.
+
+Przy odtwarzaniu GA4 zachować również ustawienia dostawcy: klient Administrator, agencja Edytor, retencja 2 miesiące bez resetu, funkcje reklamowe/UPD/automatyczne zdarzenia wyłączone i aktywny filtr QA. Bieżący tag Google to GTM-W7ZDCLPJ, wersja 2. Cofnięcie commita strony nie cofa wersji kontenera Google. Po zmianie sprawdzić rzeczywistą bibliotekę, cookies i żądania w czterech stanach zgody; testy formularza z atrapą backendu nie wysyłają maili.
 
 ## DNS i DNSSEC
 

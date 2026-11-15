@@ -77,6 +77,12 @@ test.describe('GA4: Basic Consent Mode bez rzeczywistej wysyłki do Google', () 
     expect(config.send_page_view).toBe(false);
     expect(config.cookie_expires).toBe(60*24*60*60);
     expect(config.cookie_update).toBe(false);
+    expect(config.cookie_flags).toBe('SameSite=Lax;Secure');
+    // New unified tags may ignore duplicate per-stream config calls. Their first
+    // automatic initialization must already see the same privacy defaults.
+    const globalSettings=calls.find(c=>c[0]==='set')[1];
+    expect(globalSettings).toEqual(config);
+    expect(calls.findIndex(c=>c[0]==='set')).toBeLessThan(calls.findIndex(c=>c[0]==='consent'&&c[1]==='update'));
     expect(calls.filter(c=>c[0]==='event'&&c[1]==='form_submit_success')).toHaveLength(1);
     expect(calls.filter(c=>c[0]==='event'&&c[1]==='cta_click')).toHaveLength(0);
     expect(JSON.stringify(calls)).not.toMatch(/secret@example|private-text|123456789/);

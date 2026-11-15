@@ -35,8 +35,15 @@ try {
     const runs = [];
     for (let i = 0; i < RUNS; i++) {
       const r = await lighthouse(url, options, config);
-      runs.push(r);
+      if (!r?.lhr) throw new Error(`[${preset}] Lighthouse nie zwrócił raportu.`);
       fs.writeFileSync(path.join(outDir, `lighthouse-${preset}-run-${i+1}.json`), r.report[1]);
+      const missing = ['total-blocking-time', 'largest-contentful-paint', 'cumulative-layout-shift']
+        .filter(id => !Number.isFinite(r.lhr.audits[id]?.numericValue));
+      if (r.lhr.runtimeError || missing.length || !Number.isFinite(r.lhr.categories.performance.score)) {
+        console.error(JSON.stringify({preset,run:i+1,runtimeError:r.lhr.runtimeError,missingMetrics:missing,warnings:r.lhr.runWarnings}));
+        throw new Error(`[${preset}] Niepełny pomiar Lighthouse; szczegóły powyżej i w raporcie przebiegu.`);
+      }
+      runs.push(r);
       if (RUNS > 1) console.log(`[${preset}] przebieg ${i + 1}/${RUNS}: performance ${Math.round(r.lhr.categories.performance.score * 100)}, TBT ${Math.round(r.lhr.audits['total-blocking-time'].numericValue)} ms, LCP ${Math.round(r.lhr.audits['largest-contentful-paint'].numericValue)} ms`);
     }
     // Representative HTML report; the gate below uses each metric's actual median.

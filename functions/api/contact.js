@@ -53,7 +53,14 @@ function clean(value, max) {
 
 // Nagłówki ustawiamy w samej funkcji: Cloudflare nie stosuje reguł z pliku _headers do odpowiedzi
 // generowanych przez Pages Functions, więc wpis /api/* nigdy by tu nie dotarł.
-const NAGLOWKI = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
+const NAGLOWKI = {
+  'Cache-Control': 'no-store',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'no-referrer',
+  'X-Robots-Tag': 'noindex, nofollow',
+  'Strict-Transport-Security': 'max-age=31536000',
+};
 
 function respond(status, body, wantsJson) {
   if (wantsJson) {

@@ -49,10 +49,10 @@ Dowody lokalne: [odczyt WWW i DNS z 15.11][e1], [odczyt pocztowych TXT z 15.11][
 Wykonawca: właściciel i agencja. Źródła: [Cloudflare 2FA][cf01], [tokeny API][cf02], [OVH 2FA][ovh01], [zarządzanie sekretami OWASP][sec03], [odnowienia OVH][ovh05].
 
 - [ ] **A01 P0/W** — Potwierdzić, że abonent domen, właściciel usług i główny administrator kont są przypisani do klienta; zachować dowód przekazania.
-- [ ] **A02 P0/W** — Sprawdzić aktualny status zmiany abonenta `.pl` oraz pozostałą zgodę. Nie inicjować ponownego transferu ani nowego zamówienia zamiast dokończenia obecnego zadania.
+- [x] **A02 P0/W** — Sprawdzić aktualny status zmiany abonenta `.pl` oraz pozostałą zgodę. Nie inicjować ponownego transferu ani nowego zamówienia zamiast dokończenia obecnego zadania. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Status odczytany: stary kontakt ACCEPT, nowy Gmail oczekuje do 24.11 15:56 CET; wykonany jest odczyt, nie cała zmiana abonenta.
 - [ ] **A03 P0/W** — Zweryfikować adresy odzyskiwania i kontaktowe; klient rzeczywiście odbiera powiadomienia o domenach, płatnościach i bezpieczeństwie.
 - [ ] **A04 P0/Z** — Zabezpieczyć skrzynkę odzyskiwania MFA; nie uzależniać odzyskania całej infrastruktury wyłącznie od skrzynki w tej samej domenie.
-- [ ] **A05 P0/W** — Właściciel aktywuje MFA Cloudflare; preferowany klucz/passkey odporny na phishing albo TOTP, z niezależną metodą zapasową.
+- [x] **A05 P0/W** — Właściciel aktywuje MFA Cloudflare; preferowany klucz/passkey odporny na phishing albo TOTP, z niezależną metodą zapasową. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | API członków: MFA właściciela Gmail włączone. Kody odzyskiwania są odrębnym A08.
 - [ ] **A06 P0/W** — Właściciel aktywuje MFA OVH; potwierdzić ponowne logowanie i dostęp do usług.
 - [ ] **A07 P0/W** — Wymienić hasła tymczasowe lub ujawnione w rozmowach; skoordynować zmianę hasła skrzynki z klientami poczty i sekretem SMTP formularza.
 - [ ] **A08 P0/W** — Kody odzyskiwania przechowuje klient w bezpiecznym miejscu, z kopią awaryjną niezależną od telefonu i obecnego komputera.
@@ -67,7 +67,7 @@ Wykonawca: właściciel i agencja. Źródła: [Cloudflare 2FA][cf01], [tokeny AP
 
 Wykonawca: agencja; rejestrator OVH i DNS Cloudflare. Źródła: [DNSSEC Cloudflare][cf03], [DNSSEC OVH][ovh02], [domeny Pages][cf04], [rekordy OVH][ovh06], [Null MX][mail04].
 
-- [ ] **B01 P0/W** — Wyeksportować obie aktywne strefy oraz zapisać NS, TTL i dane potrzebne do odtworzenia; kopia poza samym kontem Cloudflare.
+- [x] **B01 P0/W** — Wyeksportować obie aktywne strefy oraz zapisać NS, TTL i dane potrzebne do odtworzenia; kopia poza samym kontem Cloudflare. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Obie strefy wyeksportowane z TTL/NS, snapshot poza Cloudflare, odszyfrowanie/hash sprawdzone.
 - [ ] **B02 P0/W** — Zweryfikować kontakty abonenta, blokadę transferu, status domen i daty ważności w OVH. Dostępne zabezpieczenia zależą od TLD; nie wymuszać statusów typowych dla `.com` na `.pl`.
 - [x] **B03 P1/W** — Potwierdzić autorytatywne NS obu domen w Cloudflare. Dowód: 15.11, E1; `rita` i `tom`.
 - [x] **B04 P1/W** — Potwierdzić `.pl` na Cloudflare Pages i aktywną stronę pod własną domeną. Dowód: 14–15.11, E1/E4.
@@ -76,7 +76,7 @@ Wykonawca: agencja; rejestrator OVH i DNS Cloudflare. Źródła: [DNSSEC Cloudfl
 - [ ] **B07 P1/W** — Odtworzyć mapę wartościowych starych URL; zastosować odpowiedniki 301/308, a dla usuniętych treści właściwe 404/410. Nie kierować każdego starego adresu na stronę główną.
 - [ ] **B08 P1/W** — Sprawdzić wszystkie hosty poczty, autokonfiguracji i DKIM; rekordy używane do SMTP/IMAP oraz selektory DKIM mają właściwy tryb DNS-only.
 - [ ] **B09 P1/W** — Wyjaśnić, czy `.com` ma odbierać/wysyłać pocztę lub mieć aliasy; przekierowanie WWW nie załatwia poczty.
-- [ ] **B10 P0/Z** — Zinwentaryzować wildcard i wszystkie odwołania do home.pl. Usuwać zbędne dopiero po sprawdzeniu używanych subdomen i zachowaniu archiwum; nie przywracać przypisania domeny do starego hostingu.
+- [x] **B10 P0/Z** — Zinwentaryzować wildcard i wszystkie odwołania do home.pl. Usuwać zbędne dopiero po sprawdzeniu używanych subdomen i zachowaniu archiwum; nie przywracać przypisania domeny do starego hostingu. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Wildcard, dawny SPF i DKIM zinwentaryzowane i zachowane do potwierdzenia zależności; brak ponownego przypisania domeny.
 - [ ] **B11 P1/Z** — Włączyć podpisywanie DNSSEC w Cloudflare dla każdej domeny i pobrać dane właściwe dla jej aktywnej strefy.
 - [ ] **B12 P1/Z** — Uzupełnić DNSSEC po stronie OVH dla zewnętrznych NS, zgodnie z wymaganym formatem klucza/DS. Nie używać kluczy z nieaktywnej strefy OVH ani mylić digest z kluczem publicznym.
 - [ ] **B13 P1/W** — Po DNSSEC potwierdzić pełny łańcuch zaufania i brak SERVFAIL z kilku resolverów; zapisać procedurę usunięcia błędnego DS przy awarii.
@@ -131,8 +131,8 @@ Wykonawca: agencja. Źródła: [walidacja Turnstile][cf12], [walidacja wejścia 
 - [x] **E01 P0/W** — Formularz jest opublikowany na `.pl` i ma skonfigurowany backend. Dowód: 14.11, E4; obecność potwierdzona także 15.11 w E1.
 - [x] **E02 P0/W** — Rzeczywisty zatwierdzony test przez Cloudflare dotarł dokładnie raz do INBOX OVH; treść i Reply-To są poprawne. Dowód: 14.11, E3; test wykonano z podglądu.
 - [ ] **E03 P1/W** — Przy odbiorze najnowszej wersji ponownie sprawdzić walidację po stronie serwera: typy danych, wymagane pola, długość, format i białe listy.
-- [ ] **E04 P0/W** — Potwierdzić stałego odbiorcę i nadawcę, poprawny Reply-To oraz odporność na CRLF i wstrzyknięcie nagłówków/komend SMTP; brak otwartego relay i autorespondera do dowolnych adresów.
-- [ ] **E05 P0/W** — Siteverify jest wywoływane na serwerze przed SMTP; weryfikować sukces, właściwy hostname i action, nie samą obecność tokena.
+- [x] **E04 P0/W** — Potwierdzić stałego odbiorcę i nadawcę, poprawny Reply-To oraz odporność na CRLF i wstrzyknięcie nagłówków/komend SMTP; brak otwartego relay i autorespondera do dowolnych adresów. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Przegląd handlera/SMTP i testy backendu: stałe From/To, Reply-To oraz odporność na wstrzyknięcia i relay.
+- [x] **E05 P0/W** — Siteverify jest wywoływane na serwerze przed SMTP; weryfikować sukces, właściwy hostname i action, nie samą obecność tokena. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Testy backendu: Siteverify przed SMTP, sprawdzane success/hostname/action, brak wysyłki przy błędzie.
 - [ ] **E06 P1/W** — Obsłużyć token wygasły i użyty ponownie, limit 5 minut oraz odświeżenie widgetu. Sam Turnstile nie jest gwarancją idempotencji równoległych operacji.
 - [ ] **E07 P1/Z** — Potwierdzić honeypot bez utrudniania autofill, czytników i szybkiego wpisywania; nie odrzucać człowieka jedynie na podstawie czasu wypełnienia.
 - [ ] **E08 P1/W** — Limitować rozmiar rzeczywiście czytanego body, nie tylko deklarowany Content-Length; poprawnie odrzucać złe typy i JSON.
@@ -141,7 +141,7 @@ Wykonawca: agencja. Źródła: [walidacja Turnstile][cf12], [walidacja wejścia 
 - [ ] **E11 P1/W** — Przy niepewnym wyniku wysyłki brak automatycznego ponowienia; komunikat ostrzega o możliwym dostarczeniu i pozostawia dane do decyzji użytkownika.
 - [ ] **E12 P1/W** — Sprawdzić blokadę podwójnego kliknięcia, zachowanie treści po błędzie, odpowiedź 429 także jako HTML i możliwość ponownej próby.
 - [ ] **E13 P1/Z** — Ocenić potrzebę klucza idempotencji dla ponowionych/równoległych POST; ewentualną implementację dobrać do bezpłatnego budżetu i retencji bez treści wiadomości.
-- [ ] **E14 P0/W** — Sekret SMTP i Turnstile są wyłącznie po stronie serwera; przegląd HTML, JS, logów i artefaktów nie ujawnia ich wartości.
+- [x] **E14 P0/W** — Sekret SMTP i Turnstile są wyłącznie po stronie serwera; przegląd HTML, JS, logów i artefaktów nie ujawnia ich wartości. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Zapisane wartości sekretów nie występują w sprawdzonych plikach/historii; sekrety serwerowe są zamaskowane w API projektu.
 - [ ] **E15 P1/Z** — Po testach ograniczyć podglądy przez Access lub wyłączyć realną wysyłkę; środowisko testowe nie powinno bez potrzeby korzystać z uprawnień produkcyjnej skrzynki.
 - [ ] **E16 P1/W** — Sprawdzić wygodne komunikaty i dostępny kontakt e-mail/telefon przy wyłączonym JS, blokadzie widgetu lub awarii usługi.
 - [ ] **E17 P1/W** — Zachować testy regresji i procedurę rotacji hasła: aktualizacja sekretu, publikacja i kontrola; kolejny test do klienta wymaga osobnego polecenia wysłania.
@@ -154,16 +154,16 @@ Wykonawca: agencja i właściciel. DNS edytujemy w Cloudflare; stan usługi i DK
 - [ ] **F02 P0/W** — Potwierdzić wariant usługi, aktywność skrzynki, limity i odnowienie oraz zależności poczty od pakietu domeny/hostingu. Nie wyłączać pakietu zawierającego potrzebną pocztę ani nie kupować nowej usługi bez potrzeby.
 - [ ] **F03 P1/W** — Spisać wszystkie legalne źródła wysyłki, klientów poczty, przekierowania i aliasy, zanim zmienimy SPF lub DMARC.
 - [ ] **F04 P1/W** — Utrzymywać jeden poprawny SPF, z prawidłowym zakresem i limitem 10 mechanizmów/modyfikatorów powodujących odwołania DNS; stare home.pl usunąć dopiero po potwierdzeniu zakończenia jego użycia.
-- [ ] **F05 P0/Z** — Opublikować poprawny jawny DMARC `.pl`, który nie wpada do starego wildcarda; rozpocząć od monitorowania legalnych nadawców i raportów, nie od niezweryfikowanego reject.
+- [x] **F05 P0/Z** — Opublikować poprawny jawny DMARC `.pl`, który nie wpada do starego wildcarda; rozpocząć od monitorowania legalnych nadawców i raportów, nie od niezweryfikowanego reject. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Jawny p=none + rua do istniejącej skrzynki; potwierdzenie z Google i Cloudflare DNS, MX/SPF/DKIM niezmienione.
 - [ ] **F06 P1/W** — Zweryfikować alignment domeny From z uwierzytelnionym SPF lub DKIM; samo występowanie rekordów i osobny wynik SPF pass nie wystarczają do DMARC pass.
 - [ ] **F07 P1/Z** — Po analizie raportów i testach legalnego ruchu przejść z monitorowania do quarantine/reject; zapisać kryterium przejścia i wycofania.
-- [ ] **F08 P1/W** — Stosować aktualny standard: RFC 9989 z maja 2026 wycofał tag `pct`. Nie opierać bezpieczeństwa wdrożenia na poradzie „ustaw pct=10”.
+- [x] **F08 P1/W** — Stosować aktualny standard: RFC 9989 z maja 2026 wycofał tag `pct`. Nie opierać bezpieczeństwa wdrożenia na poradzie „ustaw pct=10”. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Polityka bez pct, zgodna z aktualnym RFC; zaostrzenie po pomiarach, bez procentowej pozornej ochrony.
 - [x] **F09 P1/W** — Oba CNAME selektorów DKIM OVH istnieją i są DNS-only. Dowód: 15.11, E1. To nie potwierdza jeszcze podpisu na każdej ścieżce wysyłki.
 - [ ] **F10 P1/W** — Sprawdzić aktywację DKIM w OVH i podpis w wiadomości odebranej poza OVH; potwierdzić prawidłowe d= i alignment dla webmaila, aplikacji oraz formularza.
-- [ ] **F11 P1/Z** — Wybrać odbiorcę agregatów DMARC i sposób ich przeglądu, najlepiej istniejący adres/filtr bez dodatkowej usługi; raporty forensyczne wymagają osobnej oceny prywatności.
+- [x] **F11 P1/Z** — Wybrać odbiorcę agregatów DMARC i sposób ich przeglądu, najlepiej istniejący adres/filtr bez dodatkowej usługi; raporty forensyczne wymagają osobnej oceny prywatności. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Agregaty do istniejącej skrzynki bartek, bez płatnego narzędzia i raportów forensycznych; przegląd opisany w protokole.
 - [ ] **F12 P0/W** — Klienci i formularz używają szyfrowanego SMTP oraz IMAP z walidacją certyfikatu; 2FA panelu OVH nie zabezpiecza automatycznie logowania IMAP/SMTP.
 - [ ] **F13 P1/W** — Sprawdzić przekierowania, reguły i catch-all pod kątem nadużyć, wycieku i niezamierzonego odbioru; nie włączać catch-all jako uniwersalnej naprawy.
-- [ ] **F14 P0/W** — Zachować komplet folderów, dat, załączników i kopię archiwum migracyjnego; porównanie liczby maili uzupełniać kontrolą zawartości/hashów.
+- [x] **F14 P0/W** — Zachować komplet folderów, dat, załączników i kopię archiwum migracyjnego; porównanie liczby maili uzupełniać kontrolą zawartości/hashów. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Zachowane 55 archiwalnych i wszystkie aktualne źródłowe; OVH 57, home 49. Nowe szyfrowane kopie i kontrola body/dat/flag.
 - [ ] **F15 P1/Z** — Ustalić cykliczny backup poczty i sprawdzić odtworzenie wybranej wiadomości. Synchronizacja IMAP może propagować usunięcia i nie zastępuje backupu.
 - [ ] **F16 P1/W** — Ustalić los starych selektorów i usług po analizie raportów; zachować je tak długo, jak są potrzebne legalnym wiadomościom i ich weryfikacji.
 - [ ] **F17 P2/O** — Ocenić MTA-STS i TLS-RPT dla rzeczywistych MX OVH. Najpierw zgodność i tryb testowy; nie publikować enforce lub TLSA dla cudzych serwerów bez potwierdzenia obsługi. [MTA-STS][mail05], [TLS-RPT][mail06]
@@ -321,7 +321,7 @@ Wykonawca: agencja. Źródła: [GitHub Actions security][sec05], [sekrety OWASP]
 - [ ] **N02 P1/Z** — Włączyć adekwatną ochronę gałęzi i review, zależnie od możliwości planu GitHub; publikacja nie pochodzi z nieprzejrzanego PR z sekretami.
 - [ ] **N03 P1/W** — Zależności i runtime mają wspierane wersje oraz lockfile; aktualizacje bezpieczeństwa przechodzą właściwe testy zamiast ślepego `audit fix --force`.
 - [ ] **N04 P1/Z** — Akcje CI przypinać do zaufanych pełnych SHA, ograniczyć GITHUB_TOKEN i nie uruchamiać niezaufanego kodu z uprawnieniami produkcyjnymi.
-- [ ] **N05 P0/W** — Sekrety nie występują w Git, historii, paczce statycznej i logach; wykryty wyciek wymaga rotacji, nie tylko usunięcia bieżącego pliku.
+- [x] **N05 P0/W** — Sekrety nie występują w Git, historii, paczce statycznej i logach; wykryty wyciek wymaga rotacji, nie tylko usunięcia bieżącego pliku. Dowód: 15.11 | Codex | [protokół wykonania](WYKONANIE_P0_P1_2026-11-15.md) | Osiem kategorii aktualnych sekretów: brak trafień w 728 blobach Git i statycznych artefaktach; brak logowania danych w kodzie.
 - [ ] **N06 P1/W** — Oddzielić konfiguracje preview/production i zapisać je odtwarzalnie; publikacja nie może przypadkiem wyzerować wymaganych zmiennych ani podmienić hosta Turnstile.
 - [ ] **N07 P1/W** — Przed publikacją: build, walidacja, adekwatne testy formularza/dostępności/SEO; po niej sprawdzenie rzeczywistej domeny i artefaktu.
 - [ ] **N08 P1/W** — Zachować kopię kodu, zaakceptowanych zdjęć, DNS i reguł poza jednym kontem. Dla kopii DPAPI zapewnić odtwarzalność po utracie profilu Windows/komputera i bezpieczne przechowanie materiału odzyskiwania.

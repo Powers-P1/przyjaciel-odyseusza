@@ -519,9 +519,9 @@
         <noscript><p class="form__noscript">Formularz wymaga JavaScript do weryfikacji antyspamowej. Możesz napisać na <a href="mailto:bartek@przyjacielodyseusza.pl">bartek@przyjacielodyseusza.pl</a> lub zadzwonić pod <a href="tel:+48601145360">+48&nbsp;601&nbsp;145&nbsp;360</a>.</p></noscript>
 
         <div class="field">
-          <label class="field__label" for="f-name">Imię i&nbsp;nazwisko</label>
+          <label class="field__label" for="f-name">Imię <span class="field__optional">(nazwisko opcjonalnie)</span></label>
           <input class="field__input" id="f-name" name="name" type="text" autocomplete="name" required minlength="2" maxlength="100">
-          <p class="field__error" id="f-name-error" hidden>Podaj imię i&nbsp;nazwisko.</p>
+          <p class="field__error" id="f-name-error" hidden>Podaj&nbsp;imię.</p>
         </div>
 
         <div class="field-row">
@@ -546,7 +546,8 @@
 
         <div class="field">
           <label class="field__label" for="f-message">Wiadomość</label>
-          <textarea class="field__input field__input--area" id="f-message" name="message" rows="5" required minlength="10" maxlength="4000"></textarea>
+          <textarea class="field__input field__input--area" id="f-message" name="message" rows="5" required minlength="10" maxlength="4000" aria-describedby="f-message-help"></textarea>
+          <p class="form__privacy" id="f-message-help">Na początek wystarczy ogólny opis sprawy. Pomiń dane zdrowotne i&nbsp;poufne informacje o&nbsp;innych&nbsp;osobach.</p>
           <p class="field__error" id="f-message-error" hidden>Napisz kilka zdań o&nbsp;sytuacji (co najmniej 10&nbsp;znaków).</p>
         </div>
 
@@ -583,6 +584,6 @@
   </div>
 </footer>
 
-<script src="/assets/js/main.js?v=66d899d5" defer></script>
+<script src="/assets/js/main.js?v=c168b71f" defer></script>
 </body>
 </html>

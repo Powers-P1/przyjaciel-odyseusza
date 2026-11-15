@@ -174,8 +174,8 @@
 
   function fallbackHtml(error) {
     var subject = encodeURIComponent('Zapytanie ze strony przyjacielodyseusza.pl');
-    var body = encodeURIComponent((fields.message && fields.message.value) || '');
-    var mailto = 'mailto:' + EMAIL + '?subject=' + subject + '&body=' + body;
+    // Treść pozostaje w formularzu. Nie umieszczamy jej w URL linku ani zdarzeniach.
+    var mailto = 'mailto:' + EMAIL + '?subject=' + subject;
     var messages = {
       turnstile: 'Nie udało się zakończyć weryfikacji antyspamowej. Poczekaj na jej odświeżenie i spróbuj ponownie.',
       turnstile_unavailable: 'Weryfikacja antyspamowa jest chwilowo niedostępna. Spróbuj ponownie za chwilę.',
@@ -197,7 +197,9 @@
     input.setAttribute('aria-invalid', show ? 'true' : 'false');
     if (err) {
       err.hidden = !show;
-      if (show) input.setAttribute('aria-describedby', err.id);
+      var descriptions = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(function (id) { return id && id !== err.id; });
+      if (show) descriptions.push(err.id);
+      if (descriptions.length) input.setAttribute('aria-describedby', descriptions.join(' '));
       else input.removeAttribute('aria-describedby');
     }
   }

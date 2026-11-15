@@ -1,0 +1,7 @@
+[
+  {"name":"przyjacielodyseusza.pl","type":"NS","values":["rita.ns.cloudflare.com","tom.ns.cloudflare.com"]},
+  {"name":"przyjacielodyseusza.com","type":"NS","values":["rita.ns.cloudflare.com","tom.ns.cloudflare.com"]},
+  {"name":"przyjacielodyseusza.pl","type":"TXT","prefix":"v=spf1 ","values":["v=spf1 a:serwer2586394.home.pl include:mx.ovh.com ~all"]},
+  {"name":"ovhmo-selector-1._domainkey.przyjacielodyseusza.pl","type":"CNAME","values":["ovhmo-selector-1._domainkey.5124126.nj.dkim.mail.ovh.net"]},
+  {"name":"ovhmo-selector-2._domainkey.przyjacielodyseusza.pl","type":"CNAME","values":["ovhmo-selector-2._domainkey.5124127.nj.dkim.mail.ovh.net"]}
+]

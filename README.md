@@ -1,5 +1,8 @@
 # Przyjaciel Odyseusza – strona (wersja „Pełne morze”)
 
+Aktualny plan pełnej konfiguracji i utrzymania: [checklista techniczna OVH i Cloudflare z 15.11.2026](docs/CHECKLISTA_TECHNICZNA_2026-11-15.md).
+Obejmuje 226 punktów w 15 obszarach; odznaczenie wymaga dowodu wykonania lub jawnego uzasadnienia N/D.
+
 Statyczny landing page dla Bartłomieja Przytuły (mentoring i coaching dla menedżerów), przygotowany pod
 darmowy plan **Cloudflare Pages**. Czysty HTML, CSS i odrobina JavaScriptu, bez frameworków. Formularz
 kontaktowy działa przez Pages Function (`functions/api/contact.js`), Turnstile i szyfrowane SMTP istniejącej skrzynki OVH.

@@ -1,5 +1,11 @@
 # Checklista produkcyjna strony statycznej
 
+> **Pełna konfiguracja OVH i Cloudflare — 15.11.2026:** aktualny plan odbioru to
+> [kompleksowa checklista techniczna](docs/CHECKLISTA_TECHNICZNA_2026-11-15.md): 226 punktów
+> w 15 obszarach, z priorytetami, warunkami odbioru, kosztami i źródłami. Uwzględnia odczyt
+> bieżących DNS/WWW oraz rozdziela wymagania, zalecenia i opcje. Starsze audyty poniżej
+> pozostają historią, a nowa lista nie oznacza automatycznego wykonania całej konfiguracji.
+
 > **Formularz — 14.11.2026, wdrożony:** Turnstile i SMTP istniejącej skrzynki OVH,
 > bez dodatkowych kosztów. Przeszło 15 testów backendu i 59 kontroli formularza, dostępności
 > i układu. Po osobnym poleceniu Damiana wysłano dokładnie jeden test z podglądu; odczyt IMAP

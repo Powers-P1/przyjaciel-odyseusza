@@ -28,8 +28,7 @@ function fulfillArtifact(route) {
 test.describe('GA4: Basic Consent Mode bez rzeczywistej wysyłki do Google', () => {
   test.skip(STAGING, 'Demonstrator nie ma pomiaru.');
   let googleRequests;
-  test.beforeEach(async ({ page }) => {
-    googleRequests = [];
+  async function installRoutes(page) {
     await page.route('https://przyjacielodyseusza.pl/**', fulfillArtifact);
     await page.route('https://www.googletagmanager.com/**', async (route) => {
       googleRequests.push(route.request().url());
@@ -41,6 +40,10 @@ test.describe('GA4: Basic Consent Mode bez rzeczywistej wysyłki do Google', () 
       `});
     });
     await page.route(/https:\/\/[^/]*(?:google-analytics\.com|analytics\.google\.com)\//, (route) => route.abort());
+  }
+  test.beforeEach(async ({ page }) => {
+    googleRequests = [];
+    await installRoutes(page);
   });
   test.afterEach(async ({page}) => { await page.unrouteAll({behavior:'wait'}); });
 
@@ -107,6 +110,36 @@ test.describe('GA4: Basic Consent Mode bez rzeczywistej wysyłki do Google', () 
     await expect(page.getByRole('dialog')).not.toBeVisible();
     expect(googleRequests).toHaveLength(0);
     expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).choice,KEY)).toBe('denied');
+  });
+
+  test('wycofanie i usunięcie preferencji zatrzymuje pomiar także w drugiej otwartej karcie', async ({page,context}) => {
+    await page.goto(SITE);
+    await page.getByRole('button',{name:'Zgadzam się',exact:true}).click();
+    await expect.poll(()=>page.evaluate(()=>window.__tagLoaded)).toBe(1);
+    const other=await context.newPage();
+    try {
+      await installRoutes(other);
+      await other.route('**/turnstile/v0/api.js*',route=>route.abort());
+      await other.goto(SITE);
+      await expect.poll(()=>other.evaluate(()=>window.__tagLoaded)).toBe(1);
+      await other.fill('#f-message','Wiadomość zachowana po zmianie w innej karcie.');
+      const count=await other.evaluate(()=>window.__gaCalls.length);
+      await page.getByRole('button',{name:'Ustawienia prywatności',exact:true}).click();
+      await page.getByRole('button',{name:'Odrzucam',exact:true}).click();
+      await expect.poll(()=>other.evaluate(id=>window['ga-disable-'+id],ID)).toBe(true);
+      await other.evaluate(()=>window.dispatchEvent(new CustomEvent('po:event',{detail:{event:'tel_click',location:'kontakt'}})));
+      expect(await other.evaluate(()=>window.__gaCalls.length)).toBe(count);
+      await expect(other.locator('#f-message')).toHaveValue('Wiadomość zachowana po zmianie w innej karcie.');
+      await page.getByRole('button',{name:'Ustawienia prywatności',exact:true}).click();
+      await page.getByRole('button',{name:'Zgadzam się',exact:true}).click();
+      await expect.poll(()=>other.evaluate(id=>window['ga-disable-'+id],ID)).toBe(false);
+      await page.evaluate(()=>localStorage.clear());
+      await expect.poll(()=>other.evaluate(id=>window['ga-disable-'+id],ID)).toBe(true);
+      expect(googleRequests).toHaveLength(2);
+    } finally {
+      await other.unrouteAll({behavior:'wait'});
+      await other.close();
+    }
   });
 
   test('bez decyzji można przeczytać politykę; pomiar podglądów jest wyłączony', async ({page}) => {

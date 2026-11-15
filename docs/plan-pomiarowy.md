@@ -22,6 +22,8 @@ Basic Consent Mode: biblioteka Google i kolejka jej zdarzeń powstają dopiero p
 
 „Ustawienia prywatności” w stopce pozwalają wycofać zgodę. Oficjalna flaga `ga-disable` zatrzymuje wysyłanie i zapis cookies; usuwamy wyłącznie cookies `_ga`/`_ga_*`. Formularz zachowuje wpisaną treść, strona nie przeładowuje się. Preferencja trwa 180 dni, cookies GA maksymalnie 60 dni bez automatycznego przedłużania. W przeglądarce bez obsługi interfejsu zgody pomiar pozostaje wyłączony.
 
+Zmiana preferencji jest synchronizowana z innymi otwartymi kartami tej domeny. Cofnięcie lub usunięcie zapisanej preferencji zatrzymuje tam pomiar bez utraty wiadomości i dodatkowego sygnału denied. Test dwóch otwartych kart jednej sesji używa atrapy biblioteki Google; przed uruchomieniem nadal wymagany jest odbiór prawdziwego strumienia i ruchu sieciowego.
+
 Adres strony przekazywany do GA zawiera tylko znaną ścieżkę, bez query i hash; nieznane ścieżki mają stałą etykietę `/404`. Referrer ograniczamy do originu. Parametry zdarzeń mają białe listy. Nie przekazujemy nazwisk, e-maili, telefonów, treści wiadomości ani etykiet z dowolnego wejścia użytkownika. Nie ma dopisywania do marketingu na podstawie zapytania.
 
 ## Zdarzenia biznesowe

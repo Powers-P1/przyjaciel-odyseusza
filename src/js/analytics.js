@@ -9,10 +9,13 @@
   var allowed = false;
   var loaded = false;
   var previousFocus;
-  var stored;
-  try { stored = JSON.parse(localStorage.getItem(KEY)); } catch (_) { /* choice stays necessary */ }
-  var choice = stored && stored.version === 1 && stored.expires > Date.now()
-    && ['granted', 'denied'].includes(stored.choice) ? stored.choice : '';
+  function readChoice() {
+    var stored;
+    try { stored = JSON.parse(localStorage.getItem(KEY)); } catch (_) { /* choice stays necessary */ }
+    return stored && stored.version === 1 && Number.isFinite(stored.expires) && stored.expires > Date.now()
+      && ['granted', 'denied'].includes(stored.choice) ? stored.choice : '';
+  }
+  var choice = readChoice();
 
   function save(value) {
     choice = value;
@@ -105,6 +108,13 @@
     close();
   });
   dialog.addEventListener('cancel', function () { save('denied'); stop(); });
+  // Withdrawal in another open page must also stop this page, without losing its form.
+  window.addEventListener('storage', function (event) {
+    if (event.key !== KEY && event.key !== null) return;
+    choice = readChoice();
+    if (choice === 'granted') start(); else stop();
+    if (choice && dialog.open) close();
+  });
 
   var EVENTS = ['cta_click', 'form_start', 'form_submit_success', 'form_submit_error', 'tel_click', 'mailto_click'];
   var LOCATIONS = ['gora', 'oferta', 'dla-kogo', 'wspolpraca', 'cennik', 'o-mnie', 'kontakt', 'sytuacje', 'site-header', 'site-footer', 'page'];

@@ -50,6 +50,15 @@ await check('Form route responds without caching',async()=>{
   const response=await get(SITE+'/api/contact');
   requireResult(response.status===405 && /no-store/.test(response.headers.get('cache-control')||''),'Expected a no-store 405 from the form function.');
 });
+await check('Legacy WordPress homepage redirect',async()=>{
+  const response=await get(SITE+'/?page_id=2&source=monitor');
+  requireResult(response.status===301 && response.headers.get('location')===SITE+'/','Old homepage redirect changed.');
+});
+for(const query of ['page_id=2223&lang=en','portfolio=suspendisse-fermentum-erat']) await check('Retired WordPress URL '+query,async()=>{
+  const response=await get(SITE+'/?'+query);
+  const html=await response.text();
+  requireResult(response.status===404 && /<meta name="robots" content="noindex">/.test(html),'Retired content must return a real noindex 404.');
+});
 for(const file of ['robots.txt','sitemap.xml','llms.txt']) await check('Public '+file,async()=>{
   const response=await get(SITE+'/'+file);
   requireResult(response.status===200,'Public discovery file unavailable.');

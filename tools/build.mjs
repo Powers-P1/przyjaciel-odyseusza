@@ -4,6 +4,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import esbuild from 'esbuild';
 
+// The copied license may still have CRLF in an existing Windows checkout even though
+// Git stores LF. Keep the licensed text unchanged and builds reproducible byte for byte.
+const fontLicense = 'public/assets/fonts/SIL-OFL-1.1.txt';
+const originalFontLicense = fs.readFileSync(fontLicense, 'utf8');
+const normalizedFontLicense = originalFontLicense.replace(/\r\n/g, '\n');
+if (normalizedFontLicense !== originalFontLicense) fs.writeFileSync(fontLicense, normalizedFontLicense);
+
 const jobs = [
   // Arkusz trafia wyłącznie do <style> w HTML, więc plik pośredni nie ma czego szukać w public/.
   { from: 'src/css/style.css', to: '.build/style.css', loader: 'css' },

@@ -1,76 +1,70 @@
 # Wykonanie P0 i P1 — 15 listopada 2026
 
-Checkpoint dokumentacji 08:30 CET: **P0 23/32, P1 124/172**. **0 zł nowych opłat, bez utraty poczty.** [Pełna checklista](CHECKLISTA_TECHNICZNA_2026-11-15.md). Otwarte punkty nie są uznawane za wykonane tylko dlatego, że przygotowano ich część techniczną.
+Checkpoint 14:05 CET: **P0 23/32, P1 139/172**. **0 zł nowych opłat, bez utraty poczty.** [Pełna checklista](CHECKLISTA_TECHNICZNA_2026-11-15.md). Otwarte punkty zachowują rzeczywiste zależności; przygotowanie części technicznej nie oznacza zakończenia przekazania klientowi.
 
-## Potwierdzone na usługach
+## Konta i analityka
 
-| Obszar | Wynik i dowód poza Git |
+Poprawny osobny GA4: **Przyjaciel Odyseusza — BFP**, konto **416367370**, usługa **564407819**, strumień **G-G9DCMYPSKQ**. **Oliwia i klient są Administratorami konta**, dziedziczonymi przez usługę. Oliwia zachowuje Administratora do faktycznego odbioru i sprawdzenia dostępu klienta. Agencja nie ma dostępu do Gmail klienta. Inne konto agencyjne nie ma dostępu do poprawnego zasobu.
+
+Starszy zasób 416332137/564373201 pozostaje klientowi, bez dostępu agencji. Nie został usunięty i nie przeniesiono jego danych. Zmiana identyfikatora strony jest oddzielnym wdrożeniem; ostatni faktyczny commit/deployment i wynik odbioru wskazują prywatne `closeout-release-proof.json`, `closeout-http-proof.json` i `ga4-real-production-proof.json`. PR przechodzi wymagane qa przed publikacją; sam zapis nowego identyfikatora nie jest potwierdzeniem wdrożenia.
+
+Warunki dla Polski, DPA i aktywację filtra QA zaakceptowano za wyraźną zgodą Damiana. Kontakt podstawowy DPA to klient, bez fikcyjnego IOD/przedstawiciela EOG. Warszawa/PLN, retencja użytkowników i zdarzeń po 2 miesiące, reset aktywności OFF. Cztery dodatkowe opcje udostępniania, Signals, UPD, granular location/device i personalizacja reklam (0/307 regionów) OFF. Enhanced Measurement OFF; redakcja e-mail i 15 kluczy URL włączona.
+
+Tag **GTM-K74JRKZ2, wersja 2**, opublikowany przez Oliwię: sześć kategorii automatycznych zdarzeń i UPD wyłączone. Publiczna odpowiedź Google potwierdza ustawienia. Cookie override 2 miesiące od pierwszej wizyty, a globalne ustawienia strony egzekwują dokładnie **5184000 s / 60 dni**, Secure i SameSite=Lax. Globalny `gtag('set', ...)` poprzedza zgodę/js/bibliotekę, co zapobiega automatycznemu page_view i surowym URL inicjowanym przez nowy ujednolicony tag. Cofnięcie commita nie cofa konfiguracji dostawcy Google.
+
+Odbiór nowego strumienia na artefakcie z prawdziwą biblioteką i kolektorem Google przeszedł: brak wyboru i odmowa = zero Google; zgoda = jeden page_view; pięć zdarzeń kontaktu pojedynczo; brak wartości pól, testowego e-maila i jego SHA256; URL bez query/hash, referrer tylko origin. Cookies do 60 dni, identyfikator bez przedłużania; cofnięcie w dwóch kartach zatrzymuje pomiar, usuwa cookies i zachowuje formularz. Zero naruszeń CSP. Turnstile i backend w tej konkretnej przeglądarce QA są atrapami: **zero nowych maili**. Wcześniejszy realny odbiór formularza i obecne testy SMTP opisano osobno. Odbiór po publikacji ma osobny dowód.
+
+`form_submit_success`: kluczowe zdarzenie raz na zdarzenie, bez domyślnej wartości pieniężnej, po odpowiedzi backendu. Filtr **VERTIQ_debug_QA Active**, wyklucza przyszły debug_mode/debug_event. **DebugView nadal 0 urządzeń mimo prawidłowych debug/HTTP 204** — nie potwierdzono jeszcze przetworzenia danych ani wykluczenia w raportach. M08 pozostaje częściowe. [Plan pomiarowy](plan-pomiarowy.md).
+
+## Google, Bing i widoczność AI
+
+Obie domenowe właściwości Search Console zweryfikowano na **Oliwii**, zachowując trzy nowe rekordy weryfikacji Google/Bing. Sześć publicznych kontroli Google/Cloudflare DNS potwierdza poprawną treść i DNSSEC AD=true. Bez zmiany MX, NS i delegacji.
+
+Klient ma delegowanego Właściciela `.pl` i `.com`; Oliwia pozostaje zweryfikowanym Właścicielem obu. Ograniczenie jej do pełnego użytkownika wymaga wcześniej niezależnej weryfikacji klienta: usunięcie jedynego skutecznego tokena agencji mogłoby unieważnić także jego dostęp delegowany. Bez logowania do Gmail klienta dodano role właściciela.
+
+Google sitemap: **Success, 1 URL**. Root już zindeksowany; ostatni crawl 15.11 10:53:51 CET, Google-selected canonical = sprawdzany URL `.pl`. Live **13:01:24 CET**, Googlebot smartphone: pobranie poprawne, crawl/index dozwolone. Widoczny HTML head sprawdzony; zapisano tylko częściowy tekst, ponieważ eksport całego HTML przez schowek zwrócił pusty wynik. Nie deklarujemy pełnego eksportu Google body. Jedna prośba odświeżenia indeksu przyjęta; nie powtarzano jej. Ręczne działania i bezpieczeństwo: **Nie wykryto problemów**. Indeksacja/Crawl Stats: początkowo przetwarzanie lub brak danych; panel robots jeszcze bez raportu, choć plik publiczny i rzeczywiste pobranie potwierdzono.
+
+Bing: Oliwia **Administrator**, root **Indexed**, sitemap **Success / 1 URL**, Live HTTP **200/indexable**, canonical `.pl`. Renderowany aktualny formularz i zaakceptowane zdjęcia. Pięć obrazów ma alt; jedyna sugestia SEO/GEO dotyczy prawidłowego pustego alt dekoracyjnej łodzi. Nie dodano sztucznego opisu dekoracji. Dodanie klienta jako Administratora odrzucone: **najpierw musi zarejestrować się w Bing Webmaster Tools swoim adresem**. To nie wymaga udostępniania Gmail agencji. H10 pozostaje częściowe.
+
+GSC Generatywna AI w wyszukiwarce: **Uwzględnij dla obu domen**, dziedziczenie sprawdzone. Początkowe raporty Google/Bing AI nie mają danych. Nowe [preferencje Bing](https://www.bing.com/webmasters/help/new-ai-preferences-2t1cc16d) ogłoszono 30.10.2026, będą honorowane od **01.02.2027**, domyślnie training/grounding Allow. Tymczasowa opcja od 15.12 dotyczy witryn z noarchive/nocache; projekt ich nie używa. Nie wdrażano przyszłych ograniczeń ani fikcyjnego przełącznika.
+
+Robots i Cloudflare pozwalają na publiczną treść i uzgodniony trening AI; API chronione osobno. Rzeczywiste inspekcje Google/Bing zastępują wcześniejszą niepewność dotyczącą tych dwóch botów. Kontrolowane UA OpenAI/Anthropic/Perplexity zwracają 200, lecz nie dowodzą wizyty z IP dostawcy lub cytowania. llms.txt nie gwarantuje cytowań. Zarządzany BIC Pages nadal odrzuca część domyślnych klientów bibliotek, np. Python-urllib; nie osłabiano WAF w ciemno.
+
+## Poczta, DNS i zabezpieczenia
+
+| Obszar | Potwierdzony wynik |
 |---|---|
-| Kopie przed zmianami | Obie strefy, reguły, NS/TTL i stan dostawców zaszyfrowane DPAPI; odszyfrowanie i hash poprawne. provider-backup-proof.json. |
-| Poczta | OVH **57**, home.pl **49** wiadomości, po 7 folderów. Wszystkie **55 archiwalnych** i wszystkie aktualne źródłowe zachowane: raw body, daty, flagi i wielokrotność. Świeża kontrola 06:55 CET. **Zero APPEND/DELETE/SEND.** mail-backup-proof.json. |
-| Pojemność/reguły | Zimbra Starter READY, 15 GiB, billing OK, bezpłatny slot związany z .pl. IMAP QUOTA o 08:05: OVH 293 KiB/15 GiB; home.pl 247 KiB/4 GiB i 49 wiadomości. Nie utożsamiamy agregatu usługi home.pl ze stanem skrzynki. Aliasy/przekierowania 0/0; SOAP: brak aktywnych reguł przychodzących, forwardu i autorespondera; odbiór lokalny aktywny. Catch-all nadal niepotwierdzony. mail-quota-proof.json, zimbra-rules-proof.json. |
-| SPF/DMARC | Jeden SPF, rekursywnie **4 termy DNS**, poniżej 10. Jawny DMARC .pl: `v=DMARC1; p=none; rua=mailto:bartek@przyjacielodyseusza.pl; adkim=r; aspf=r`. Dwa resolvery potwierdzają DNS. Home.pl i OVH zachowane; nie zaostrzano polityki bez raportów/alignment. spf-proof.json, dmarc-public-proof.json. |
-| DNSSEC | Obie domeny podpisane, oba NS i parent DS sprawdzone; zadania OVH done. Google i Cloudflare DNS: **AD=true, Status=0**, brak SERVFAIL. dnssec-chain-proof.json. |
-| TLS/protokoły | Minimum TLS 1.2, aktywne 1.3; cztery hosty mają poprawny SAN/łańcuch/ważność, 1.0/1.1 odrzucane. IMAP/SMTP z walidacją certyfikatu. Rzeczywiste **HTTP/2.0 i HTTP/3.0**, 200 z WAW; kompresja br zmierzona. Konfiguracja wszystkich aplikacji klienta nieznana. tls-proof.json, http-protocol-proof.json, compression-proof.json. |
-| IPv6 | [Internet.nl](https://internet.nl/site/przyjacielodyseusza.pl/4413041/) potwierdził NS/WWW po IPv6, zgodność strony IPv4/IPv6, DNSSEC i RPKI. **95%**, wyjątek szyfrów opisano niżej. Lokalnego braku routingu IPv6 nie naprawiano zmianą sieci komputera. |
-| WAF | Free Managed Ruleset na obu strefach. **429 po 11. pustym POST**, ten sam Ray ID w Security Events: ratelimit i właściwa reguła `/api/contact`. Bez maila. BIC aktywny, BFM i blokady AI wyłączone. Bez globalnego challenge i bypassów na sam User-Agent. security-events-proof.json. |
-| Preview | SMTP_PASSWORD usunięty wyłącznie z podglądów; nowy preview rzeczywiście odmawia wysyłki `not_configured`. Produkcyjne bindingi zachowane. preview-http-proof.json. |
-| Produkcja | Sprawdzony checkpoint **08:11 CET**, commit `0a5c11c72f6db21d741d234c3f76233274006885`, deployment `3ca84dac-92e2-4165-9e34-4cbf329b5aac`. **16 adresów i 7 plików zgodnych SHA256** z artefaktem; API GET 405/no-store. Kod na origin/main. Każda kolejna publikacja ma osobny aktualny zapis `closeout-release-proof.json`. |
-| Stare URL | Mapa z bazy WordPressa i indeksu Yoast. `?page_id=2` → 301 do obecnej strony; wycofana wersja angielska, kategorie i demonstracyjne portfolio → rzeczywiste 404/noindex. UTM/v nadal 200. **23/23 kontroli**, bez nowych Functions i zmiany DNS. legacy-routing-http-proof.json. |
-| Interfejs | Widoczna kropka zaznaczenia, również forced-colors. Kontrast granicy pola **3,97:1**, fokusu/zaznaczenia **7,21:1**. Odbiór 390/1280 px i 37 lokalnych testów formularza/dostępności, 3 świadomie pominięte. interface-contrast-proof.json. |
+| Poczta | Świeża kopia tylko do odczytu **13:59 CET**: OVH **58**, home.pl **49**, po 7 folderów. Wszystkie **55 historycznych** i wszystkie aktualne źródłowe zachowane: raw body, daty, flagi, wielokrotność. Zero APPEND/DELETE. `mail-backup-proof.json`. |
+| Testy dostarczenia | Wysłano dokładnie dwa zatwierdzone testy: OVH → VERTIQ i odpowiedź VERTIQ → OVH. Oba dotarły. Rzeczywiste nagłówki odbioru: **SPF pass, DKIM pass, DMARC pass**, zgodność domen. Zero dodatkowych niezamówionych wiadomości. `mail-roundtrip-proof.json`, `outbound-authentication-proof.json`. |
+| Pojemność/reguły | Zimbra Starter READY, 15 GiB, bezpłatny slot związany z `.pl`. IMAP/SMTP z walidacją TLS. Bez aktywnych reguł przychodzących, forwardu i autorespondera; catch-all niepotwierdzony. |
+| SPF/DMARC | Jeden SPF, 4 rekursywne termy DNS; home/OVH zachowane do potwierdzenia aplikacji klienta. `.pl` p=none z rua na skrzynkę Bartka. Zaostrzenie po analizie reprezentatywnych raportów, nie w ciemno. |
+| DNSSEC/TLS | Obie domeny podpisane, DS rejestratora zgodne, dwa resolvery AD=true/bez SERVFAIL. TLS 1.2/1.3, cztery poprawne hosty; rzeczywiste HTTP/2 i HTTP/3, br, IPv6. Internet.nl 95%, świadomy wyjątek starszych szyfrów Pages opisany w procedurze. |
+| WAF/formularz | Free Managed Ruleset na obu strefach. 429 po 11. pustym POST /api/contact, potwierdzony Ray w Security Events. BIC ON; brak globalnego challenge, bypassu po samym UA i płatnego planu. |
+| Preview/produkcja | Preview bez SMTP_PASSWORD, rzeczywista odmowa not_configured; produkcyjne bindingi zachowane. Kontrola po publikacji: 16 przekierowań, 9 plików SHA256, API GET 405/no-store. |
+| Stare URL | 23/23 prób: właściwe 301 dla dawnego page_id=2, usunięte treści 404/noindex. UTM/v nadal 200, bez ponownego przypisania domeny do home.pl. |
 
-Stare wiadomości, usługi home.pl, selektory i wildcard zachowano. Nie przypisywano domeny ponownie do home.pl. Null MX/reject .com wymaga potwierdzenia braku legalnej poczty.
+Abonent `.pl`, ponowny odczyt **14:02 CET**: zadanie SCHEDULED, stary kontakt ACCEPT, nowy Gmail nadal bez zgody; termin **24.11.2026, 15:56:18 CET**. Nie inicjowano nowego transferu, zamówienia ani kolejnego resend. `.com` nie otrzymał Null MX/reject, ponieważ jego użycie pocztowe wymaga potwierdzenia.
 
-## Kod i kontrola jakości
+## Kod, wydajność, monitoring i odtwarzanie
 
-Formularz nie umieszcza wiadomości w mailto URL; nazwisko/telefon opcjonalne, wskazówka unikania danych zdrowotnych i poufnych informacji osób trzecich. Błąd zachowuje pola i opis pomocniczy. Własne nagłówki Function, walidacja i Siteverify/hostname/action przed SMTP, stałe From/To, kontrolowane Reply-To, brak open relay i automatycznej ponownej wysyłki po niepewnym DATA. HSTS roczny **host-only**, bez includeSubDomains/preload ze względu na stary wildcard; poprzednia polityka może trwać w cache odwiedzającego.
+Chroniony main wymaga PR i qa także dla administratora, aktualnej bazy i rozwiązanych dyskusji, bez force/delete. Akcje przypięte SHA, bez sekretów produkcyjnych i uploadu prywatnych artefaktów. [PR #4](https://github.com/Powers-P1/przyjaciel-odyseusza/pull/4) przeszedł **841 testów / 19 świadomie pominiętych**, 24 backendu/agregatora, npm audit 0, pięć profili przeglądarek. Kolejna podmiana ID musi przejść tę samą bramkę. Jedna ponowna próba Lighthouse dotyczy wyłącznie NO_NAVSTART, nie wolnego wyniku; brak obniżania progów.
 
-[PR #1](https://github.com/Powers-P1/przyjaciel-odyseusza/pull/1) i [PR #2](https://github.com/Powers-P1/przyjaciel-odyseusza/pull/2) przeszły wymagane CI. Ostatni zakończony [checkpoint CI](https://github.com/Powers-P1/przyjaciel-odyseusza/actions/runs/43687666415): **836 poprawnych / 19 świadomie pominiętych**, pięć profili Chromium/Firefox/WebKit/mobile Chrome/mobile Safari; **19 testów backendu/agregatora**, audit **0**. Nowe zmiany również muszą przejść qa przed merge.
+Formularz: wartości pól poza URL, telefon/nazwisko opcjonalne, treść zachowana po błędzie, walidacja Turnstile przed SMTP, stałe From/To i kontrolowane Reply-To, brak open relay i niepewnego ponowienia DATA. Main JS SHA pozostaje `590bb96d815b0ac6234212d1d733d95215fcc152b762d2a77ef9d6c430bb7f4d`. Zaakceptowanych zdjęć/kadrów nie zmieniono. HSTS host-only bez preload/includeSubDomains. Widoczny wybór także w forced-colors, kontrast granicy pola 3,97:1, fokusu 7,21:1. Licencje OFL zachowane, podzbiór fontu przemianowany zgodnie z RFN; build normalizuje końce linii licencji.
 
-Lighthouse liczy osobne mediany Performance/LCP/CLS/TBT, kategorie funkcjonalne przechodzą w każdym przebiegu; cztery testy agregatora, bez obniżania progów. Main wymaga aktualnego PR, qa z GitHub Actions i rozwiązania dyskusji, także dla administratorów; brak force-push/usuwania. Jednoosobowy właściciel: 0 wymaganych cudzych akceptacji, przegląd kodu nadal wykonany. Akcje na pełnych SHA, token CI tylko do odczytu, bez sekretów produkcyjnych i automatycznych uploadów/cache artefaktów. Zależności zaktualizowane bez force, Node >=22.
+Najnowszy rzeczywisty pomiar produkcji po dodaniu zgód: 3 przebiegi/profil, mediana **mobile 99 / LCP 1531 ms**, **desktop 100 / 390 ms**, oba CLS .002 i TBT 0. Kategorie funkcjonalne 100. To laboratorium z Polski przed zgodą, nie terenowy INP. Google po zgodzie dodatkowo około **166 kB skompresowanego transferu na kartę**, brak long tasks w lokalnej próbie bez throttlingu. CrUX niepotwierdzony, publiczny PSI miał 429. Budżet własny ≤300 KiB/10 żądań, Performance ≥90, LCP ≤2500 ms, CLS ≤.1, TBT ≤200 ms.
 
-W kolejnym CI **841 testów przeszło**, a pomiar Lighthouse wykrył błąd kolektora śladu **NO_NAVSTART**. Każdy pomiar otrzymuje teraz osobny proces/profil Chrome; wyłącznie ten błąd techniczny ma jedną ponowną próbę. Powtórzony błąd, brak metryk, brak paint oraz prawidłowy wolny wynik nie są pomijane. Pięć testów tej polityki; żaden próg nie został obniżony. Raporty prób zachowane osobno.
+Działają bezpłatne Actions: **22 kontrole WWW około co 30 min**, **12 kontroli RDAP/NS/SPF/DKIM codziennie 06:17 UTC**. Certyfikat alarm <14 dni, domena <45 dni; bez POST/maili/sekretów. Cron bez SLA i może wygasnąć po 60 dniach bez aktywności repo. Odbiór alarmów nadal do potwierdzenia.
 
-Licencje OFL i autorstwo dołączone. Podzbiór Source Serif 4 przemianowano na Odyseusz Serif zgodnie z Reserved Font Name; kontury, metryki i kształtowanie identyczne. Odtworzenie z pakietu ujawniło jedynie CRLF/LF w licencji: 38/39 plików identycznych, tekst licencji taki sam. Build normalizuje teraz ten plik; ponowny wynik zapisujemy w portable-rebuild-proof.json, zachowując pierwszy osobno.
+Oba tokeny HELA zawężono, sprawdzono i stare szerokie unieważniono. **Cloudflare wygasa 15.12 06:22 CET, OVH 15.12 10:41 CET**. OVH: działające IAM Oliwii, 22 ograniczone reguły; brak zakupów/usuwania poczty. Innych komputerów nie zmieniano. A10/A11 pozostają częściowe z uwagi na pełny audyt dostępu. Rewizja techniczna **11.12.2026**.
 
-## Wydajność, prywatność i roboty
+Prywatny pakiet `.porecovery` AES-256-GCM zawiera Git bundle, zaakceptowane zdjęcia/artefakt, DNS/reguły, surową pocztę i starą bazę WordPressa. Wersja i liczba plików wynikają z aktualnego manifestu, nie ze stałej liczby. `portable-recovery-proof.json` i `portable-rebuild-proof.json` wskazują ostatni faktycznie zapakowany commit oraz niezależny test odszyfrowania/odbudowy. Finalny pakiet należy odświeżyć po publikacji, ze świeżą kopią 58 wiadomości i poprawnymi ustawieniami Google. Klucz nadal DPAPI; **N08 pozostaje otwarte do odbioru klucza i pakietu poza komputerem**. To nie jest harmonogram backupu ani uzgodnione RPO/RTO.
 
-Turnstile ładuje się przy zbliżeniu do kontaktu, focus/pointer lub #kontakt; brak tokena nadal blokuje POST. Akceptowane zdjęcia i kadry zachowane, fonty lokalne. Bez Google Fonts, Rocket Loader i płatnych optymalizacji.
+## Pozostało do faktycznego odbioru
 
-Pomiar produkcji po głównych optymalizacjach (3 przebiegi/profil, źródłowy commit w raportach): mobile mediana **100**, LCP **1520 ms**; desktop **100**, LCP **411 ms**; oba CLS **0.002**, TBT **0 ms**. To laboratorium z Polski, nie terenowy INP ani wszystkie regiony. CrUX niepotwierdzony, publiczny PSI zwrócił 429.
+1. **Klient:** zgoda nowego abonenta `.pl`; MFA OVH i skrzynki odzyskiwania, własne kody awaryjne; skoordynowana wymiana ujawnionych haseł z aplikacjami/SMTP; pierwsza rejestracja Bing. Bez proszenia agencji o dostęp do Gmail Bartka.
+2. **Przekazanie:** niezależna weryfikacja GSC przed ograniczeniem Oliwii, sprawdzenie logowania klienta do GA4; finansowanie odnowień, odbiorca alarmów, niezależny klucz kopii, retencja i RPO/RTO. Nie odbierać ostatniego działającego dostępu przed zakończeniem odbioru.
+3. **Informacje/obserwacja:** legalni nadawcy i użycie poczty `.com`, catch-all, minimum 14 reprezentatywnych dni DMARC, raporty GA4/DebugView, GSC/Bing/AI/CWV. Brak danych nie dowodzi sukcesu ani awarii. Ręczny odbiór czytnika/telefonu, profili społecznych i zakres prawny nie są zastąpione przez Axe/Lighthouse.
 
-Pierwszy widok: mobile **8 żądań / 218 104 B**, desktop **8 / 187 579 B**, własna domena. Przed odroczeniem widgetu 21 żądań i około 2,24 MB. Budżet własny: **≤300 KiB / ≤10 żądań**, Performance ≥90, LCP ≤2500 ms, CLS ≤0.1, TBT ≤200 ms. Widget przy kontakcie i przyszłe GA4 mierzymy osobno. Świeża rzeczywista sesja: **0 cookies/localStorage/sessionStorage/Google**; Turnstile dopiero przy kontakcie, bez POST i CAPTCHA. transfer-proof.json, privacy-network-proof.json.
+**Nowe opłaty: 0 zł.** Cloudflare Free bez zmian. Domeny ważne `.pl` 03.07.2027, `.com` 03.07.2028. Cennik odnowień z 15.11: 72,56 / 76,86 zł brutto rocznie; przyszła faktura zależy od cennika. Dotychczasowe automaty/metody płatności bez zmian; nie kupiono ACM ani innych dodatków.
 
-GA4 w zakresie, identyfikator pusty do utworzenia osobnych zasobów klienta. Brak tagu, banera i wyjątków Google w CSP przy pustym ID. Basic Consent Mode: równa odmowa, tag po zgodzie, wycofanie bez utraty formularza, również w drugiej karcie. **6 scenariuszy / 12 lokalnych przebiegów** z atrapą Google poprawnych; nie jest to odbiór prawdziwego strumienia. Białe listy parametrów, bez pól/query/pełnego referrera. [Plan pomiarowy](plan-pomiarowy.md).
-
-Schema Validator: 0 błędów/ostrzeżeń. [Ponowny test Google](https://search.google.com/test/rich-results/result?id=isJj9RALNL3EOkaUJQj6FA) po WAF pobrał domenę **07:44 CET**: dwa poprawne elementy, niekrytyczna sugestia adresu. Nie dodano fikcyjnego biura. To nie dowód własności GSC ani indeksacji.
-
-Robots/Cloudflare pozwalają na publiczną treść; API chronione oddzielnie. Rozdzielono Google/Bing, wyszukiwanie AI, pobrania na żądanie i trening, który obecna decyzja projektu dopuszcza. Kontrolowane UA OpenAI/Anthropic/Perplexity/LinkedIn/Facebook: 200 bez challenge. **Podmiana UA nie dowodzi wizyty z IP dostawcy, indeksacji, podglądu społecznościowego ani cytowania.** GSC/Bing i rzeczywiste raporty pozostają otwarte; llms.txt nie gwarantuje cytowań.
-
-[Niezależny BIC Pages](https://developers.cloudflare.com/pages/platform/known-issues/#browser-integrity-check-on-pages) może odrzucić część domyślnych klientów bibliotek mimo ustawień własnej strefy. Sprawdzono 403/1010 dla Python-urllib oraz 200 dla opisowego monitora i OAI-SearchBot na domenie/pages.dev. To jawne ograniczenie platformy, nie dowód blokowania wszystkich robotów AI. Błąd pobrania przez dostępne narzędzie WWW pozostaje bez ustalonej przyczyny; próbka Security Events nie zawiera blokad publicznych stron. Nie zmieniano ochrony na podstawie samego tego błędu.
-
-## Monitoring, kopie i uprawnienia
-
-[Aktywny workflow](https://github.com/Powers-P1/przyjaciel-odyseusza/actions/runs/43688831519): **22 kontrole WWW co około 30 min** oraz **12 codziennych kontroli RDAP/NS/SPF/DKIM**, oba zadania sukces. Certyfikat: alarm <14 dni, domena <45 dni; dwie próby. Bez POST/IMAP/maili/sekretów. GitHub może opóźnić cron i wyłącza go po 60 dniach braku aktywności repo. Odbiór alarmu nadal wymaga potwierdzenia operatora.
-
-Lokalna paczka **AES-256-GCM, około 16,4 MB**: Git bundle, zdjęcia, artefakt, DNS/reguły, surowa poczta i archiwalna baza WordPressa. Odszyfrowanie .NET i niezależnie Node, 45 plików + manifest odtworzone z poprawnymi hashami. Bez uploadu poczty do GitHub. Nie dodano sekretów usług, lecz poczta/baza zawierają dane poufne i historyczne hashe kont. **Klucz nadal DPAPI — N08 pozostaje otwarte do odebrania klucza i pakietu poza komputerem.** portable-recovery-proof.json, portable-restore-proof.json.
-
-Token Cloudflare HELA: tylko konto projektu i dwie strefy, bez Billing Write/IAM/tworzenia tokenów; wygasa **15.12.2026, 06:22 CET**. Nowym sprawdzono publikację i odczyty, stary szeroki unieważniony; inne komputery bez zmian. Wygaśnięcie zatrzyma publikacje, nie WWW/pocztę. OVH: ograniczony zamiennik przygotowany, autoryzacja właściciela na 30 dni nadal potrzebna; dopiero po sprawdzeniu nowego unieważnimy stary HELA. A10 częściowe.
-
-## Pozostałe zależności
-
-1. **Własność/odzyskiwanie:** jedna zgoda nowego abonenta .pl w Gmail klienta, stara ACCEPT; termin **24.11, 15:56:18 CET**. Bez nowego transferu/zamówienia/resend. MFA OVH/Gmail, niezależne kody, role agencji i skoordynowana rotacja ujawnionych haseł z aplikacjami poczty/SMTP. Nowe poświadczenia w UI wymagają udziału użytkownika.
-2. **Google/Bing:** własność klienta, osobne zasoby, właściwe uprawnienia/warunki; potem sitemap, inspekcje, raporty i preferencje AI. Sesja Google nie ma zasobów projektu, GSC .pl odmawia jej dostępu. Nie użyto konta innej firmy. GA4 OFF do odbioru prawdziwego strumienia/sieci zgód.
-3. **Poczta:** aplikacje/legalni nadawcy, zastosowanie .com, zewnętrzny alignment/DKIM i odpowiedź. Nowa wysyłka wymaga odrębnego upoważnienia; testy z 14.11 nie upoważniają do kolejnych. Catch-all niepotwierdzony; port 25 timeout przed MAIL/RCPT/DATA. Bez zmiany filtrów i odbiorców.
-4. **Przekazanie:** alarmy, finansowanie istniejących odnowień, retencja, cykliczny backup/RPO/RTO i niezależny klucz. OVH DPA zaakceptowane; zakres umów agencji, podwykonawców i transferów nadal do sprawdzenia. CDN/brak cookies nie zamyka RODO/PAD/EAA. Telefon/czytnik i rzeczywiste profile/podglądy społeczne wymagają odbioru.
-5. **Czas:** co najmniej 14 reprezentatywnych dni raportów DMARC, CWV/RUM i raporty wyszukiwarek. Brak danych nie dowodzi sukcesu ani awarii. Nie wszystkie 48 otwartych P1 wymagają kliknięcia Damiana; część zależy od uprawnień/decyzji, część od obserwacji. Udział użytkownika dopiero od 10:00.
-
-## Koszty i wyjątki
-
-**Nowe opłaty/zakupy: 0 zł.** Cloudflare Free bez zmiany, wcześniejsze automaty odnowień OVH bez zmian. Domeny ważne .pl **03.07.2027**, .com **03.07.2028**, także według RDAP. Standardowy cennik odnowień na 15.11: **72,56 zł brutto/rok .pl**, **76,86 zł brutto/rok .com**; przyszła faktura zależy od cennika. Zimbra bezpłatna w promocji domenowej; finansowanie nadal A13.
-
-Internet.nl zgłasza starsze domyślne szyfry TLS 1.2 Cloudflare. [Własne szyfry wymagają ACM](https://developers.cloudflare.com/ssl/edge-certificates/additional-options/cipher-suites/), a [ACM nie obejmuje hostów Pages](https://developers.cloudflare.com/ssl/edge-certificates/advanced-certificate-manager/). Nie kupiono planu ani nie wymuszono TLS 1.3 kosztem zgodności firmowych przeglądarek. Właściciel techniczny wyjątku VERTIQ, rewizja **11.12.2026**, przed terminem tokena.
-
-Axe/Lighthouse i pięć profili nie są deklaracją pełnej zgodności prawnej/WCAG. DPAPI nie jest samodzielnym disaster recovery. Testowy odtworzony pakiet pozostał w prywatnym katalogu — automatyczny przegląd odmówił rekurencyjnego usunięcia. Niczego nie usuwano w skrzynkach.
-
-Dowody: `outputs/configuration-2026-11-15` poza publicznym repo. Sekrety/poczta/pakiety w chronionym katalogu. [Procedury utrzymania](UTRZYMANIE_I_ODTWARZANIE.md).
+Dowody poza publicznym Git: `outputs/configuration-2026-11-15`. [Procedury utrzymania](UTRZYMANIE_I_ODTWARZANIE.md). Testowa odszyfrowana kopia pozostaje w prywatnym katalogu, ponieważ automatyczna kontrola zablokowała jej rekurencyjne usunięcie. Niczego nie usuwano w skrzynkach.

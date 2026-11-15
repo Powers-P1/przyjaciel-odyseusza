@@ -4,9 +4,9 @@ Aktualizacja 15.11.2026. Późniejsze ustalenia z klientem obejmują GA4; wcześ
 
 ## Stan i uruchomienie
 
-Produkcyjny build używa strumienia **G-FTEQM9TR96**, usługa **564373201**, osobne konto **416332137** klienta BFP. Moduł działa wyłącznie na kanonicznym hoście produkcyjnym. Podglądy, GitHub Pages i obce hosty nie uruchamiają pomiaru. Pusty identyfikator w `config/analytics.json` pozostaje wyłącznikiem awaryjnym na następny build.
+Produkcyjny build używa strumienia **G-G9DCMYPSKQ**, usługa **564407819**, osobne konto **416367370** klienta BFP. Moduł działa wyłącznie na kanonicznym hoście produkcyjnym. Podglądy, GitHub Pages i obce hosty nie uruchamiają pomiaru. Pusty identyfikator w `config/analytics.json` pozostaje wyłącznikiem awaryjnym na następny build.
 
-Klient otrzymał Administratora konta i usługi; agencja ma wyłącznie Edytora dziedziczonego z konta, po usunięciu bezpośredniej roli Administratora usługi. Nie korzystamy ze wspólnego hasła Google. Warunki dla Polski i aneks przetwarzania danych zaakceptowano za wyraźną zgodą Damiana 15.11.2026.
+Klient i konto agencyjne Oliwii mają Administratora konta, dziedziczonego przez usługę. Oliwia zachowuje Administratora do faktycznego przekazania i sprawdzenia dostępu klienta. Agencja nie ma dostępu do Gmail klienta. Po odbiorze należy ograniczyć jej rolę, zapewniwszy wcześniej możliwość zarządzania klientowi. Nie korzystamy ze wspólnego hasła Google. Warunki dla Polski i aneks przetwarzania danych zaakceptowano za wyraźną zgodą Damiana 15.11.2026. Wcześniejszy zasób 416332137/564373201 pozostaje klientowi: nie jest usunięty, nie przeniesiono z niego historii i nie stanowi aktywnej konfiguracji tej strony. Inne konto agencyjne nie ma roli w poprawnym koncie.
 
 - Domena strumienia: `https://przyjacielodyseusza.pl`; strefa czasu Warszawa, waluta PLN.
 - Retencja zdarzeń i użytkowników: 2 miesiące; reset retencji po aktywności wyłączony. To nie określa retencji raportów zbiorczych.
@@ -19,7 +19,7 @@ Klient otrzymał Administratora konta i usługi; agencja ma wyłącznie Edytora 
 
 Nowy ujednolicony tag Google inicjuje cel przed powtórzonym `config`. Ustawienia prywatności są więc przekazywane globalnym `gtag('set', ...)` **przed** aktualizacją zgody, `js` i pobraniem biblioteki: brak automatycznego page_view, bezpieczny URL/referrer, brak reklam/Signals i ograniczenia cookies. Utrzymany `config` zawiera te same wartości. Samodzielne ustawienie ich wyłącznie w `config` nie wystarczało w rzeczywistym teście.
 
-W automatycznie utworzonym kontenerze Google **GTM-W7ZDCLPJ**, wersja **2**, wyłączono sześć automatycznych kategorii zdarzeń i zbieranie danych przekazanych przez użytkownika. Zmiana ustawień Google może zmienić zachowanie bez nowego commita strony, dlatego podlega osobnej kontroli i ponownemu testowi prywatności.
+W automatycznie utworzonym kontenerze Google **GTM-K74JRKZ2**, wersja **2**, wyłączono sześć automatycznych kategorii zdarzeń i zbieranie danych przekazanych przez użytkownika. Zmiana ustawień Google może zmienić zachowanie bez nowego commita strony, dlatego podlega osobnej kontroli i ponownemu testowi prywatności.
 
 ## Zgoda i prywatność
 

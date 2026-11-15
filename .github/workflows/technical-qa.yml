@@ -1,0 +1,49 @@
+name: QA produkcji Cloudflare
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  WRANGLER_SEND_METRICS: 'false'
+
+concurrency:
+  group: technical-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Build i zgodność plików wynikowych
+        run: |
+          npm run build:production
+          git diff --exit-code -- public
+      - run: npm run validate
+      - run: npm run test:backend
+      - name: Brak znanych podatności zależności
+        run: npm audit --audit-level=moderate
+      - run: npx playwright install --with-deps chromium firefox webkit
+      - run: npm test
+      - name: Lighthouse — laboratorium, mediana z trzech przebiegów
+        env:
+          LH_RUNS: 3
+        run: |
+          set -euo pipefail
+          npx wrangler pages dev --port 8788 --ip 127.0.0.1 --log-level warn &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true; wait "$server_pid" 2>/dev/null || true' EXIT
+          npx wait-on http://127.0.0.1:8788/ --timeout 120000
+          npm run lighthouse
+      # Bez publikacji, sekretów Cloudflare i płatnego magazynu artefaktów/cache.

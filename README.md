@@ -222,16 +222,20 @@ i uprzedza, że wiadomość mogła już dotrzeć; backend nie ponawia wysyłki a
 
 ## Analityka
 
-W bazowej konfiguracji strona nie ustawia cookies i nie ładuje trackerów. Docelowy zakres analityki,
-mechanizm zgód i informację dla użytkownika trzeba uzgodnić z klientem przed produkcją. Plan
-zdarzeń: `docs/plan-pomiarowy.md` (Cloudflare Web Analytics, bez cookies). Skrypt strony emituje zdarzenia
-`po:event` i `dataLayer.push`, które dowolne narzędzie może podchwycić bez zmian w kodzie.
+GA4 pozostaje w uzgodnionym zakresie. Pusty identyfikator w `config/analytics.json` oznacza brak
+pomiaru i banera. Gotowa integracja uruchamia tag dopiero po zgodzie, blokuje go po odmowie lub
+wycofaniu i pomija wartości pól oraz parametry URL. Aktualny stan i warunki uruchomienia rzeczywistego
+strumienia na koncie klienta: [plan pomiarowy](docs/plan-pomiarowy.md).
 
 ## Wersja testowa na GitHub Pages
 
-Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. Push do `main` uruchamia workflow
-(`.github/workflows/qa.yml`). Ręczny `workflow_dispatch` jest również dostępny. PR-y przechodzą QA;
-publikacja jest dozwolona tylko dla `main`. Lokalne gałęzie `codex/*` nie uruchamiają publikacji.
+Repozytorium: <https://github.com/Powers-P1/przyjaciel-odyseusza>. PR i push do `main` uruchamiają
+`.github/workflows/technical-qa.yml`: build, walidację, testy i Lighthouse, bez publikacji oraz bez
+magazynu artefaktów. Produkcja jest publikowana przez `npm run deploy` na Cloudflare.
+
+Archiwalny demonstrator GitHub pozostaje z noindex i bez realnej wysyłki formularza.
+Stary `.github/workflows/qa.yml`, opisany poniżej, uruchamia się wyłącznie ręcznie. Nie wznawiamy
+automatycznie jego publikacji ani przechowywania artefaktów przy zmianach produkcji.
 
 Jedyny podgląd to wersja A: <https://powers-p1.github.io/przyjaciel-odyseusza/>.
 Job `qa` buduje i weryfikuje dokładny SHA zdarzenia, po czym zapisuje gotowy podgląd jako artefakt
@@ -268,8 +272,8 @@ B/C i dawny spis wariantów nie należą do publikowanej paczki; ich dawne adres
   CLS ≤ 0,1, TBT ≤ 200 ms. Raporty w `docs/lighthouse/`.
 - Typografia: testy mierzą przepełnienia i jednoliterowe wyrazy na końcu wiersza w szerokościach 320–1600 px,
   także z odstępami użytkownika WCAG 1.4.12; sprawdzają utrzymanie focusu podczas zmiany szerokości.
-- CI (`.github/workflows/qa.yml`) uruchamia build, testy i Lighthouse dla całej przypiętej macierzy A/B/C;
-  błąd dowolnego wariantu zatrzymuje publikację zestawu. Historyczne raporty nie potwierdzają bieżących zmian.
+- CI (`.github/workflows/technical-qa.yml`) uruchamia build, testy i Lighthouse dla aktualnej wybranej strony.
+  Historyczne warianty B/C nie mają osobnych przebiegów. Historyczne raporty nie potwierdzają bieżących zmian.
 
 ## Operacje (do uzupełnienia przez agencję/klienta)
 

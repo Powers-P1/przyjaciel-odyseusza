@@ -4,6 +4,7 @@
 //   hosting testowy: npm run lighthouse:staging (raporty w docs/lighthouse/staging/)
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
 
@@ -15,12 +16,14 @@ const ALLOW_NOINDEX = process.argv.includes('--allow-noindex');
 fs.mkdirSync(outDir, { recursive: true });
 
 const THRESHOLDS = { performance: 0.9, accessibility: 0.95, 'best-practices': 0.95, seo: 0.95 };
-const CWV = { lcp: 2500, cls: 0.1, tbt: 200 }; // lab: TBT jako proxy INP
+const CWV = { lcp: 2500, cls: 0.1, tbt: 200 }; // Budżet laboratoryjny; TBT nie jest pomiarem terenowego INP.
 // Współdzielone runnery CI (2 vCPU) dają pojedyncze przebiegi z losowo długimi zadaniami głównego wątku (TBT),
 // dlatego w CI liczymy medianę z kilku przebiegów (LH_RUNS=3), jak zaleca zespół Lighthouse.
 const RUNS = Math.max(1, Number(process.env.LH_RUNS) || 1);
 
-const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless=new', '--no-sandbox'] });
+// Własny profil zapobiega asynchronicznemu EPERM w destroyTmp chrome-launcher na Windows.
+const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'odyseusz-lighthouse-'));
+const chrome = await chromeLauncher.launch({ userDataDir: profileDir, chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu'] });
 let failed = false;
 try {
   for (const preset of ['mobile', 'desktop']) {
@@ -61,6 +64,10 @@ try {
   }
 } finally {
   try { await chrome.kill(); } catch (e) { /* Windows: EPERM przy sprzątaniu profilu tymczasowego, nie wpływa na wynik */ }
+  if (path.dirname(profileDir) !== path.resolve(os.tmpdir()) || !path.basename(profileDir).startsWith('odyseusz-lighthouse-')) {
+    throw new Error('Odmowa usunięcia profilu poza katalogiem tymczasowym zadania');
+  }
+  fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
 }
 console.log(`\nRaporty: ${outDir}`);
 if (failed) { console.error('\nLighthouse: progi wydania NIE zostały spełnione.'); process.exit(1); }

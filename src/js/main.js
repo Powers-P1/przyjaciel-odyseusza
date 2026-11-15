@@ -93,7 +93,7 @@
   function track(name, params) {
     var detail = Object.assign({ event: name }, params || {});
     try { window.dispatchEvent(new CustomEvent('po:event', { detail: detail })); } catch (e) { /* stare przeglądarki */ }
-    if (Array.isArray(window.dataLayer)) window.dataLayer.push(detail);
+    // Integracja pomiaru odbiera tylko dozwolone pola po zgodzie przez po:event.
   }
   function sectionOf(el) {
     var s = el.closest('section, header, footer');
@@ -102,6 +102,7 @@
   document.addEventListener('click', function (e) {
     var a = e.target.closest('a[href], button');
     if (!a) return;
+    if (a.closest('.consent-dialog') || a.classList.contains('consent-settings')) return;
     var href = a.getAttribute('href') || '';
     if (href.indexOf('tel:') === 0) track('tel_click', { location: sectionOf(a) });
     else if (href.indexOf('mailto:') === 0) track('mailto_click', { location: sectionOf(a) });

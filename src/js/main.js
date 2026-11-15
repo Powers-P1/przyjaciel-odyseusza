@@ -132,10 +132,12 @@
     message: form.elements.namedItem('message')
   };
 
-  /* Cloudflare Turnstile – ładowany tylko, gdy ustawiono klucz w data-turnstile-sitekey */
+  /* Turnstile: prepare near the form or on interaction, not on every hero-page visit. */
   var sitekey = form.getAttribute('data-turnstile-sitekey');
   var turnstileWidget = null;
   var turnstileToken = '';
+  var turnstileLoading = false;
+  var turnstileObserver;
 
   function resetTurnstile() {
     turnstileToken = '';
@@ -146,12 +148,19 @@
     }
   }
 
-  if (sitekey && !isDemo) {
+  function loadTurnstile() {
+    if (!sitekey || isDemo || turnstileLoading) return;
+    turnstileLoading = true;
+    if (turnstileObserver) turnstileObserver.disconnect();
     var slot = document.getElementById('turnstile-slot');
     if (slot) slot.className = 'turnstile';
     var s = document.createElement('script');
     s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
     s.async = true; s.defer = true;
+    s.addEventListener('error', function () {
+      turnstileLoading = false;
+      s.remove(); // retry only on another deliberate form interaction, never in a loop
+    });
     s.addEventListener('load', function () {
       if (!slot || !window.turnstile) return;
       // The load event already means api.js is ready; ready() rejects async/defer loaders.
@@ -164,6 +173,16 @@
       });
     });
     document.head.appendChild(s);
+  }
+  if (sitekey && !isDemo) {
+    form.addEventListener('focusin', loadTurnstile);
+    form.addEventListener('pointerdown', loadTurnstile);
+    if ('IntersectionObserver' in window) {
+      turnstileObserver = new IntersectionObserver(function (entries) {
+        if (entries.some(function (entry) { return entry.isIntersecting; })) loadTurnstile();
+      }, { rootMargin: '600px 0px' });
+      turnstileObserver.observe(form);
+    } else loadTurnstile();
   }
 
   function showStatus(type, html) {
@@ -252,6 +271,7 @@
       return;
     }
     if (sitekey && !turnstileToken) {
+      loadTurnstile();
       showStatus('error', fallbackHtml('turnstile'));
       return;
     }

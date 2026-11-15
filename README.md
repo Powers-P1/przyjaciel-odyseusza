@@ -44,7 +44,7 @@ Dokumenty towarzyszące:
 │   ├── .well-known/security.txt    # kanał zgłaszania podatności
 │   └── assets/
 │       ├── js/main.js              # ZMINIFIKOWANE (nie edytować ręcznie – patrz src/)
-│       ├── fonts/                  # Source Serif 4 + Inter (woff2, latin + latin-ext, self-hosting)
+│       ├── fonts/                  # Odyseusz Serif (podzbiór Source Serif 4) + Inter, WOFF2 i licencje OFL
 │       ├── img/                    # zdjęcia (webp + jpg), logo, obraz OG
 │       └── icons/                  # favicony i ikony
 ├── src/
@@ -108,7 +108,7 @@ Dla niezależnego serwera QA ustaw `QA_PORT` na wolny port (domyślnie 8788).
    od pierwszego malowania. Build oblicza jego osobny hash w `script-src`; CSP nie używa `unsafe-inline`.
    Bez JavaScriptu klasa `js` nie powstaje i linki nawigacji pozostają widoczne.
 3. Fonty: odchudzone pliki self-hosted zbudowane skryptem `tools/fonts-build.py` (fontTools) z pełnych fontów
-   Google (Source Serif 4 jako font zmienny 400–600, Inter 400/500/600), zestaw znaków: łacina + polskie znaki
+   Google (Source Serif 4 jako font zmienny 400–600, pod własną nazwą Odyseusz Serif; Inter 400/500/600), zestaw znaków: łacina + polskie znaki
    + typografia. Bez preloadu, `font-display: swap`. Nowa grubość lub znaki spoza zestawu (np. cyrylica) wymagają
    ponownego uruchomienia skryptu (instrukcja w jego nagłówku).
 4. Opinie klientów: sekcja `#opinie` pokazuje układ demonstracyjny z widoczną etykietą przykładu

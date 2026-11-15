@@ -10,7 +10,7 @@ Odchudzone fonty self-hosted (fontTools). Uruchamiaj tylko przy zmianie krojów 
 Pobierz je do tools/fonts-src/ (folder jest w .gitignore).
 
 Wynik (public/assets/fonts/):
-  SourceSerif4-var.woff2  – zmienny, wght 400–600, opsz ustawione na 28 (nagłówki), ~37 KB
+  OdyseuszSerif-var-v1.woff2 – podzbiór Source Serif 4 pod własną nazwą (Reserved Font Name), ~37 KB
   Inter-400/500/600.woff2 – instancje statyczne, opsz 14, ~19 KB każda
 Zestaw znaków: ASCII, Latin-1, Latin Extended-A (polskie znaki), cudzysłowy „” «», myślniki, wielokropek, €, strzałki.
 Funkcje OpenType: kern, liga, calt, locl, ccmp, mark, mkmk, rlig, rvrn.
@@ -34,7 +34,15 @@ UNICODES = (
 FEATURES = ["kern", "liga", "calt", "locl", "ccmp", "mark", "mkmk", "rlig", "rvrn"]
 
 
-def build(src, out, axes):
+def rename_serif(font):
+    # OFL: a subset is a Modified Version; preserve copyright/license but not the RFN Source.
+    for record in font['name'].names:
+        if record.nameID in (1, 3, 4, 6, 16, 21, 25):
+            value = record.toUnicode().replace('SourceSerif4', 'OdyseuszSerif').replace('Source Serif 4', 'Odyseusz Serif')
+            record.string = value.encode(record.getEncoding())
+
+
+def build(src, out, axes, rename=False):
     font = TTFont(src)
     font = instancer.instantiateVariableFont(font, axes, inplace=False, updateFontNames=False)
     options = subset.Options()
@@ -46,6 +54,8 @@ def build(src, out, axes):
     subsetter = subset.Subsetter(options)
     subsetter.populate(unicodes=subset.parse_unicodes(UNICODES))
     subsetter.subset(font)
+    if rename:
+        rename_serif(font)
     font.flavor = "woff2"
     font.save(out)
     print(f"{os.path.basename(out)}: {os.path.getsize(out)} B, glyphs: {len(font.getGlyphOrder())}")
@@ -58,7 +68,7 @@ def main():
         if not os.path.exists(path):
             sys.exit(f"Brak pliku źródłowego: {path} (patrz docstring)")
     os.makedirs(OUT, exist_ok=True)
-    build(serif, os.path.join(OUT, "SourceSerif4-var.woff2"), {"opsz": 28, "wght": (400, 600)})
+    build(serif, os.path.join(OUT, "OdyseuszSerif-var-v1.woff2"), {"opsz": 28, "wght": (400, 600)}, rename=True)
     for weight in (400, 500, 600):
         build(inter, os.path.join(OUT, f"Inter-{weight}.woff2"), {"opsz": 14, "wght": weight})
 

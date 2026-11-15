@@ -148,8 +148,8 @@ test.describe('Formularz kontaktowy: interfejs bez prawdziwej wysyłki', () => {
       return route.fulfill(tokens.length === 1 ? { status: 502, json: { ok: false, error: 'mail_failed' } } : { json: { ok: true } });
     });
     await page.goto('/');
-    await expect.poll(() => page.evaluate(() => window.turnstile && window.turnstile.count)).toBe(1);
     await fillValid(page);
+    await expect.poll(() => page.evaluate(() => window.turnstile && window.turnstile.count)).toBe(1);
     await page.locator('#formularz .form__submit').click();
     await expect(page.locator('#form-status')).toContainText('Nie udało się');
     await expect(page.locator('#f-message')).toHaveValue(MESSAGE);

@@ -42,10 +42,14 @@
       // Do not send any events queued by an earlier pre-consent integration.
       window.dataLayer = [];
       window.gtag = function () { window.dataLayer.push(arguments); };
+      var configuration = Object.assign({ send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false, cookie_expires: 60 * 24 * 60 * 60, cookie_update: false, cookie_flags: 'SameSite=Lax;Secure' }, pageInfo());
+      // Unified Google tags can initialize their destination before per-stream config calls.
+      // Apply privacy defaults globally before consent updates, js or tag download.
+      window.gtag('set', configuration);
       window.gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
       window.gtag('consent', 'update', { analytics_storage: 'granted', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
       window.gtag('js', new Date());
-      window.gtag('config', id, Object.assign({ send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false, cookie_expires: 60 * 24 * 60 * 60, cookie_update: false }, pageInfo()));
+      window.gtag('config', id, configuration);
       var tag = document.createElement('script');
       tag.async = true;
       tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);

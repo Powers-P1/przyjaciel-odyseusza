@@ -8,6 +8,7 @@ import os from 'node:os';
 import lighthouse from 'lighthouse';
 import * as chromeLauncher from 'chrome-launcher';
 import { summarizeRuns } from './lighthouse-metrics.mjs';
+import { collectLighthouseRun } from './lighthouse-run.mjs';
 
 const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const url = args[0] || process.env.LH_URL || 'http://127.0.0.1:8788/';
@@ -22,27 +23,37 @@ const CWV = { lcp: 2500, cls: 0.1, tbt: 200 }; // Budżet laboratoryjny; TBT nie
 // dlatego w CI liczymy medianę z kilku przebiegów (LH_RUNS=3), jak zaleca zespół Lighthouse.
 const RUNS = Math.max(1, Number(process.env.LH_RUNS) || 1);
 
-// Własny profil zapobiega asynchronicznemu EPERM w destroyTmp chrome-launcher na Windows.
-const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'odyseusz-lighthouse-'));
-const chrome = await chromeLauncher.launch({ userDataDir: profileDir, chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu'] });
+// Isolate every trace from previous navigations and always clean up our own Chrome.
+async function measure(options, config) {
+  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'odyseusz-lighthouse-'));
+  let chrome;
+  try {
+    chrome = await chromeLauncher.launch({ userDataDir: profileDir, chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu'] });
+    return await lighthouse(url, { ...options, port: chrome.port }, config);
+  } finally {
+    if (chrome) { try { await chrome.kill(); } catch (_) { /* cleanup below retries a locked profile */ } }
+    if (path.dirname(profileDir) !== path.resolve(os.tmpdir()) || !path.basename(profileDir).startsWith('odyseusz-lighthouse-')) {
+      throw new Error('Odmowa usunięcia profilu poza katalogiem tymczasowym zadania');
+    }
+    fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
+  }
+}
 let failed = false;
-try {
   for (const preset of ['mobile', 'desktop']) {
-    const options = { logLevel: 'error', output: ['html', 'json'], port: chrome.port, onlyCategories: Object.keys(THRESHOLDS) };
+    const options = { logLevel: 'error', output: ['html', 'json'], onlyCategories: Object.keys(THRESHOLDS) };
     const config = preset === 'desktop'
       ? { extends: 'lighthouse:default', settings: { formFactor: 'desktop', screenEmulation: { mobile: false, width: 1350, height: 940, deviceScaleFactor: 1, disabled: false }, throttling: { rttMs: 40, throughputKbps: 10240, cpuSlowdownMultiplier: 1 } } }
       : { extends: 'lighthouse:default' };
     const runs = [];
     for (let i = 0; i < RUNS; i++) {
-      const r = await lighthouse(url, options, config);
-      if (!r?.lhr) throw new Error(`[${preset}] Lighthouse nie zwrócił raportu.`);
+      const r = await collectLighthouseRun(() => measure(options, config), (result, attempt) => {
+        if (result?.report?.[1]) fs.writeFileSync(path.join(outDir, `lighthouse-${preset}-run-${i+1}-attempt-${attempt}.json`), result.report[1]);
+        if (result?.lhr?.runtimeError) {
+          console.error(JSON.stringify({preset,run:i+1,attempt,code:result.lhr.runtimeError.code,message:result.lhr.runtimeError.message}));
+          if (result.lhr.runtimeError.code === 'NO_NAVSTART' && attempt === 1) console.warn('Ponawiam raz sam pomiar śladu w nowym procesie Chrome.');
+        }
+      });
       fs.writeFileSync(path.join(outDir, `lighthouse-${preset}-run-${i+1}.json`), r.report[1]);
-      const missing = ['total-blocking-time', 'largest-contentful-paint', 'cumulative-layout-shift']
-        .filter(id => !Number.isFinite(r.lhr.audits[id]?.numericValue));
-      if (r.lhr.runtimeError || missing.length || !Number.isFinite(r.lhr.categories.performance.score)) {
-        console.error(JSON.stringify({preset,run:i+1,runtimeError:r.lhr.runtimeError,missingMetrics:missing,warnings:r.lhr.runWarnings}));
-        throw new Error(`[${preset}] Niepełny pomiar Lighthouse; szczegóły powyżej i w raporcie przebiegu.`);
-      }
       runs.push(r);
       if (RUNS > 1) console.log(`[${preset}] przebieg ${i + 1}/${RUNS}: performance ${Math.round(r.lhr.categories.performance.score * 100)}, TBT ${Math.round(r.lhr.audits['total-blocking-time'].numericValue)} ms, LCP ${Math.round(r.lhr.audits['largest-contentful-paint'].numericValue)} ms`);
     }
@@ -71,12 +82,5 @@ try {
     if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
       `### Lighthouse ${preset}\n\n${RUNS} runs; median Performance ${Math.round(scores.performance*100)}, LCP ${Math.round(lcp)} ms, CLS ${cls.toFixed(3)}, lab TBT ${Math.round(tbt)} ms. Not field INP.\n\n`);
   }
-} finally {
-  try { await chrome.kill(); } catch (e) { /* Windows: EPERM przy sprzątaniu profilu tymczasowego, nie wpływa na wynik */ }
-  if (path.dirname(profileDir) !== path.resolve(os.tmpdir()) || !path.basename(profileDir).startsWith('odyseusz-lighthouse-')) {
-    throw new Error('Odmowa usunięcia profilu poza katalogiem tymczasowym zadania');
-  }
-  fs.rmSync(profileDir, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
-}
 console.log(`\nRaporty: ${outDir}`);
 if (failed) { console.error('\nLighthouse: progi wydania NIE zostały spełnione.'); process.exit(1); }

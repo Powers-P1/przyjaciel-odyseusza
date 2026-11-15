@@ -29,6 +29,8 @@ Formularz nie umieszcza wiadomości w mailto URL; nazwisko/telefon opcjonalne, w
 
 Lighthouse liczy osobne mediany Performance/LCP/CLS/TBT, kategorie funkcjonalne przechodzą w każdym przebiegu; cztery testy agregatora, bez obniżania progów. Main wymaga aktualnego PR, qa z GitHub Actions i rozwiązania dyskusji, także dla administratorów; brak force-push/usuwania. Jednoosobowy właściciel: 0 wymaganych cudzych akceptacji, przegląd kodu nadal wykonany. Akcje na pełnych SHA, token CI tylko do odczytu, bez sekretów produkcyjnych i automatycznych uploadów/cache artefaktów. Zależności zaktualizowane bez force, Node >=22.
 
+W kolejnym CI **841 testów przeszło**, a pomiar Lighthouse wykrył błąd kolektora śladu **NO_NAVSTART**. Każdy pomiar otrzymuje teraz osobny proces/profil Chrome; wyłącznie ten błąd techniczny ma jedną ponowną próbę. Powtórzony błąd, brak metryk, brak paint oraz prawidłowy wolny wynik nie są pomijane. Pięć testów tej polityki; żaden próg nie został obniżony. Raporty prób zachowane osobno.
+
 Licencje OFL i autorstwo dołączone. Podzbiór Source Serif 4 przemianowano na Odyseusz Serif zgodnie z Reserved Font Name; kontury, metryki i kształtowanie identyczne. Odtworzenie z pakietu ujawniło jedynie CRLF/LF w licencji: 38/39 plików identycznych, tekst licencji taki sam. Build normalizuje teraz ten plik; ponowny wynik zapisujemy w portable-rebuild-proof.json, zachowując pierwszy osobno.
 
 ## Wydajność, prywatność i roboty
@@ -44,6 +46,8 @@ GA4 w zakresie, identyfikator pusty do utworzenia osobnych zasobów klienta. Bra
 Schema Validator: 0 błędów/ostrzeżeń. [Ponowny test Google](https://search.google.com/test/rich-results/result?id=isJj9RALNL3EOkaUJQj6FA) po WAF pobrał domenę **07:44 CET**: dwa poprawne elementy, niekrytyczna sugestia adresu. Nie dodano fikcyjnego biura. To nie dowód własności GSC ani indeksacji.
 
 Robots/Cloudflare pozwalają na publiczną treść; API chronione oddzielnie. Rozdzielono Google/Bing, wyszukiwanie AI, pobrania na żądanie i trening, który obecna decyzja projektu dopuszcza. Kontrolowane UA OpenAI/Anthropic/Perplexity/LinkedIn/Facebook: 200 bez challenge. **Podmiana UA nie dowodzi wizyty z IP dostawcy, indeksacji, podglądu społecznościowego ani cytowania.** GSC/Bing i rzeczywiste raporty pozostają otwarte; llms.txt nie gwarantuje cytowań.
+
+[Niezależny BIC Pages](https://developers.cloudflare.com/pages/platform/known-issues/#browser-integrity-check-on-pages) może odrzucić część domyślnych klientów bibliotek mimo ustawień własnej strefy. Sprawdzono 403/1010 dla Python-urllib oraz 200 dla opisowego monitora i OAI-SearchBot na domenie/pages.dev. To jawne ograniczenie platformy, nie dowód blokowania wszystkich robotów AI. Błąd pobrania przez dostępne narzędzie WWW pozostaje bez ustalonej przyczyny; próbka Security Events nie zawiera blokad publicznych stron. Nie zmieniano ochrony na podstawie samego tego błędu.
 
 ## Monitoring, kopie i uprawnienia
 

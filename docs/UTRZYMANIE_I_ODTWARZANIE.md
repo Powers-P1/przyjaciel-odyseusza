@@ -31,7 +31,7 @@ Reguły starych URL: page_id=2 ma 301 do odpowiadającej strony głównej; usuni
 
 Pusty ga4MeasurementId utrzymuje analitykę wyłączoną. Warunki uruchomienia i własności: [plan pomiarowy](plan-pomiarowy.md). Nie używać strumienia innego klienta/agencji.
 
-Przy odtwarzaniu GA4 zachować również ustawienia dostawcy: klient Administrator, agencja Edytor, retencja 2 miesiące bez resetu, funkcje reklamowe/UPD/automatyczne zdarzenia wyłączone i aktywny filtr QA. Bieżący tag Google to GTM-W7ZDCLPJ, wersja 2. Cofnięcie commita strony nie cofa wersji kontenera Google. Po zmianie sprawdzić rzeczywistą bibliotekę, cookies i żądania w czterech stanach zgody; testy formularza z atrapą backendu nie wysyłają maili.
+Przy odtwarzaniu GA4 zachować również ustawienia dostawcy: klient Administrator, konto Oliwii jako Administrator do faktycznego przekazania, potem ograniczenie roli po sprawdzeniu dostępu klienta, retencja 2 miesiące bez resetu, funkcje reklamowe/UPD/automatyczne zdarzenia wyłączone i aktywny filtr QA. Bieżący tag Google to GTM-K74JRKZ2, wersja 2. Cofnięcie commita strony nie cofa wersji kontenera Google. Po zmianie sprawdzić rzeczywistą bibliotekę, cookies i żądania w czterech stanach zgody; testy formularza z atrapą backendu nie wysyłają maili.
 
 ## DNS i DNSSEC
 

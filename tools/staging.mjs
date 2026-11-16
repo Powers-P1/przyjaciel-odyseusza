@@ -22,7 +22,8 @@ const base = url.pathname.replace(/\/+$/, ''); // '/przyjaciel-odyseusza' albo '
 const site = url.origin + base; // bez końcowego ukośnika
 const PROD = ['https://www.przyjacielodyseusza.pl', 'https://przyjacielodyseusza.pl'];
 const TEXT = /\.(html|css|js|txt|xml|webmanifest|json|svg)$/i;
-const SKIP = new Set(['_headers', '_redirects', 'sitemap.xml']);
+const indexNow = JSON.parse(fs.readFileSync('config/indexnow.json', 'utf8'));
+const SKIP = new Set(['_headers', '_redirects', 'sitemap.xml', `${indexNow.key}.txt`]);
 
 const ROBOTS_META = '<meta name="robots" content="noindex, nofollow">';
 const ROBOTS_TXT = [

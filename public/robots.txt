@@ -2,6 +2,23 @@
 # w wyszukiwarkach i w odpowiedziach modeli AI, dlatego nie blokujemy żadnych robotów
 # (w tym GPTBot, ClaudeBot, PerplexityBot, Google-Extended). Blokujemy tylko endpoint formularza.
 # Dodatkowy opis dla maszyn: /llms.txt
+# Reguly wyszukiwania, pobierania na zadanie i treningu sa niezalezne.
+# Wspolny zestaw zachowuje blokade /api/ rowniez przy dopasowaniu konkretnego bota.
+# Google-Extended jest tokenem preferencji Gemini, nie osobnym HTTP User-Agent.
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: ClaudeBot
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+
+# Inne wyszukiwarki, roboty i pobrania kart spolecznosciowych (w tym X/Grok).
+# Bez osobnych wyjatkow WAF opartych wylacznie na nazwie User-Agent.
 User-agent: *
 Allow: /
 Disallow: /api/

@@ -8,7 +8,7 @@ test.describe('Smoke: nawigacja i kluczowe ścieżki', () => {
     await expect(page.locator('.mode__title')).toHaveText(['Mentoring', 'Coaching']);
     await expect(page.locator('.mode__title .mode__icon[aria-hidden="true"]')).toHaveCount(2);
     await expect(page.locator('#dla-kogo h2')).toHaveText('Rozwój menedżerów w Twojej organizacji. Twój rozwój.');
-    await expect(page.locator('.card--individual p').last()).toHaveText('Możesz zgłosić się prywatnie, bez udziału pracodawcy. Mentoring i coaching to czas na Twoje wyzwania zawodowe i osobiste oraz własne decyzje. Pomogę Ci.');
+    await expect(page.locator('.card--individual p').last()).toHaveText('Możesz zgłosić się prywatnie. Mentoring i coaching to czas na Twoje wyzwania zawodowe i osobiste oraz własne decyzje. Pomogę Ci.');
     await expect(page.locator('#sytuacje')).toHaveText('Kiedy warto skorzystać z doświadczonego wsparcia');
     await expect(page.locator('.situation')).toHaveCount(5);
     await expect(page.locator('.situation__num')).toHaveText(['01', '02', '03', '04', '05']);

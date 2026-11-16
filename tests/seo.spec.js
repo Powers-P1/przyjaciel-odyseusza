@@ -35,6 +35,23 @@ test.describe('SEO techniczne', () => {
     }
   });
 
+  test('jawne reguły AI zachowują ochronę API, a IndexNow ma publiczny klucz tylko produkcji', async ({ request }) => {
+    test.skip(STAGING, 'demonstrator nie zgłasza produkcyjnych URL ani nie publikuje klucza IndexNow');
+    const robots = await (await request.get('/robots.txt')).text();
+    const groups = robots.trim().split(/\n\s*\n/).filter((group) => /^User-agent:/im.test(group));
+    for (const bot of ['Googlebot', 'Bingbot', 'OAI-SearchBot', 'ChatGPT-User', 'GPTBot', 'Claude-SearchBot', 'Claude-User', 'ClaudeBot', 'Google-Extended', '*']) {
+      const group = groups.find((group) => group.split('\n').some((line) => line.toLowerCase() === `user-agent: ${bot}`.toLowerCase()));
+      expect(group, bot).toBeTruthy();
+      expect(group, bot).toMatch(/^Allow:\s*\/$/m);
+      expect(group, bot).toMatch(/^Disallow:\s*\/api\/$/m);
+    }
+    const config = await import('../config/indexnow.json', { with: { type: 'json' } });
+    const key = await request.get(`/${config.default.key}.txt`);
+    expect(key.status()).toBe(200);
+    expect(key.headers()['content-type']).toMatch(/^text\/plain/);
+    expect((await key.text()).trim()).toBe(config.default.key);
+  });
+
   for (const path of PAGES) {
     test(`meta i struktura: ${path}`, async ({ page }) => {
       await page.goto(path);
@@ -102,6 +119,10 @@ test.describe('SEO techniczne', () => {
     }
     expect(await page.locator('meta[property="og:url"]').getAttribute('content')).toBe(`${PROD}/`);
     expect(await page.locator('meta[name="twitter:card"]').getAttribute('content')).toBe('summary_large_image');
+    for (const [twitter, og] of [['title', 'title'], ['description', 'description'], ['image', 'image'], ['image:alt', 'image:alt']]) {
+      expect(await page.locator(`meta[name="twitter:${twitter}"]`).getAttribute('content'))
+        .toBe(await page.locator(`meta[property="og:${og}"]`).getAttribute('content'));
+    }
     const img = await page.locator('meta[property="og:image"]').getAttribute('content');
     expect(img.startsWith(`${PROD}/`)).toBeTruthy();
     const local = await request.get(img.slice(PROD.length));
@@ -134,6 +155,15 @@ test.describe('SEO techniczne', () => {
     expect(types, 'LocalBusiness i jego podtypy wymagają adresu, którego strona nie podaje')
       .not.toContain('ProfessionalService');
     expect(types).toContain('Person');
+    const website = graph.find((n) => n['@type'] === 'WebSite');
+    const webpage = graph.find((n) => n['@type'] === 'WebPage');
+    expect(website.name).toBe('Przyjaciel Odyseusza');
+    expect(website.url).toBe(`${PROD}/`);
+    expect(webpage.isPartOf['@id']).toBe(website['@id']);
+    expect(webpage.name).toBe(await page.title());
+    for (const [node, key] of [[website, 'publisher'], [webpage, 'publisher'], [webpage, 'mainEntity'], [webpage, 'about']]) {
+      expect(graph.some((n) => n['@id'] === node[key]['@id']), `unresolved ${node['@type']}.${key}`).toBe(true);
+    }
     const person = graph.find((n) => n['@type'] === 'Person');
     const text = await page.locator('body').innerText();
     expect(text).toContain(person.name);

@@ -31,3 +31,14 @@ run(['tools/build.mjs']);
 run(['tools/production.mjs']);
 run([path.resolve('node_modules/wrangler/bin/wrangler.js'),'pages','deploy','dist-cf',
   '--project-name','przyjaciel-odyseusza','--branch','main']);
+// A failed discovery notification does not undo or misreport a successful deployment.
+// The helper verifies the live artifact and deduplicates unchanged pages locally.
+const discoveryEnvironment = { ...process.env };
+delete discoveryEnvironment.CLOUDFLARE_API_TOKEN;
+delete discoveryEnvironment.CLOUDFLARE_ACCOUNT_ID;
+const notification = spawnSync(process.execPath, ['tools/indexnow.mjs', '--submit'], {
+  stdio: 'inherit', env: discoveryEnvironment,
+});
+if (notification.error || notification.status !== 0) {
+  console.warn('Strona opublikowana. IndexNow wymaga ponownej kontroli; nie ponawiaj automatycznie publikacji ani wysylki formularza.');
+}
